@@ -10,6 +10,7 @@
 #include <argtable2.h>
 
 #include "wpn.h"
+#include "wp-encryption.h"
 
 #ifdef _WIN32
 
@@ -47,5 +48,14 @@ int main(int argc, char** argv)
 	WpnConfig config(argc, argv);
 	if (config.error())
 		exit(config.error());
+
+	WpnKeys wpnKeys(config.file_name);
+	
+	std::cout << wpnKeys.getPrivateKey() << " "
+		<< wpnKeys.getPublicKey() << " "
+		<< wpnKeys.getAuthSecret() << std::endl;
+		
+	wpnKeys.save(config.file_name);
+	
 	return 0;
 }
