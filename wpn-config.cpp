@@ -1,13 +1,27 @@
 #include "wpn-config.h"
 #include <iostream>
 #include <argtable2.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+
+#define DEF_FILE_NAME			".wpn"
 
 static const char* progname = "wpn";
-#define DEF_TOX_FILE_NAME			".wpn"
 
+/**
+ * https://stackoverflow.com/questions/2910377/get-home-directory-in-linux-c
+ */
+static std::string getDefaultConfigFileName()
+{
+	struct passwd *pw = getpwuid(getuid());
+	const char *homedir = pw->pw_dir;
+	std::string r(homedir);
+	return r + "/" + DEF_FILE_NAME;
+}
 
 WpnConfig::WpnConfig()
-	: cmd(CMD_RW), file_name("")
+	: cmd(CMD_RW), file_name(getDefaultConfigFileName())
 {
 }
 
@@ -34,7 +48,7 @@ int WpnConfig::parseCmd
 {
 	// GTFS https://developers.google.com/transit/gtfs/reference/?csw=1
 	struct arg_lit *a_print_tox_id = arg_lit0("i", "id", "Print Tox ID");
-	struct arg_str *a_file_name = arg_str0("f", "file", "<file>", "Tox configuration file. Default " DEF_TOX_FILE_NAME);
+	struct arg_str *a_file_name = arg_str0("f", "file", "<file>", "Tox configuration file. Default ~/" DEF_FILE_NAME);
 
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
@@ -64,7 +78,7 @@ int WpnConfig::parseCmd
 	if (a_file_name->count)
 		file_name = *a_file_name->sval;
 	else
-		file_name = DEF_TOX_FILE_NAME;
+		file_name = getDefaultConfigFileName();
 
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)
