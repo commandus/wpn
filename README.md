@@ -31,6 +31,47 @@ make
 - nghttp2 https://github.com/nghttp2/nghttp2
 - ecec https://github.com/web-push-libs/ecec
 
+
+### openssl
+
+```
+wget -c https://github.com/openssl/openssl/archive/OpenSSL_1_1_0h.tar.gz
+tar xvfz OpenSSL_1_1_0h.tar.gz
+mv openssl-OpenSSL_1_1_0h openssl-1.1.0h
+cd openssl-1.1.0h
+./config
+make
+sudo make install
+sudo ldconfig
+openssl version
+```
+
+### nghttp2
+
+```
+git clone git@github.com:nghttp2/nghttp2.git
+cd nghttp2
+autoreconf -i
+./configure
+make
+sudo make install
+```
+
+### ecec
+
+```
+git clone git@github.com:web-push-libs/ecec.git
+https://github.com/web-push-libs/ecec.git
+cd ecec
+mkdir build
+cd build
+cmake -DOPENSSL_ROOT_DIR=/usr/local ..
+make
+sudo cp libece.a /usr/local/lib
+cd ../include
+sudo cp -r * /usr/local/include
+```
+
 ## Tools
 
 - Autoconf 2.63
