@@ -82,7 +82,6 @@ void WpnKeys::init3(
 	init2(keys, " ");
 }
 
-
 /**
  * Generate private hey, encryption public key and public auth 
  * @return 0- success
@@ -118,4 +117,11 @@ std::string WpnKeys::getAuthSecret()
 void WpnKeys::save(std::ostream &strm)
 {
 	strm << getPrivateKey() << " " << getPublicKey() << " " << getAuthSecret() << std::endl;
+}
+
+void WpnKeys::save(const std::string &fileName)
+{
+	std::ofstream strm(fileName);
+	save(strm);
+	strm.close();
 }

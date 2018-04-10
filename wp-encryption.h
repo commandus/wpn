@@ -66,6 +66,7 @@ public:
 	std::string getAuthSecret();
 	
 	void save(std::ostream &strm);
+	void save(const std::string &fileName);
 };
 
 #endif
