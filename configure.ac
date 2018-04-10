@@ -28,6 +28,7 @@ AC_CHECK_LIB([ece], [ece_webpush_generate_keys], [], AC_MSG_ERROR([Could not fin
 CFLAGS="$CFLAGS -I/usr/local/include"
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h string.h sys/time.h termios.h unistd.h])
 AC_CHECK_HEADERS([argtable2.h], [], AC_MSG_ERROR([Could not find argtable2.h. Try $ ./configure CFLAGS='-Iyour-argtable2-include-path]))
+AC_CHECK_HEADERS([ece.h], [], AC_MSG_ERROR([Could not find ece.h. Try $ ./configure CFLAGS='-Iyour-ece-include-path]))
 
 # Checks for typedefs, structures, and compiler characteristics.
 # AC_CHECK_HEADER_STDBOOL
