@@ -2,10 +2,10 @@
  * @file wpn.cpp
  */
 
-#include <thread>
 #include <string>
 #include <cstring>
 #include <iostream>
+#include <fstream>
 #include <signal.h>
 #include <argtable2.h>
 
@@ -49,13 +49,21 @@ int main(int argc, char** argv)
 	if (config.error())
 		exit(config.error());
 
-	WpnKeys wpnKeys(config.file_name);
+	std::ifstream configRead(config.file_name);
+	WpnKeys wpnKeys(configRead);
+	Subscriptions subscriptions(configRead);
+	configRead.close();
 	
 	std::cout << wpnKeys.getPrivateKey() << " "
 		<< wpnKeys.getPublicKey() << " "
 		<< wpnKeys.getAuthSecret() << std::endl;
 		
-	wpnKeys.save(config.file_name);
+
+	std::ofstream configWrite(config.file_name);
+	wpnKeys.save(configWrite);
+	subscriptions.save(configWrite);
+	configWrite.close();
+	
 	
 	return 0;
 }

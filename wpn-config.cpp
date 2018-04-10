@@ -21,7 +21,7 @@ static std::string getDefaultConfigFileName()
 }
 
 WpnConfig::WpnConfig()
-	: cmd(CMD_RW), file_name(getDefaultConfigFileName())
+	: cmd(CMD_SUBSCRIBE), file_name(getDefaultConfigFileName()), endpoint(""), authorized_entity("")
 {
 }
 
@@ -47,15 +47,19 @@ int WpnConfig::parseCmd
 )
 {
 	// GTFS https://developers.google.com/transit/gtfs/reference/?csw=1
-	struct arg_lit *a_print_tox_id = arg_lit0("i", "id", "Print Tox ID");
+	struct arg_lit *a_subscribe = arg_lit0("s", "subscribe", "Subscribe with -u URL -p SENDER_ID");
 	struct arg_str *a_file_name = arg_str0("f", "file", "<file>", "Tox configuration file. Default ~/" DEF_FILE_NAME);
+	struct arg_str *a_endpoint = arg_str0("u", "endpoint", "<URL>", "Push message originator URL, like https://*.firebaseio.com");
+	struct arg_str *a_authorized_entity = arg_str0("p", "entity", "<identifier>", "Push message sender identifier, usually decimal number");
 
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
-		a_print_tox_id, a_file_name,
-		
+		a_subscribe, 
+		a_endpoint,
+		a_authorized_entity,
+		a_file_name,
 		a_help, a_end 
 	};
 
@@ -70,10 +74,9 @@ int WpnConfig::parseCmd
 	// Parse the command line as defined by argtable[]
 	nerrors = arg_parse(argc, argv, argtable);
 
-	if (a_print_tox_id->count)
-		cmd = CMD_PRINT_TOX_ID;
-	else
-		cmd = CMD_RW;
+	cmd = CMD_LISTEN;
+	if (a_subscribe->count)
+		cmd = CMD_SUBSCRIBE;
 
 	if (a_file_name->count)
 		file_name = *a_file_name->sval;

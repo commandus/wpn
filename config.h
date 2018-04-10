@@ -4,6 +4,9 @@
 /* Define to 1 if you have the <argtable2.h> header file. */
 #define HAVE_ARGTABLE2_H 1
 
+/* Define to 1 if you have the <curl/curl.h> header file. */
+#define HAVE_CURL_CURL_H 1
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #define HAVE_DLFCN_H 1
 
@@ -24,6 +27,9 @@
 
 /* Define to 1 if you have the `crypto' library (-lcrypto). */
 #define HAVE_LIBCRYPTO 1
+
+/* Define to 1 if you have the `curl' library (-lcurl). */
+#define HAVE_LIBCURL 1
 
 /* Define to 1 if you have the `ece' library (-lece). */
 #define HAVE_LIBECE 1

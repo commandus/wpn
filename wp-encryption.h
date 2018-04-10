@@ -11,7 +11,7 @@
 
 #include <string>
 #include <iostream>
-
+#include <vector>
 #include <ece.h>
 
 #define DEF_DELIMITER " "
@@ -67,17 +67,98 @@ public:
 		const std::string &fileName
 	);
 
-	std::string getPrivateKey();
-	std::string getPublicKey();
-	std::string getAuthSecret();
+	std::string getPrivateKey() const;
+	std::string getPublicKey() const;
+	std::string getAuthSecret() const;
+	
+	void save(
+		std::ostream &strm,
+		const std::string &delimiter = DEF_DELIMITER
+	) const;
+	void save(
+		const std::string &fileName
+	) const;
+};
+
+class Subscription
+{
+private:
+	std::string endpoint;
+	std::string authorizedEntity;
+	std::string token;
+	std::string pushSet;
+	void init(
+		const std::string &endpoint,
+		const std::string &authorizedEntity,
+		const std::string &token,
+		const std::string &pushSet
+	);
+	void init2(
+		const std::string &keys,
+		const std::string &delimiter
+	);
+	void init3(
+		std::istream &strm,
+		const std::string &delimiter
+	);
+
+public:
+	Subscription();
+	Subscription(
+		const std::string &endpoint,
+		const std::string &authorizedEntity,
+		const std::string &token,
+		const std::string &pushSet
+	);
+	Subscription(
+		std::istream &strm,
+		const std::string &delimiter = DEF_DELIMITER
+	);
+	Subscription(
+		const std::string &fileName
+	);
+
+	std::string getEndpoint() const;
+	std::string getAuthorizedEntity() const;
+	std::string getToken() const;
+	std::string getPushSet() const;
 	
 	void save(
 		std::ostream &strm,
 		const std::string &delimiter
-	);
+	) const;
 	void save(
 		const std::string &fileName
+	) const;
+	bool valid() const;
+};
+
+class Subscriptions
+{
+private:
+	void init3(
+		std::istream &strm,
+		const std::string &delimiter
 	);
+public:
+	Subscriptions();
+	Subscriptions(
+		std::istream &strm,
+		const std::string &delimiter = DEF_DELIMITER
+	);
+	Subscriptions(
+		const std::string &fileName
+	);
+	
+	std::vector<Subscription> list;
+	
+	void save(
+		std::ostream &strm,
+		const std::string &delimiter = DEF_DELIMITER
+	)  const;
+	void save(
+		const std::string &fileName
+	) const;
 };
 
 #endif

@@ -16,15 +16,14 @@ AC_PROG_LIBTOOL
 LDFLAGS="$LDFLAGS -L/usr/local/lib"
 
 # Checks for libraries. Add /usr/local/lib for OS X
-# AC_CHECK_LIB(curl, curl_easy_init, [], AC_MSG_ERROR([Could not find libcurl. Try $ ./configure LDFLAGS='-Lyour-curl-lib-path']))
-
+AC_CHECK_LIB(curl, curl_easy_init, [], AC_MSG_ERROR([Could not find libcurl. Try $ ./configure LDFLAGS='-Lyour-curl-lib-path']))
 AC_CHECK_LIB([argtable2], [arg_parse], [], AC_MSG_ERROR([*** openssl >= 1.1.0 is required ***]))
 AC_CHECK_LIB([crypto], [EVP_CIPHER_CTX_reset], [], AC_MSG_ERROR([Could not find openssl >= 1.1.0. Try $ ./configure LDFLAGS='-Lyour-nghttp2-lib-path']))
 AC_CHECK_LIB([nghttp2], [nghttp2_session_callbacks_new], [], AC_MSG_ERROR([Could not find nghttp2. Try $ ./configure LDFLAGS='-Lyour-nghttp2-lib-path']))
 AC_CHECK_LIB([ece], [ece_webpush_generate_keys], [], AC_MSG_ERROR([Could not find ecec. Try $ ./configure LDFLAGS='-Lyour-ecec-lib-path']))
 
 # Checks for header files. Add /usr/local/include for IS X.
-# AC_CHECK_HEADERS([curl/curl.h], [], AC_MSG_ERROR([Could not find curl/curl.h. Try $ ./configure CFLAGS='-Iyour-curl-include-path]))
+AC_CHECK_HEADERS([curl/curl.h], [], AC_MSG_ERROR([Could not find curl/curl.h. Try $ ./configure CFLAGS='-Iyour-curl-include-path]))
 CFLAGS="$CFLAGS -I/usr/local/include"
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h string.h sys/time.h termios.h unistd.h])
 AC_CHECK_HEADERS([argtable2.h], [], AC_MSG_ERROR([Could not find argtable2.h. Try $ ./configure CFLAGS='-Iyour-argtable2-include-path]))

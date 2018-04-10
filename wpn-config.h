@@ -9,8 +9,10 @@
 #include <string>
 #include <vector>
 
-#define CMD_RW				0
-#define CMD_PRINT_TOX_ID	1
+#define CMD_LISTEN			0
+#define CMD_SUBSCRIBE 		1
+#define CMD_UNSUBSCRIBE		2
+#define CMD_SEND 			3
 
 /**
  * Command line interface (CLI) tool configuration structure
@@ -32,7 +34,9 @@ private:
 	int errorcode;
 public:
 	int cmd;
-	std::string file_name;							///< config file
+	std::string file_name;							///< config file, e.g. https://sure-phone.firebaseio.com"
+	std::string endpoint;							///<subscription entity
+	std::string authorized_entity;					///<subscription entity, sender Id
 	WpnConfig();
 	WpnConfig
 	(
