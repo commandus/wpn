@@ -19,7 +19,7 @@ nobase_dist_include_HEADERS = \
 	wpn-config.h  wpn.h wp-encryption.h
 common_src = 
 
-commonlibs = -L/usr/local/lib/ -lcrypto -largtable2 -lece -lnghttp2
+commonlibs = -L/usr/local/lib/ -lcrypto -largtable2 -lcurl -lece -lnghttp2
 
 #
 #	wpn
