@@ -23,9 +23,6 @@ void signalHandler(int signal)
 	switch(signal)
 	{
 	case SIGINT:
-		stopRequest = true;
-		if (toxclient)
-			toxclient->stop();
 		std::cerr << MSG_INTERRUPTED << std::endl;
 		break;
 	default:
