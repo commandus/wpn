@@ -12,6 +12,10 @@
 #include <string>
 #include <iostream>
 
+#include <ece.h>
+
+#define DEF_DELIMITER " "
+
 class WpnKeys
 {
 private:
@@ -41,7 +45,8 @@ private:
 		const std::string &delimiter
 	);
 	void init3(
-		std::istream &strm
+		std::istream &strm,
+		const std::string &delimiter
 	);
 public:
 	WpnKeys();
@@ -55,7 +60,8 @@ public:
 		const std::string &delimiter
 	);
 	WpnKeys(
-		std::istream &strm
+		std::istream &strm,
+		const std::string &delimiter = DEF_DELIMITER		 
 	);
 	WpnKeys(
 		const std::string &fileName
@@ -65,8 +71,13 @@ public:
 	std::string getPublicKey();
 	std::string getAuthSecret();
 	
-	void save(std::ostream &strm);
-	void save(const std::string &fileName);
+	void save(
+		std::ostream &strm,
+		const std::string &delimiter
+	);
+	void save(
+		const std::string &fileName
+	);
 };
 
 #endif
