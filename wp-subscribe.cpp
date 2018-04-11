@@ -16,6 +16,11 @@ static size_t write_string(void *contents, size_t size, size_t nmemb, void *user
    return size * nmemb;
 }
 
+static size_t hdf(char* buffer, size_t size, size_t nitems, void *userdata) {
+	std::string s(buffer, size * nitems);
+    std::cerr << s << std::endl;
+    return 0;
+}
 /**
   * POST data, return received data in retval
   * @return 200-299 success, otherwise error code. retval contains error description
@@ -25,7 +30,8 @@ static int curlPost
 	const std::string &url,
 	const std::string &contentType,
 	const std::string &data,
-	std::string *retval
+	std::string *retval,
+	int verbosity
 )
 {
 	CURL *curl = curl_easy_init();
@@ -43,6 +49,8 @@ static int curlPost
 
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_string);
+	if (verbosity)
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, hdf);
 	if (retval)
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, retval);
     res = curl_easy_perform(curl);
@@ -119,7 +127,7 @@ int subscribe
 				<< "}";
 			if (verbosity > 2)
 				std::cerr << "Send: " << q.str() << " to " << subscribeUrl << std::endl;
-			r = curlPost(subscribeUrl, "application/json", q.str(), retVal);
+			r = curlPost(subscribeUrl, "application/json", q.str(), retVal, verbosity);
 			if (retVal) {
 				if (verbosity > 2)
 					std::cerr << "Receive response code: "<< r << ", body:" << *retVal << " from " << subscribeUrl << std::endl;

@@ -34,7 +34,7 @@ int subscribe(
 	const std::string &subscribeUrl,
 	const std::string &endPoint,
 	const std::string &authorizedEntity,
-	std::string *errorDescription,
+	std::string *retVal,
 	int verbosity = 0
 );
 
