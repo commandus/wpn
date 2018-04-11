@@ -7,7 +7,7 @@ wpn
 ## Build
 
 ```
-cd clinotify
+cd wpn
 ./autogen.sh
 ./configure
 make

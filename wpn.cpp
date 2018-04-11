@@ -53,17 +53,39 @@ int main(int argc, char** argv)
 	WpnKeys wpnKeys(configRead);
 	Subscriptions subscriptions(configRead);
 	configRead.close();
-	
-	std::cout << wpnKeys.getPrivateKey() << " "
-		<< wpnKeys.getPublicKey() << " "
-		<< wpnKeys.getAuthSecret() << std::endl;
-		
+
+	switch (config.cmd)
+	{
+		case CMD_LIST:
+			{
+				subscriptions.write(std::cout, "\t");
+			}
+			break;
+		case CMD_CREDENTIALS:
+			{
+				wpnKeys.write(std::cout, "\t");
+				std::cout << std::endl;
+			}
+			break;
+		case CMD_SUBSCRIBE:
+			break;
+		case CMD_UNSUBSCRIBE:
+			break;
+		case CMD_SEND:
+			break;
+		default:
+			{
+				if (config.verbosity > 0)
+				{
+					std::cerr << "Not implemented yet." << std::endl;
+				}
+			}
+	}
 
 	std::ofstream configWrite(config.file_name);
-	wpnKeys.save(configWrite);
-	subscriptions.save(configWrite);
+	wpnKeys.write(configWrite);
+	subscriptions.write(configWrite);
 	configWrite.close();
-	
 	
 	return 0;
 }

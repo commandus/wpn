@@ -26,7 +26,7 @@ WpnKeys::WpnKeys
 	const std::string &delimiter
 )
 {
-	init2(keys, delimiter);
+	parse(keys, delimiter);
 }
 
 WpnKeys::WpnKeys(
@@ -34,7 +34,7 @@ WpnKeys::WpnKeys(
 	const std::string &delimiter
 )
 {
-	init3(strm, delimiter);
+	read(strm, delimiter);
 }
 
 WpnKeys::WpnKeys(
@@ -42,7 +42,7 @@ WpnKeys::WpnKeys(
 )
 {
 	std::ifstream strm(fileName);
-	init3(strm, DEF_DELIMITER);
+	read(strm, DEF_DELIMITER);
 }
 
 void WpnKeys::init(
@@ -56,7 +56,7 @@ void WpnKeys::init(
 	ece_base64url_decode(auth_secret.c_str(), auth_secret.size(), ECE_BASE64URL_REJECT_PADDING, authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
 }
 
-void WpnKeys::init2(
+void WpnKeys::parse(
 	const std::string &keys,
 	const std::string &delimiter
 )
@@ -79,7 +79,7 @@ void WpnKeys::init2(
 		init(k[0], k[1], k[2]); 
 }
 
-void WpnKeys::init3(
+void WpnKeys::read(
 	std::istream &strm,
 	const std::string &delimiter
 )
@@ -91,7 +91,7 @@ void WpnKeys::init3(
 
 	std::string keys;
 	std::getline(strm, keys);
-	init2(keys, delimiter);
+	parse(keys, delimiter);
 }
 
 /**
@@ -126,7 +126,7 @@ std::string WpnKeys::getAuthSecret() const
 	return std::string(r, ece_base64url_encode(authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH, ECE_BASE64URL_OMIT_PADDING, r, sizeof(r)));
 }
 
-void WpnKeys::save(
+void WpnKeys::write(
 	std::ostream &strm,
 	const std::string &delimiter
 ) const
@@ -134,12 +134,12 @@ void WpnKeys::save(
 	strm << getPrivateKey() << delimiter << getPublicKey() << delimiter << getAuthSecret() << std::endl;
 }
 
-void WpnKeys::save(
+void WpnKeys::write(
 	const std::string &fileName
 ) const
 {
 	std::ofstream strm(fileName);
-	save(strm, DEF_DELIMITER);
+	write(strm, DEF_DELIMITER);
 	strm.close();
 }
 
@@ -165,7 +165,7 @@ Subscription::Subscription(
 	const std::string &delimiter
 )
 {
-	init3(strm, delimiter);
+	read(strm, delimiter);
 }
 
 Subscription::Subscription(
@@ -173,7 +173,7 @@ Subscription::Subscription(
 )
 {
 	std::ifstream strm(fileName);
-	init3(strm, DEF_DELIMITER);
+	read(strm, DEF_DELIMITER);
 }
 
 std::string Subscription::getEndpoint() const
@@ -196,7 +196,7 @@ std::string Subscription::getPushSet() const
 	return pushSet;
 }
 
-void Subscription::save
+void Subscription::write
 (
 	std::ostream &strm,
 	const std::string &delimiter
@@ -205,13 +205,13 @@ void Subscription::save
 	strm << getEndpoint() << delimiter << getAuthorizedEntity() << delimiter << getToken() << delimiter << getPushSet() << std::endl;
 }
 
-void Subscription::save
+void Subscription::write
 (
 	const std::string &fileName
 ) const
 {
 	std::ofstream strm(fileName);
-	save(strm, DEF_DELIMITER);
+	write(strm, DEF_DELIMITER);
 	strm.close();
 }
 
@@ -228,7 +228,7 @@ void Subscription::init(
 	pushSet = a_pushSet;
 }
 
-void Subscription::init2(
+void Subscription::parse(
 	const std::string &keys,
 	const std::string &delimiter
 )
@@ -249,7 +249,7 @@ void Subscription::init2(
 		init(k[0], k[1], k[2], k[3]); 
 }
 
-void Subscription::init3(
+void Subscription::read(
 	std::istream &strm,
 	const std::string &delimiter
 )
@@ -260,7 +260,7 @@ void Subscription::init3(
 
 	std::string keys;
 	std::getline(strm, keys);
-	init2(keys, delimiter);
+	parse(keys, delimiter);
 }
 
 bool Subscription::valid() const
@@ -279,7 +279,7 @@ Subscriptions::Subscriptions(
 	const std::string &delimiter
 )
 {
-	init3(strm, delimiter);
+	read(strm, delimiter);
 }
 
 Subscriptions::Subscriptions(
@@ -287,30 +287,30 @@ Subscriptions::Subscriptions(
 )
 {
 	std::ifstream strm(fileName);
-	init3(strm, DEF_DELIMITER);
+	read(strm, DEF_DELIMITER);
 }
 	
-void Subscriptions::save(
+void Subscriptions::write(
 	std::ostream &strm,
 	const std::string &delimiter
 ) const
 {
 	for (std::vector<Subscription>::const_iterator it(list.begin()); it != list.end(); ++it)
 	{
-		it->save(strm, delimiter);
+		it->write(strm, delimiter);
 	}
 }
 
-void Subscriptions::save(
+void Subscriptions::write(
 	const std::string &fileName
 ) const
 {
 	std::ofstream strm(fileName);
-	save(strm, DEF_DELIMITER);
+	write(strm, DEF_DELIMITER);
 	strm.close();
 }
 
-void Subscriptions::init3(
+void Subscriptions::read(
 	std::istream &strm,
 	const std::string &delimiter
 )

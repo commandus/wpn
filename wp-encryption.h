@@ -40,11 +40,11 @@ private:
 		const std::string &public_key,
 		const std::string &auth_secret
 	);
-	void init2(
+	void parse(
 		const std::string &keys,
 		const std::string &delimiter
 	);
-	void init3(
+	void read(
 		std::istream &strm,
 		const std::string &delimiter
 	);
@@ -71,11 +71,11 @@ public:
 	std::string getPublicKey() const;
 	std::string getAuthSecret() const;
 	
-	void save(
+	void write(
 		std::ostream &strm,
 		const std::string &delimiter = DEF_DELIMITER
 	) const;
-	void save(
+	void write(
 		const std::string &fileName
 	) const;
 };
@@ -93,11 +93,11 @@ private:
 		const std::string &token,
 		const std::string &pushSet
 	);
-	void init2(
+	void parse(
 		const std::string &keys,
 		const std::string &delimiter
 	);
-	void init3(
+	void read(
 		std::istream &strm,
 		const std::string &delimiter
 	);
@@ -123,11 +123,11 @@ public:
 	std::string getToken() const;
 	std::string getPushSet() const;
 	
-	void save(
+	void write(
 		std::ostream &strm,
 		const std::string &delimiter
 	) const;
-	void save(
+	void write(
 		const std::string &fileName
 	) const;
 	bool valid() const;
@@ -136,7 +136,7 @@ public:
 class Subscriptions
 {
 private:
-	void init3(
+	void read(
 		std::istream &strm,
 		const std::string &delimiter
 	);
@@ -152,11 +152,11 @@ public:
 	
 	std::vector<Subscription> list;
 	
-	void save(
+	void write(
 		std::ostream &strm,
 		const std::string &delimiter = DEF_DELIMITER
 	)  const;
-	void save(
+	void write(
 		const std::string &fileName
 	) const;
 };
