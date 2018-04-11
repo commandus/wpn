@@ -9,12 +9,15 @@
 #include <string>
 #include <vector>
 
-#define CMD_LISTEN			0
-#define CMD_CREDENTIALS		1
-#define CMD_LIST 			2
-#define CMD_SUBSCRIBE 		3
-#define CMD_UNSUBSCRIBE		4
-#define CMD_SEND 			5
+#define CMD_LISTEN				0
+#define CMD_CREDENTIALS			1
+#define CMD_LIST 				2
+#define CMD_SUBSCRIBE 			3
+#define CMD_UNSUBSCRIBE			4
+#define CMD_SEND 				5
+
+#define SUBSCRIBE_URL_COUNT		1
+#define SUBSCRIBE_URL_1	 		"https://fcm.googleapis.com/fcm/connect/subscribe"
 
 /**
  * Command line interface (CLI) tool configuration structure
@@ -38,6 +41,7 @@ public:
 	int cmd;										///< CMD_*
 	int verbosity;									///< 0-quiet, 3- debug
 	std::string file_name;							///< config file, e.g. https://sure-phone.firebaseio.com"
+	std::string subscriberUrl;						///< e.g. https://fcm.googleapis.com/fcm/connect/subscribe or 1 
 	std::string endpoint;							///<subscription entity
 	std::string authorized_entity;					///<subscription entity, sender Id
 	WpnConfig();

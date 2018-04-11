@@ -8,9 +8,11 @@
 #include <fstream>
 #include <signal.h>
 #include <argtable2.h>
+#include <curl/curl.h>
 
 #include "wpn.h"
-#include "wp-encryption.h"
+#include "wp-storage-file.h"
+#include "wp-subscribe.h"
 
 #ifdef _WIN32
 
@@ -45,6 +47,9 @@ int main(int argc, char** argv)
 	// Signal handler
 	setSignalHandler(SIGINT);
 
+	// In windows, this will init the winsock stuff
+	curl_global_init(CURL_GLOBAL_ALL);
+
 	WpnConfig config(argc, argv);
 	if (config.error())
 		exit(config.error());
@@ -68,6 +73,20 @@ int main(int argc, char** argv)
 			}
 			break;
 		case CMD_SUBSCRIBE:
+			{
+				Subscription subscription;
+				std::string d;
+				int r = subscribe(subscription, SUBSCRIBE_FIREBASE, wpnKeys, 
+						config.subscriberUrl, config.endpoint, config.authorized_entity,  &d);
+				if ((r < 200) || (r >= 300))
+				{
+					std::cerr << "Error " << r << ": " << d << std::endl;
+				}
+				else 
+				{
+					subscriptions.list.push_back(subscription);
+				}
+			}
 			break;
 		case CMD_UNSUBSCRIBE:
 			break;

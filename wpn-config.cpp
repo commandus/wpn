@@ -9,6 +9,11 @@
 
 static const char* progname = "wpn";
 
+
+static const char* SUBSCRIBE_URLS[SUBSCRIBE_URL_COUNT] = {
+	SUBSCRIBE_URL_1
+};
+
 /**
  * https://stackoverflow.com/questions/2910377/get-home-directory-in-linux-c
  */
@@ -53,6 +58,8 @@ int WpnConfig::parseCmd
 	struct arg_lit *a_send = arg_lit0("s", "send", "Send message with -u URL -p SENDER_ID");
 	
 	struct arg_str *a_file_name = arg_str0("f", "file", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
+	
+	struct arg_str *a_subscribe_url = arg_str0("a", "subscribe", "<URL>", "Subscribe URL, like https://*.firebaseio.com");
 	struct arg_str *a_endpoint = arg_str0("u", "endpoint", "<URL>", "Push message originator URL, like https://*.firebaseio.com");
 	struct arg_str *a_authorized_entity = arg_str0("p", "entity", "<identifier>", "Push message sender identifier, usually decimal number");
 

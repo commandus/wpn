@@ -6,8 +6,8 @@
  * 
  * Helper utilities
  */
-#ifndef WP_ENCRYPTION_H
-#define WP_ENCRYPTION_H
+#ifndef WP_STORAGE_FILE_H
+#define WP_STORAGE_FILE_H
 
 #include <string>
 #include <iostream>
