@@ -24,6 +24,7 @@
  * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
  * @param authorizedEntity usual decimal number string
  * @param retVal can be NULL
+ * @param retHeaders can be NULL
  * @param verbosity default 0- none
  * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
  */
@@ -35,6 +36,7 @@ int subscribe(
 	const std::string &endPoint,
 	const std::string &authorizedEntity,
 	std::string *retVal,
+	std::string *retHeaders,
 	int verbosity = 0
 );
 

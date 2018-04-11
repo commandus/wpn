@@ -80,8 +80,9 @@ int main(int argc, char** argv)
 			{
 				Subscription subscription;
 				std::string d;
+				std::string headers;
 				int r = subscribe(subscription, SUBSCRIBE_FIREBASE, wpnKeys, 
-					config.subscribeUrl, config.endpoint, config.authorized_entity,  &d, 
+					config.subscribeUrl, config.endpoint, config.authorized_entity,  &d, &headers,
 					config.verbosity);
 				if ((r < 200) || (r >= 300))
 				{
