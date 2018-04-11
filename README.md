@@ -79,6 +79,8 @@ sudo cp -r * /usr/local/include
 
 ## Dialogs
 
+./wpn -v -s -a 1 -p https://sure-phone.firebaseio.com -i 518511566414
+
 ### Request
 ```
 POST https://fcm.googleapis.com/fcm/connect/subscribe

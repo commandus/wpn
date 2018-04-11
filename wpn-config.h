@@ -41,7 +41,7 @@ public:
 	int cmd;										///< CMD_*
 	int verbosity;									///< 0-quiet, 3- debug
 	std::string file_name;							///< config file, e.g. https://sure-phone.firebaseio.com"
-	std::string subscriberUrl;						///< e.g. https://fcm.googleapis.com/fcm/connect/subscribe or 1 
+	std::string subscribeUrl;						///< e.g. https://fcm.googleapis.com/fcm/connect/subscribe or 1 
 	std::string endpoint;							///<subscription entity
 	std::string authorized_entity;					///<subscription entity, sender Id
 	WpnConfig();

@@ -85,11 +85,6 @@ int subscribe
 )
 {
 	int r = 0;
-	
-	subscription.setSubscribeUrl(subscribeUrl);
-	subscription.setSubscribeMode(subscribeMode);
-	subscription.setEndpoint(endPoint);
-	subscription.setAuthorizedEntity(authorizedEntity);
 
 	if (endPoint.empty())
 	{
@@ -103,7 +98,12 @@ int subscribe
 			*retVal = "Authorized entity is empty";
 		return ERR_PARAM_AUTH_ENTITY;
 	}
-	
+
+	subscription.setSubscribeUrl(subscribeUrl);
+	subscription.setSubscribeMode(subscribeMode);
+	subscription.setEndpoint(endPoint);
+	subscription.setAuthorizedEntity(authorizedEntity);
+
 	switch (subscribeMode) {
 		case SUBSCRIBE_FIREBASE:
 		{
@@ -122,7 +122,7 @@ int subscribe
 			r = curlPost(subscribeUrl, "application/json", q.str(), retVal);
 			if (retVal) {
 				if (verbosity > 2)
-					std::cerr << "Receive: " << retVal << " from" << subscribeUrl << std::endl;
+					std::cerr << "Receive response code: "<< r << ", body:" << *retVal << " from " << subscribeUrl << std::endl;
 
 				// {"token": "...", "pushSet":"..."}
 				json js = json::parse(*retVal);

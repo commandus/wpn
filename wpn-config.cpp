@@ -53,15 +53,15 @@ int WpnConfig::parseCmd
 {
 	struct arg_lit *a_list = arg_lit0("l", "list", "List subscriptions");
 	struct arg_lit *a_credentials = arg_lit0("c", "credentials", "Print credentials");
-	struct arg_lit *a_subscribe = arg_lit0("s", "subscribe", "Subscribe with -u URL -p SENDER_ID");
-	struct arg_lit *a_unsubscribe = arg_lit0("u", "unsubscribe", "Unsubscribe with -u URL -p SENDER_ID");
-	struct arg_lit *a_send = arg_lit0("s", "send", "Send message with -u URL -p SENDER_ID");
+	struct arg_lit *a_subscribe = arg_lit0("s", "subscribe", "Subscribe with -a -p -i");
+	struct arg_lit *a_unsubscribe = arg_lit0("u", "unsubscribe", "Unsubscribe with -p -i");
+	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -p -i");
 	
 	struct arg_str *a_file_name = arg_str0("f", "file", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
 	
-	struct arg_str *a_subscribe_url = arg_str0("a", "subscribe", "<URL>", "Subscribe URL, like https://*.firebaseio.com");
-	struct arg_str *a_endpoint = arg_str0("u", "endpoint", "<URL>", "Push message originator URL, like https://*.firebaseio.com");
-	struct arg_str *a_authorized_entity = arg_str0("p", "entity", "<identifier>", "Push message sender identifier, usually decimal number");
+	struct arg_str *a_subscribe_url = arg_str0("a", "registrar", "<URL>", "Subscription registrar URL, like https://fcm.googleapis.com/fcm/connect/subscribe or 1");
+	struct arg_str *a_endpoint = arg_str0("p", "pushsvc", "<URL>", "Push service URL, like https://*.firebaseio.com");
+	struct arg_str *a_authorized_entity = arg_str0("i", "entity", "<identifier>", "Push message sender identifier, usually decimal number");
 
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 3, "0- quiet (default), 1- errors, 2- warnings, 3- debug");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
@@ -69,8 +69,7 @@ int WpnConfig::parseCmd
 
 	void* argtable[] = { 
 		a_list, a_credentials, a_subscribe, a_unsubscribe, a_send,
-		a_endpoint,
-		a_authorized_entity,
+		a_subscribe_url, a_endpoint, a_authorized_entity,
 		a_file_name,
 		a_verbosity, a_help, a_end 
 	};
@@ -86,6 +85,18 @@ int WpnConfig::parseCmd
 	// Parse the command line as defined by argtable[]
 	nerrors = arg_parse(argc, argv, argtable);
 	
+	
+	if (a_subscribe_url->count)
+		subscribeUrl = *a_subscribe_url->sval;
+	else
+		subscribeUrl = "";
+	int m = strtol(subscribeUrl.c_str(), NULL, 10);
+	if ((m > 0) && (m <= SUBSCRIBE_URL_COUNT))
+	{
+		m--;
+		subscribeUrl = SUBSCRIBE_URLS[m];
+	}
+
 	if (a_endpoint->count)
 		endpoint = *a_endpoint->sval;
 	else
@@ -114,9 +125,17 @@ int WpnConfig::parseCmd
 
 	if ((cmd == CMD_SUBSCRIBE) || (cmd == CMD_UNSUBSCRIBE))
 	{
+		if (cmd == CMD_SUBSCRIBE)
+		{
+			if (subscribeUrl.empty()) 
+			{
+				std::cerr << "Missing -a option." << std::endl;
+				nerrors++;
+			}
+		}
 		if (endpoint.empty() || authorized_entity.empty()) 
 		{
-			std::cerr << "Missing -u, -p options." << std::endl;
+			std::cerr << "Missing -p, -i options." << std::endl;
 			nerrors++;
 		}
 	}

@@ -63,11 +63,15 @@ int main(int argc, char** argv)
 	{
 		case CMD_LIST:
 			{
+				if (config.verbosity > 0)
+					std::cout << "subscribeUrl\tsubscribeMode\tendpoint\tauthorizedEntity\ttoken\tpushSet" << std::endl;
 				subscriptions.write(std::cout, "\t");
 			}
 			break;
 		case CMD_CREDENTIALS:
 			{
+				if (config.verbosity > 0)
+					std::cout << "private_key\tpublic_key\tauth_secret" << std::endl;
 				wpnKeys.write(std::cout, "\t");
 				std::cout << std::endl;
 			}
@@ -77,7 +81,7 @@ int main(int argc, char** argv)
 				Subscription subscription;
 				std::string d;
 				int r = subscribe(subscription, SUBSCRIBE_FIREBASE, wpnKeys, 
-					config.subscriberUrl, config.endpoint, config.authorized_entity,  &d, 
+					config.subscribeUrl, config.endpoint, config.authorized_entity,  &d, 
 					config.verbosity);
 				if ((r < 200) || (r >= 300))
 				{

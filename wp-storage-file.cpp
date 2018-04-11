@@ -368,5 +368,6 @@ void Subscriptions::read(
 		Subscription s(strm, delimiter);
 		if (!s.valid())
 			break;
+		list.push_back(s);
 	}
 }
