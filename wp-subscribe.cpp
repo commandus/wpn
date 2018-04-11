@@ -13,12 +13,13 @@ using json = nlohmann::json;
 static size_t write_string(void *contents, size_t size, size_t nmemb, void *userp)
 {
 	((std::string*)userp)->append((char*)contents, size * nmemb);
-   return size * nmemb;
+	return size * nmemb;
 }
 
 static size_t write_header(char* buffer, size_t size, size_t nitems, void *userp) {
-	//((std::string*)userp)->append((char*)buffer, size * nitems);
-    return 0;
+	size_t sz = size * nitems;
+	//((std::string*)userp)->append((char*)buffer, sz);
+    return sz;
 }
 /**
   * POST data, return received data in retval
