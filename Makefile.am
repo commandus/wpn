@@ -1,7 +1,7 @@
 SUBDIRS = .
 ACLOCAL_AMFLAGS = -I m4
 
-commoncppflags = -std=c++11 -O2 -I/usr/local/include
+commoncppflags = -std=c++11 -O2 -I/usr/local/include -Ithird_party
 
 #
 #	Exclude generated sources from distribution

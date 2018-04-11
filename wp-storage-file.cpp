@@ -146,17 +146,19 @@ void WpnKeys::write(
 // --------------- Subscription ---------------
 
 Subscription::Subscription()
-	:	endpoint(""), authorizedEntity(""), token(""), pushSet()
+	:	subscribeUrl(""), subscribeMode(0), endpoint(""), authorizedEntity(""), token(""), pushSet("")
 {
 }
 
 Subscription::Subscription(
+	std::string aSubscribeUrl,
+	int aSubscribeMode,
 	const std::string &a_endpoint,
 	const std::string &a_authorizedEntity,
 	const std::string &a_token,
 	const std::string &a_pushSet
 )
-	:	endpoint(a_endpoint), authorizedEntity(a_authorizedEntity), token(a_token), pushSet(a_pushSet)
+	:	subscribeUrl(aSubscribeUrl), subscribeMode(aSubscribeMode), endpoint(a_endpoint), authorizedEntity(a_authorizedEntity), token(a_token), pushSet(a_pushSet)
 {
 }
 
@@ -174,6 +176,16 @@ Subscription::Subscription(
 {
 	std::ifstream strm(fileName);
 	read(strm, DEF_DELIMITER);
+}
+
+std::string Subscription::getSubscribeUrl() const
+{
+	return subscribeUrl;
+}
+
+int Subscription::getSubscribeMode() const
+{
+	return subscribeMode;
 }
 
 std::string Subscription::getEndpoint() const
@@ -196,13 +208,45 @@ std::string Subscription::getPushSet() const
 	return pushSet;
 }
 
+void Subscription::setSubscribeUrl(const std::string &value)\
+{
+	subscribeUrl = value;
+}
+
+void Subscription::setSubscribeMode(int value)
+{
+	subscribeMode = value;
+}
+
+void Subscription::setEndpoint(const std::string &value)
+{
+	endpoint = value;
+}
+
+void Subscription::setAuthorizedEntity(const std::string &value)
+{
+	authorizedEntity = value;
+}
+
+void Subscription::setToken(const std::string &value)
+{
+	token = value;
+}
+
+void Subscription::setPushSet(const std::string &value)
+{
+	pushSet = value;
+}
+
 void Subscription::write
 (
 	std::ostream &strm,
 	const std::string &delimiter
 ) const
 {
-	strm << getEndpoint() << delimiter << getAuthorizedEntity() << delimiter << getToken() << delimiter << getPushSet() << std::endl;
+	strm << getSubscribeUrl() << delimiter << getSubscribeMode() << delimiter 
+		<< getEndpoint() << delimiter << getAuthorizedEntity() << delimiter 
+		<< getToken() << delimiter << getPushSet() << std::endl;
 }
 
 void Subscription::write
@@ -216,12 +260,16 @@ void Subscription::write
 }
 
 void Subscription::init(
+	std::string a_subscribeUrl,
+	int a_subscribeMode,
 	const std::string &a_endpoint,
 	const std::string &a_authorizedEntity,
 	const std::string &a_token,
 	const std::string &a_pushSet
 )
 {
+	subscribeUrl = a_subscribeUrl;
+	subscribeMode = a_subscribeMode;
 	endpoint = a_endpoint;
 	authorizedEntity = a_authorizedEntity;
 	token = a_token;
@@ -233,7 +281,7 @@ void Subscription::parse(
 	const std::string &delimiter
 )
 {
-	std::string k[4];
+	std::string k[6];
 
 	size_t p0 = 0, p1;
 	int i = 0;
@@ -242,11 +290,11 @@ void Subscription::parse(
 		k[i] = keys.substr(p0, p1 - p0);
 		p0 = p1 + delimiter.length();
 		i++;
-		if (i >= 4)
+		if (i >= 6)
 			break;
 	}
 	if (!k[2].empty())
-		init(k[0], k[1], k[2], k[3]); 
+		init(k[0], strtol(k[1].c_str(), NULL, 10), k[2], k[3], k[4], k[5]); 
 }
 
 void Subscription::read(

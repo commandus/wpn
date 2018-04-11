@@ -77,7 +77,8 @@ int main(int argc, char** argv)
 				Subscription subscription;
 				std::string d;
 				int r = subscribe(subscription, SUBSCRIBE_FIREBASE, wpnKeys, 
-						config.subscriberUrl, config.endpoint, config.authorized_entity,  &d);
+					config.subscriberUrl, config.endpoint, config.authorized_entity,  &d, 
+					config.verbosity);
 				if ((r < 200) || (r >= 300))
 				{
 					std::cerr << "Error " << r << ": " << d << std::endl;

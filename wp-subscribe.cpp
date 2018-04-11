@@ -2,8 +2,10 @@
 #include <fstream>
 #include <sstream>
 #include <curl/curl.h>
-
+#include "nlohmann/json.hpp"
 #include "wp-subscribe.h"
+
+using json = nlohmann::json;
 
 /**
   * @brief CURL write callback
@@ -78,9 +80,17 @@ int subscribe
 	const std::string &subscribeUrl,
 	const std::string &endPoint,
 	const std::string &authorizedEntity,
-	std::string *retVal
+	std::string *retVal,
+	int verbosity
 )
 {
+	int r = 0;
+	
+	subscription.setSubscribeUrl(subscribeUrl);
+	subscription.setSubscribeMode(subscribeMode);
+	subscription.setEndpoint(endPoint);
+	subscription.setAuthorizedEntity(authorizedEntity);
+
 	if (endPoint.empty())
 	{
 		if (retVal)
@@ -107,7 +117,18 @@ int subscribe
 				<< "\"authorized_entity\": \""
 				<< authorizedEntity << "\""
 				<< "}";
-			curlPost(subscribeUrl, "application/json", q.str(), retVal);
+			if (verbosity > 2)
+				std::cerr << "Send: " << q.str() << " to " << subscribeUrl << std::endl;
+			r = curlPost(subscribeUrl, "application/json", q.str(), retVal);
+			if (retVal) {
+				if (verbosity > 2)
+					std::cerr << "Receive: " << retVal << " from" << subscribeUrl << std::endl;
+
+				// {"token": "...", "pushSet":"..."}
+				json js = json::parse(*retVal);
+				subscription.setToken(js["token"]);
+				subscription.setPushSet(js["pushSet"]);
+			}
 			break;
 		}
 		default:
@@ -117,4 +138,5 @@ int subscribe
 			return ERR_MODE;
 		}
 	}
+	return r;
 }

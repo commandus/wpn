@@ -83,11 +83,15 @@ public:
 class Subscription
 {
 private:
+	std::string subscribeUrl;
+	int subscribeMode;
 	std::string endpoint;
 	std::string authorizedEntity;
 	std::string token;
 	std::string pushSet;
 	void init(
+		std::string subscribeUrl,
+		int subscribeMode,
 		const std::string &endpoint,
 		const std::string &authorizedEntity,
 		const std::string &token,
@@ -105,6 +109,8 @@ private:
 public:
 	Subscription();
 	Subscription(
+		std::string subscribeUrl,
+		int subscribeMode,
 		const std::string &endpoint,
 		const std::string &authorizedEntity,
 		const std::string &token,
@@ -118,10 +124,19 @@ public:
 		const std::string &fileName
 	);
 
+	std::string getSubscribeUrl() const;
+	int getSubscribeMode() const;
 	std::string getEndpoint() const;
 	std::string getAuthorizedEntity() const;
 	std::string getToken() const;
 	std::string getPushSet() const;
+
+	void setSubscribeUrl(const std::string &value);
+	void setSubscribeMode(int value);
+	void setEndpoint(const std::string &value);
+	void setAuthorizedEntity(const std::string &value);
+	void setToken(const std::string &value);
+	void setPushSet(const std::string &value);
 	
 	void write(
 		std::ostream &strm,

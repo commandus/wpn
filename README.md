@@ -30,7 +30,7 @@ make
 - openssl 1.1.0 https://github.com/openssl/openssl
 - nghttp2 https://github.com/nghttp2/nghttp2
 - ecec https://github.com/web-push-libs/ecec
-
+- JSON for Modern C++ https://nlohmann.github.io/json/	https://github.com/nlohmann/json	License MIT (included in third_party)
 
 ### openssl
 
