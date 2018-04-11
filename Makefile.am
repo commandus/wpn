@@ -16,7 +16,7 @@ CLEANFILES =
 bin_PROGRAMS = wpn
 
 nobase_dist_include_HEADERS = \
-	wpn-config.h  wpn.h wp-encryption.h
+	wpn-config.h  wpn.h wp-storage-file.h
 common_src = 
 
 commonlibs = -L/usr/local/lib/ -lcrypto -largtable2 -lcurl -lece -lnghttp2
@@ -25,7 +25,7 @@ commonlibs = -L/usr/local/lib/ -lcrypto -largtable2 -lcurl -lece -lnghttp2
 #	wpn
 #
 wpn_SOURCES= \
-	wpn-config.cpp wpn.cpp wp-encryption.cpp \
+	wpn-config.cpp wpn.cpp wp-storage-file.cpp \
 	$(common_src)
 
 wpn_LDADD = $(commonlibs)

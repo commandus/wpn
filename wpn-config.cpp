@@ -78,6 +78,16 @@ int WpnConfig::parseCmd
 	}
 	// Parse the command line as defined by argtable[]
 	nerrors = arg_parse(argc, argv, argtable);
+	
+	if (a_endpoint->count)
+		endpoint = *a_endpoint->sval;
+	else
+		endpoint = "";
+
+	if (a_authorized_entity->count)
+		authorized_entity = *a_authorized_entity->sval;
+	else
+		authorized_entity = "";
 
 	cmd = CMD_LISTEN;
 	if (a_list->count)
@@ -95,11 +105,20 @@ int WpnConfig::parseCmd
 					if (a_send->count)
 						cmd = CMD_SEND;
 
+	if ((cmd == CMD_SUBSCRIBE) || (cmd == CMD_UNSUBSCRIBE))
+	{
+		if (endpoint.empty() || authorized_entity.empty()) 
+		{
+			std::cerr << "Missing -u, -p options." << std::endl;
+			nerrors++;
+		}
+	}
+	
 	if (a_file_name->count)
 		file_name = *a_file_name->sval;
 	else
 		file_name = getDefaultConfigFileName();
-	
+
 	verbosity = a_verbosity->count;
 	
 	// special case: '--help' takes precedence over error reporting
@@ -109,7 +128,7 @@ int WpnConfig::parseCmd
 			arg_print_errors(stderr, a_end, progname);
 		std::cerr << "Usage: " << progname << std::endl;
 		arg_print_syntax(stderr, argtable, "\n");
-		std::cerr << "Simplest Tox CLI client" << std::endl;
+		std::cerr << "Web push notification command line interface client" << std::endl;
 		arg_print_glossary(stderr, argtable, "  %-25s %s\n");
 		arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 		return 1;
