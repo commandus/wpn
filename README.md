@@ -114,3 +114,9 @@ curl -i -H Accept:application/json -H Content-Type:application/json -X POST http
 	"pushSet": "eJpriwkjrcU:APA91bHS4Ohb5In3ssqr3nPWI_EtFbAHEYvxN3SX1Omct5hjy48CeyTCZw5bzxyST1Bhj4m0WynXoq7pmw3IM0JuAQ8poeJe99vFJSeYGKgXtut_2Cmyxwu_V6xrDUqp-k8HDaeN_5fy"
 }
 ```
+
+### Send notification
+```
+cd ~/src/surephone-commander
+./surephone-commander -i 149 -m -s Subject -b Body -p "https://commandus.com/favicon.ico" -l "https://commandus.com" 79141040619
+```

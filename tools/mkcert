@@ -1,0 +1,96 @@
+#!/bin/bash
+#
+#	Self-signed certificate generation utility.
+#	Copyright (c) 2016 Andrei Ivanov andrei.i.ivanov@commandus.com.
+#	Examples: 
+#		1. Create CA certificate & PK
+#			./mkcert `hostname` ca 1234
+#		2. Create server certificate & PK
+#			./mkcert "*".`hostname` server 1234
+#		3. Create client certificate&PK
+#			./mkcert client1.`hostname` client1 1234
+#		4. Create roots certificate (one cerificate is enought)
+#			./mkcert "*".`hostname` roots 1234
+#			 
+#
+
+# out directory
+OUT=cert
+# organization name
+ORG="/C=RU/ST=Sakha/O=fcm.googleapis.com"
+LOG=$OUT/cert.log
+
+#----------------- Do not edit below this line -----------------
+AUTH="$1"
+NAME=$2
+PWD=$3
+
+if [ -z "$AUTH" ]; then
+	AUTH=`hostname`
+fi
+if [ -z $NAME ]; then
+	NAME="server"
+fi
+if [ -z $PWD ]; then
+	PWD="1234"
+fi
+
+CP=/bin/cp
+RM=/bin/rm
+OSSL=/usr/bin/openssl
+
+function mkkey {
+	NAME=$1
+	PWD=$2
+	$OSSL genrsa -des3 -out $OUT/$NAME.key -passout pass:$PWD 1024 2>>$LOG 
+	$CP $OUT/$NAME.key $OUT/$NAME.ukey
+	$OSSL rsa -in $OUT/$NAME.ukey -passin pass:$PWD -out $OUT/$NAME.key 2>>$LOG
+	$RM $OUT/$NAME.ukey  
+}
+
+function mkcrt {
+	NAME=$1
+	PWD=$2
+	AUTH="$3"
+	$OSSL req -new -key $OUT/$NAME.key -passin pass:$PWD -subj "$ORG/OU=$NAME/CN=$AUTH" -out $OUT/$NAME.csr 2>>$LOG
+	#-passin pass:$PWD -signkey $OUT/$NAME.key
+	$OSSL x509 -req -in $OUT/$NAME.csr -days 3650 -CA cert/ca.crt -CAkey cert/ca.key -CAserial cert/sn.txt -out $OUT/$NAME.crt 2>>$LOG
+	rm $OUT/$NAME.csr
+}
+
+function prcrt {
+	echo "$OUT/$NAME.key $OUT/$NAME.crt" 
+	$OSSL x509 -in $OUT/$NAME.crt -text | grep "Issuer:"
+}
+
+function mkca {
+	NAME=$1
+	PWD=$2
+	AUTH="$3"
+	$OSSL req -passout pass:$PWD -days 3650 -subj "$ORG/OU=CA/CN=$AUTH" -nodes -keyout $OUT/$NAME.key -out $OUT/$NAME.crt -new -x509 2>>$LOG 
+}
+
+echo "./mkcert $AUTH $NAME $PWD"
+
+if [ "$NAME" = "ca" ]; then
+	echo "Creating CA.."
+	if [ ! -s $OUT/sn.txt ]; then
+		echo "00" > $OUT/sn.txt
+	fi
+	mkca $NAME $PWD "$AUTH"
+	exit 0
+fi
+
+# check does CA certificate exists
+if [ ! -s $OUT/ca.crt ]; then
+	echo "Error: root CA certificate not found in '$OUT'."
+	echo "./mkcert ca [<authdomain>] [<password>]"
+	echo "Default authdomain: $AUTH, password: $PWD"
+	exit 1
+fi
+
+mkkey $NAME $PWD "$AUTH"
+mkcrt $NAME $PWD "$AUTH"
+prcrt $NAME
+  
+exit 0
