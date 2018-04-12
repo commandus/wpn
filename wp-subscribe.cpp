@@ -12,13 +12,14 @@ using json = nlohmann::json;
   */
 static size_t write_string(void *contents, size_t size, size_t nmemb, void *userp)
 {
-	((std::string*)userp)->append((char*)contents, size * nmemb);
+	if (userp)
+		((std::string*)userp)->append((char*)contents, size * nmemb);
 	return size * nmemb;
 }
 
 static size_t write_header(char* buffer, size_t size, size_t nitems, void *userp) {
 	size_t sz = size * nitems;
-	//((std::string*)userp)->append((char*)buffer, sz);
+	((std::string*)userp)->append((char*)buffer, sz);
     return sz;
 }
 /**
@@ -52,8 +53,8 @@ static int curlPost
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_string);
 	if (verbosity && (headers != NULL)) {
-		// curl_easy_setopt(curl, CURLOPT_HEADERDATA, headers->c_str());
-		// curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &write_header);
+		curl_easy_setopt(curl, CURLOPT_HEADERDATA, headers);
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &write_header);
 	}
 	if (retval)
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, retval);

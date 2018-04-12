@@ -63,9 +63,41 @@ int main(int argc, char** argv)
 	{
 		case CMD_LIST:
 			{
-				if (config.verbosity > 0)
-					std::cout << "subscribeUrl\tsubscribeMode\tendpoint\tauthorizedEntity\ttoken\tpushSet" << std::endl;
-				subscriptions.write(std::cout, "\t");
+				switch (config.verbosity)
+				{
+					case 0:
+						{
+							for (std::vector<Subscription>::const_iterator it(subscriptions.list.begin()); it != subscriptions.list.end(); ++it)
+							{
+								std::cout << it->getEndpoint() << std::endl;
+							}
+							break;
+						}
+					case 1:
+						{
+							for (std::vector<Subscription>::const_iterator it(subscriptions.list.begin()); it != subscriptions.list.end(); ++it)
+							{
+								std::cout << it->getEndpoint() << "\t" << it->getAuthorizedEntity() << std::endl;
+							}
+							break;
+						}
+					case 2:
+						{
+							for (std::vector<Subscription>::const_iterator it(subscriptions.list.begin()); it != subscriptions.list.end(); ++it)
+							{
+								std::cout << it->getEndpoint() << "\t" << it->getAuthorizedEntity() << "\t" << it->getToken() << std::endl;
+							}
+							break;
+						}
+					case 3:
+					{
+						std::cout << "subscribeUrl\tsubscribeMode\tendpoint\tauthorizedEntity\ttoken\tpushSet" << std::endl;
+						subscriptions.write(std::cout, "\t");
+						break;
+					}
+				default:
+					break;
+				}
 			}
 			break;
 		case CMD_CREDENTIALS:
