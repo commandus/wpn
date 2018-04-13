@@ -31,6 +31,8 @@ make
 - nghttp2 https://github.com/nghttp2/nghttp2
 - ecec https://github.com/web-push-libs/ecec
 - JSON for Modern C++ https://nlohmann.github.io/json/	https://github.com/nlohmann/json	License MIT (included in third_party)
+- glog https://github.com/google/glog
+- unwind https://www.nongnu.org/libunwind/
 
 ### openssl
 
