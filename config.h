@@ -34,8 +34,17 @@
 /* Define to 1 if you have the `ece' library (-lece). */
 #define HAVE_LIBECE 1
 
+/* Define to 1 if you have the `glog' library (-lglog). */
+#define HAVE_LIBGLOG 1
+
 /* Define to 1 if you have the `nghttp2' library (-lnghttp2). */
 #define HAVE_LIBNGHTTP2 1
+
+/* Define to 1 if you have the `unwind' library (-lunwind). */
+#define HAVE_LIBUNWIND 1
+
+/* Define to 1 if you have the <libunwind.h> header file. */
+#define HAVE_LIBUNWIND_H 1
 
 /* Define to 1 if you have the <limits.h> header file. */
 #define HAVE_LIMITS_H 1

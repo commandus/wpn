@@ -13,6 +13,7 @@
 #include "wpn.h"
 #include "wp-storage-file.h"
 #include "wp-subscribe.h"
+#include "mcs-client.h"
 
 #ifdef _WIN32
 
@@ -134,8 +135,11 @@ int main(int argc, char** argv)
 			{
 				if (config.verbosity > 0)
 				{
-					std::cerr << "Not implemented yet." << std::endl;
 				}
+				uint64_t androidId = 5302112185968951120;
+				uint64_t securityToken = 1;
+				MCSClient::checkIn(androidId, securityToken);
+				std::cerr << "Not implemented yet." << std::endl;
 			}
 	}
 
