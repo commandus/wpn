@@ -4,13 +4,13 @@
 #	Copyright (c) 2016 Andrei Ivanov andrei.i.ivanov@commandus.com.
 #	Examples: 
 #		1. Create CA certificate & PK
-#			./mkcert `hostname` ca 1234
+#			./mkcert fcm.googleapis.com ca 1234
 #		2. Create server certificate & PK
-#			./mkcert "*".`hostname` server 1234
+#			./mkcert fcm.googleapis.com server 1234
 #		3. Create client certificate&PK
-#			./mkcert client1.`hostname` client1 1234
+#			./mkcert client1.fcm.googleapis.com client1 1234
 #		4. Create roots certificate (one cerificate is enought)
-#			./mkcert "*".`hostname` roots 1234
+#			./mkcert fcm.googleapis.com roots 1234
 #			 
 #
 
