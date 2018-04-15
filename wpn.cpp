@@ -13,7 +13,7 @@
 #include "wpn.h"
 #include "wp-storage-file.h"
 #include "wp-subscribe.h"
-#include "mcs-client.h"
+#include "mcs/mcsclient.h"
 
 #ifdef _WIN32
 
@@ -56,6 +56,7 @@ int main(int argc, char** argv)
 		exit(config.error());
 
 	std::ifstream configRead(config.file_name);
+	AndroidCredentials androidCredentials(configRead);
 	WpnKeys wpnKeys(configRead);
 	Subscriptions subscriptions(configRead);
 	configRead.close();
@@ -138,12 +139,14 @@ int main(int argc, char** argv)
 				}
 				uint64_t androidId = 5302112185968951120;
 				uint64_t securityToken = 1;
-				MCSClient::checkIn(androidId, securityToken);
+				MCSClient client(&config, &wpnKeys, &androidCredentials);
+				//MCSClient::checkIn(androidId, securityToken);
 				std::cerr << "Not implemented yet." << std::endl;
 			}
 	}
 
 	std::ofstream configWrite(config.file_name);
+	androidCredentials.write(configWrite);
 	wpnKeys.write(configWrite);
 	subscriptions.write(configWrite);
 	configWrite.close();

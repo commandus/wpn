@@ -16,6 +16,56 @@
 
 #define DEF_DELIMITER " "
 
+class AndroidCredentials
+{
+private:
+	uint64_t mAndroidId;
+    uint64_t mSecurityToken;
+
+	void init(
+		uint64_t androidId,
+		uint64_t securityToken
+	);
+	void parse(
+		const std::string &keys,
+		const std::string &delimiter
+	);
+	void read(
+		std::istream &strm,
+		const std::string &delimiter
+	);
+public:
+	AndroidCredentials();
+	AndroidCredentials(
+		uint64_t androidId,
+		uint64_t securityToken
+   	);
+	AndroidCredentials(
+		const std::string &keys,
+		const std::string &delimiter
+	);
+	AndroidCredentials(
+		std::istream &strm,
+		const std::string &delimiter = DEF_DELIMITER		 
+	);
+	AndroidCredentials(
+		const std::string &fileName
+	);
+
+	uint64_t getAndroidId() const;
+	uint64_t getSecurityToken() const;
+	void setAndroidId(uint64_t value);
+	void setSecurityToken(uint64_t value);
+
+	void write(
+		std::ostream &strm,
+		const std::string &delimiter = DEF_DELIMITER
+	) const;
+	void write(
+		const std::string &fileName
+	) const;
+};
+
 class WpnKeys
 {
 private:

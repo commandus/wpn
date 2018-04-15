@@ -3,6 +3,136 @@
 #include <fstream>
 #include "wp-storage-file.h"
 
+// --------------- AndroidCredentials ---------------
+
+AndroidCredentials::AndroidCredentials()
+	: mAndroidId(0), mSecurityToken(0)
+
+{
+}
+
+AndroidCredentials::AndroidCredentials
+(
+	uint64_t androidId,
+	uint64_t securityToken
+)
+{
+	init(androidId, securityToken);
+}
+
+AndroidCredentials::AndroidCredentials
+(
+	const std::string &keys,
+	const std::string &delimiter
+)
+{
+	parse(keys, delimiter);
+}
+
+AndroidCredentials::AndroidCredentials(
+	std::istream &strm,
+	const std::string &delimiter
+)
+{
+	read(strm, delimiter);
+}
+
+AndroidCredentials::AndroidCredentials(
+	const std::string &fileName
+)
+{
+	std::ifstream strm(fileName);
+	read(strm, DEF_DELIMITER);
+}
+
+void AndroidCredentials::init(
+	uint64_t androidId,
+	uint64_t securityToken
+)
+{
+	mAndroidId = androidId;
+	mSecurityToken = securityToken;
+}
+
+void AndroidCredentials::parse(
+	const std::string &keys,
+	const std::string &delimiter
+)
+{
+	std::string k[3];
+
+	size_t p0 = 0, p1;
+	int i = 0;
+	while ((p1 = keys.find(delimiter, p0))) 
+	{
+		k[i] = keys.substr(p0, p1 - p0);
+		p0 = p1 + delimiter.length();
+		i++;
+		if (i >= 2)
+			break;
+	}
+	if (k[2].empty())
+	{
+		mAndroidId = 0;
+		mSecurityToken = 0;
+	}
+	else
+		init(strtoul(k[0].c_str(), NULL, 10), strtoul(k[1].c_str(), NULL, 10)); 
+}
+
+void AndroidCredentials::read(
+	std::istream &strm,
+	const std::string &delimiter
+)
+{
+	if (strm.fail()) {
+		mAndroidId = 0;
+		mSecurityToken = 0;
+		return;
+	}
+
+	std::string keys;
+	std::getline(strm, keys);
+	parse(keys, delimiter);
+}
+
+uint64_t AndroidCredentials::getAndroidId() const
+{
+	return mAndroidId;
+}
+
+uint64_t AndroidCredentials::getSecurityToken() const
+{
+	return mSecurityToken;
+}
+
+void AndroidCredentials::setAndroidId(uint64_t value)
+{
+	mAndroidId = value;
+}
+
+void AndroidCredentials::setSecurityToken(uint64_t value)
+{
+	mSecurityToken = value;
+}
+
+void AndroidCredentials::write(
+	std::ostream &strm,
+	const std::string &delimiter
+) const
+{
+	strm << mAndroidId << delimiter << mSecurityToken << std::endl;
+}
+
+void AndroidCredentials::write(
+	const std::string &fileName
+) const
+{
+	std::ofstream strm(fileName);
+	write(strm, DEF_DELIMITER);
+	strm.close();
+}
+
 // --------------- WpnKeys ---------------
 
 WpnKeys::WpnKeys()
