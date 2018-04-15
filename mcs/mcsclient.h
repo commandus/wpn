@@ -24,9 +24,12 @@
 #include "wpn-config.h"
 #include "wp-storage-file.h"
 
-#define ERR_NO_CONFIG	-1
-#define ERR_NO_KEYS		-2
-#define ERR_NO_CREDS	-3
+#define ERR_NO_CONFIG				-1
+#define ERR_NO_KEYS					-2
+#define ERR_NO_CREDS				-3
+#define ERR_NO_ANDROID_ID_N_TOKEN	-4
+#define ERR_CHECKIN					-5
+
 
 class MCSClient
 {
@@ -35,7 +38,14 @@ private:
 	const WpnKeys* mKeys;
 	AndroidCredentials *mCredentials;
 
+	int curlPost(
+		const std::string &url,
+		const std::string &contentType,
+		const std::string &content,
+		std::string *retval
+	);
 	int checkIn();
+	std::string getAppId();
 public:
 	MCSClient();
 	MCSClient(
@@ -53,6 +63,7 @@ public:
 		
 	uint64_t getAndroidId();
     uint64_t getSecurityToken();
+	bool hasIdNToken();
 	int registerDevice();
 	int read();
 	int write();

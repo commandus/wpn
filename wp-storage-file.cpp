@@ -1,23 +1,25 @@
 #include <inttypes.h>
 
 #include <fstream>
+#include "third_party/sole/sole.hpp"
 #include "wp-storage-file.h"
 
 // --------------- AndroidCredentials ---------------
 
 AndroidCredentials::AndroidCredentials()
-	: mAndroidId(0), mSecurityToken(0)
+	: mAppId(genAppId()), mAndroidId(0), mSecurityToken(0)
 
 {
 }
 
 AndroidCredentials::AndroidCredentials
 (
+	const std::string &appId,
 	uint64_t androidId,
 	uint64_t securityToken
 )
 {
-	init(androidId, securityToken);
+	init(appId, androidId, securityToken);
 }
 
 AndroidCredentials::AndroidCredentials
@@ -45,11 +47,18 @@ AndroidCredentials::AndroidCredentials(
 	read(strm, DEF_DELIMITER);
 }
 
+std::string AndroidCredentials::genAppId()
+{
+	return sole::uuid4().str();
+}
+
 void AndroidCredentials::init(
+	const std::string &appId,
 	uint64_t androidId,
 	uint64_t securityToken
 )
 {
+	mAppId = appId;
 	mAndroidId = androidId;
 	mSecurityToken = securityToken;
 }
@@ -68,16 +77,17 @@ void AndroidCredentials::parse(
 		k[i] = keys.substr(p0, p1 - p0);
 		p0 = p1 + delimiter.length();
 		i++;
-		if (i >= 2)
+		if (i >= 3)
 			break;
 	}
 	if (k[2].empty())
 	{
+		mAppId = genAppId();
 		mAndroidId = 0;
 		mSecurityToken = 0;
 	}
 	else
-		init(strtoul(k[0].c_str(), NULL, 10), strtoul(k[1].c_str(), NULL, 10)); 
+		init(k[0], strtoul(k[1].c_str(), NULL, 10), strtoul(k[2].c_str(), NULL, 10)); 
 }
 
 void AndroidCredentials::read(
@@ -86,6 +96,7 @@ void AndroidCredentials::read(
 )
 {
 	if (strm.fail()) {
+		mAppId = genAppId();
 		mAndroidId = 0;
 		mSecurityToken = 0;
 		return;
@@ -94,6 +105,11 @@ void AndroidCredentials::read(
 	std::string keys;
 	std::getline(strm, keys);
 	parse(keys, delimiter);
+}
+
+const std::string &AndroidCredentials::getAppId() const
+{
+	return mAppId;
 }
 
 uint64_t AndroidCredentials::getAndroidId() const
@@ -121,7 +137,7 @@ void AndroidCredentials::write(
 	const std::string &delimiter
 ) const
 {
-	strm << mAndroidId << delimiter << mSecurityToken << std::endl;
+	strm << mAppId << delimiter << mAndroidId << delimiter << mSecurityToken << std::endl;
 }
 
 void AndroidCredentials::write(

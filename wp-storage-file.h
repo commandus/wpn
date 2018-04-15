@@ -19,10 +19,12 @@
 class AndroidCredentials
 {
 private:
+	std::string mAppId;
 	uint64_t mAndroidId;
     uint64_t mSecurityToken;
 
 	void init(
+		const std::string &appId,
 		uint64_t androidId,
 		uint64_t securityToken
 	);
@@ -34,9 +36,11 @@ private:
 		std::istream &strm,
 		const std::string &delimiter
 	);
+	std::string genAppId();
 public:
 	AndroidCredentials();
 	AndroidCredentials(
+		const std::string &appId,
 		uint64_t androidId,
 		uint64_t securityToken
    	);
@@ -51,7 +55,7 @@ public:
 	AndroidCredentials(
 		const std::string &fileName
 	);
-
+	const std::string &getAppId() const;
 	uint64_t getAndroidId() const;
 	uint64_t getSecurityToken() const;
 	void setAndroidId(uint64_t value);

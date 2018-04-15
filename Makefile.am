@@ -28,6 +28,8 @@ bin_PROGRAMS = wpn
 nobase_dist_include_HEADERS = \
 	wpn-config.h  wpn.h wp-storage-file.h wp-subscribe.h wp-connection.h \
 	mcs/mcsclient.h \
+	third_party/nlohmann/json.hpp \
+	third_party/sole/sole.hpp \
 	$(gengrpcs_h)
 #	mcs/mcs-client.h \
 #	mcs/mcs-message.h mcs/mcs-util.h
