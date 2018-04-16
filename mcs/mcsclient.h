@@ -49,6 +49,7 @@ private:
 	int logIn();
 	std::string getAppId();
 	int registerDevice();
+	std::vector<std::string> mPersistentIds;
 public:
 	MCSClient();
 	MCSClient(

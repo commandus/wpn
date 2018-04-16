@@ -32,6 +32,7 @@
 
 static const std::string REGISTER_URL("https://android.clients.google.com/c2dm/register3");
 static const std::string CHECKIN_URL("https://android.clients.google.com/checkin");
+static const std::string MCS_HOST("https://mtalk.google.com");
 static const std::string DEF_CHROME_VER("63.0.3234.0");
 
 static const std::string HDR_CONTENT_TYPE("Content-Type: ");
@@ -76,7 +77,8 @@ static std::string mkLoginRequest
 (
 	uint64_t androidId,
 	uint64_t securityToken,
-	const std::string &gcmSecurityToken
+	const std::string &gcmSecurityToken,
+	const std::vector<std::string> &persistentIds
 )
 {
 	LoginRequest req;
@@ -96,7 +98,10 @@ static std::string mkLoginRequest
 	Setting *s = sc->Add();
 	*s->mutable_name() = "new_vc";
 	*s->mutable_value() = "1";
-	*req.add_received_persistent_id() = "";
+	for (std::vector<std::string>::const_iterator it(persistentIds.begin()); it != persistentIds.end(); ++it)
+	{
+		*req.add_received_persistent_id() = *it;
+	}
 
 	std::string r;
 	req.SerializeToString(&r);
@@ -308,10 +313,6 @@ int MCSClient::checkIn()
 		std::cerr << "Send to " << CHECKIN_URL 
 			<< " checkin: " << std::endl
 			<< hexString(protobuf) << std::endl;
-		AndroidCheckinRequest r;
-		r.ParseFromString(protobuf);
-		std::cerr << "Send to " << CHECKIN_URL 
-			<< " checkin version: " << r.version() << std::endl << std::endl;
 	}
 
 	std::string retval;
@@ -359,18 +360,13 @@ int MCSClient::logIn()
 		return ERR_NO_CREDS;
 	uint64_t androidId = mCredentials->getAndroidId();
 	uint64_t securityToken = mCredentials->getSecurityToken();
-	// TODO
-	std::string gcmToken = "";
-	std::string protobuf = mkLoginRequest(androidId, securityToken, gcmToken);
+
+	std::string gcmToken = mCredentials->getFCMToken();
+	std::string protobuf = mkLoginRequest(androidId, securityToken, gcmToken, mPersistentIds);
 	if (mConfig->verbosity > 2)
 	{
-		std::cerr << "Send to " << CHECKIN_URL 
-			<< " checkin: " << std::endl
+		std::cerr << "Login to " << MCS_HOST << std::endl
 			<< hexString(protobuf) << std::endl;
-		AndroidCheckinRequest r;
-		r.ParseFromString(protobuf);
-		std::cerr << "Send to " << CHECKIN_URL 
-			<< " checkin version: " << r.version() << std::endl << std::endl;
 	}
 
 	std::string retval;
@@ -387,28 +383,7 @@ int MCSClient::logIn()
 	}
 	if (r < 200 || r >= 300)
 		return r;
-	
-	AndroidCheckinResponse resp;
-	bool cr = resp.ParseFromString(retval);
-	// Whether statistics were recorded properly.
-	if (!cr)
-		return -r;
-	
-	if (mCredentials)
-	{
-		uint64_t androidId = resp.android_id();
-		uint64_t securityToken = resp.security_token();
-		mCredentials->setAndroidId(androidId);
-		mCredentials->setSecurityToken(securityToken);
-		if (androidId && securityToken)
-		{
-			if (mConfig->verbosity > 2)
-			{
-				std::cerr << "Credentials assigned, android id:  " << androidId 
-					<< ", security token: " << securityToken << std::endl;
-			}
-		}
-	}
+
 	return r;
 }
 
