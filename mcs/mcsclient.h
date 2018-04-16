@@ -28,8 +28,9 @@
 #define ERR_NO_KEYS					-2
 #define ERR_NO_CREDS				-3
 #define ERR_NO_ANDROID_ID_N_TOKEN	-4
-#define ERR_CHECKIN					-5
-
+#define ERR_NO_FCM_TOKEN			-5
+#define ERR_CHECKIN					-6
+#define ERR_REGISTER_VAL			-7	// Error registering
 
 class MCSClient
 {
@@ -45,26 +46,26 @@ private:
 		std::string *retval
 	);
 	int checkIn();
+	int logIn();
 	std::string getAppId();
+	int registerDevice();
 public:
 	MCSClient();
 	MCSClient(
 		const WpnConfig *config, 
 		const WpnKeys* mKeys,
 		AndroidCredentials *androidCredentials
- 	);
+	);
 	MCSClient(const MCSClient& other);
 	void setConfig(const WpnConfig *config);
 	void setKeys(const WpnKeys* keys);
 	~MCSClient();
 	MCSClient& operator=(const MCSClient& other);
 	bool operator==(const MCSClient& other) const;
-	
-		
+
 	uint64_t getAndroidId();
     uint64_t getSecurityToken();
 	bool hasIdNToken();
-	int registerDevice();
 	int read();
 	int write();
 

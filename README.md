@@ -122,3 +122,37 @@ curl -i -H Accept:application/json -H Content-Type:application/json -X POST http
 cd ~/src/surephone-commander
 ./surephone-commander -i 149 -m -s Subject -b Body -p "https://commandus.com/favicon.ico" -l "https://commandus.com" 79141040619
 ```
+
+### Settingsformat
+
+~/.wpn text file keeps settings in lines:
+
+- GCM Credentials
+- FCM Credentials
+- Subscription 1
+- ...
+- Subscription N
+
+Each line separated by one space.
+
+GCM Credentials consists of
+
+- appId Application-wide unique identifier UUID 16 bytes (128 bits) long e.g. 550e8400-e29b-41d4-a716-446655440000. See https://tools.ietf.org/html/rfc4122
+- androidId Android identifier assigned by Google service 64 bits long unsigned integer
+- token Security token 64 bits long unsigned integer
+- FCMToken FCM token string
+
+FCM Credentials consists of
+
+- privateKey base64 encoded 32 bytes
+- publicKey base64 encoded 65 bytes
+- authSecret base64 encoded 16 bytes
+
+Subscription consists of
+
+- subscribeUrl
+- subscribeMode always 1
+- endpoint
+- authorizedEntity
+- token
+- pushSet
