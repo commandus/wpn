@@ -7,8 +7,7 @@
 // --------------- AndroidCredentials ---------------
 
 AndroidCredentials::AndroidCredentials()
-	: mAppId(genAppId()), mAndroidId(0), mSecurityToken(0)
-
+	: mAppId(genAppId()), mAndroidId(0), mSecurityToken(0), mFCMToken("")
 {
 }
 
@@ -16,10 +15,11 @@ AndroidCredentials::AndroidCredentials
 (
 	const std::string &appId,
 	uint64_t androidId,
-	uint64_t securityToken
+	uint64_t securityToken,
+	const std::string &fcmToken
 )
 {
-	init(appId, androidId, securityToken);
+	init(appId, androidId, securityToken, fcmToken);
 }
 
 AndroidCredentials::AndroidCredentials
@@ -55,12 +55,14 @@ std::string AndroidCredentials::genAppId()
 void AndroidCredentials::init(
 	const std::string &appId,
 	uint64_t androidId,
-	uint64_t securityToken
+	uint64_t securityToken,
+	const std::string &fcmToken
 )
 {
 	mAppId = appId;
 	mAndroidId = androidId;
 	mSecurityToken = securityToken;
+	mFCMToken = fcmToken;
 }
 
 void AndroidCredentials::parse(
@@ -68,7 +70,7 @@ void AndroidCredentials::parse(
 	const std::string &delimiter
 )
 {
-	std::string k[3];
+	std::string k[4];
 
 	size_t p0 = 0, p1;
 	int i = 0;
@@ -77,17 +79,18 @@ void AndroidCredentials::parse(
 		k[i] = keys.substr(p0, p1 - p0);
 		p0 = p1 + delimiter.length();
 		i++;
-		if (i >= 3)
+		if (i >= 4)
 			break;
 	}
-	if (k[2].empty())
+	if (k[3].empty())
 	{
 		mAppId = genAppId();
 		mAndroidId = 0;
 		mSecurityToken = 0;
+		mFCMToken = "";
 	}
 	else
-		init(k[0], strtoul(k[1].c_str(), NULL, 10), strtoul(k[2].c_str(), NULL, 10)); 
+		init(k[0], strtoul(k[1].c_str(), NULL, 10), strtoul(k[2].c_str(), NULL, 10), k[3]); 
 }
 
 void AndroidCredentials::read(
@@ -99,6 +102,7 @@ void AndroidCredentials::read(
 		mAppId = genAppId();
 		mAndroidId = 0;
 		mSecurityToken = 0;
+		mFCMToken = "";
 		return;
 	}
 
@@ -122,6 +126,11 @@ uint64_t AndroidCredentials::getSecurityToken() const
 	return mSecurityToken;
 }
 
+const std::string &AndroidCredentials::getFCMToken() const
+{
+	return mFCMToken;
+}
+
 void AndroidCredentials::setAndroidId(uint64_t value)
 {
 	mAndroidId = value;
@@ -132,12 +141,18 @@ void AndroidCredentials::setSecurityToken(uint64_t value)
 	mSecurityToken = value;
 }
 
-void AndroidCredentials::write(
+void AndroidCredentials::setFCMToken(const std::string &value)
+{
+	mFCMToken = value;
+}
+
+void AndroidCredentials::write
+(
 	std::ostream &strm,
 	const std::string &delimiter
 ) const
 {
-	strm << mAppId << delimiter << mAndroidId << delimiter << mSecurityToken << std::endl;
+	strm << mAppId << delimiter << mAndroidId << delimiter << mSecurityToken << delimiter << mFCMToken << std::endl;
 }
 
 void AndroidCredentials::write(

@@ -27,6 +27,7 @@ bin_PROGRAMS = wpn
 
 nobase_dist_include_HEADERS = \
 	wpn-config.h  wpn.h wp-storage-file.h wp-subscribe.h wp-connection.h \
+	utilstring.h \
 	mcs/mcsclient.h \
 	third_party/nlohmann/json.hpp \
 	third_party/sole/sole.hpp \
@@ -43,6 +44,7 @@ commonlibs = -L/usr/local/lib/ -lcrypto -largtable2 -lcurl -lece -lnghttp2 -lglo
 wpn_SOURCES= \
 	wpn-config.cpp wpn.cpp wp-storage-file.cpp wp-subscribe.cpp wp-connection.cpp \
 	mcs/mcsclient.cpp \
+	utilstring.cpp \
 	$(common_src)
 #	mcs/mcs-client.cpp
 #	mcs/mcs-message.cpp mcs/mcs-util.cpp

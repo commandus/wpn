@@ -137,10 +137,8 @@ int main(int argc, char** argv)
 				if (config.verbosity > 0)
 				{
 				}
-				uint64_t androidId = 5302112185968951120;
-				uint64_t securityToken = 1;
 				MCSClient client(&config, &wpnKeys, &androidCredentials);
-				//MCSClient::checkIn(androidId, securityToken);
+				client.connect();
 				std::cerr << "Not implemented yet." << std::endl;
 			}
 	}
