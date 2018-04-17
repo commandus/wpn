@@ -142,6 +142,7 @@ int main(int argc, char** argv)
 				MCSClient client(&config, &wpnKeys, &androidCredentials);
 				client.connect();
 				std::cerr << "Not implemented yet." << std::endl;
+				client.stop();
 			}
 	}
 
