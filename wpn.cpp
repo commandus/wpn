@@ -13,6 +13,7 @@
 #include "wpn.h"
 #include "wp-storage-file.h"
 #include "wp-subscribe.h"
+#include "sslfactory.h"
 #include "mcs/mcsclient.h"
 
 #ifdef _WIN32
@@ -50,7 +51,8 @@ int main(int argc, char** argv)
 
 	// In windows, this will init the winsock stuff
 	curl_global_init(CURL_GLOBAL_ALL);
-
+	initSSL();
+	
 	WpnConfig config(argc, argv);
 	if (config.error())
 		exit(config.error());
