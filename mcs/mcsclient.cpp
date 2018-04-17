@@ -17,7 +17,9 @@
  */
 
 
+#include <functional>
 #include <stdint.h>
+#include <unistd.h>
 #include <sstream>
 #include <curl/curl.h>
 #include <google/protobuf/message.h>
@@ -26,17 +28,43 @@
 #include "mcsclient.h"
 
 #include "utilstring.h"
+#include "sslfactory.h"
 #include "android_checkin.pb.h"
 #include "checkin.pb.h"
 #include "mcs.pb.h"
 
+#define MCS_PORT		443
 static const std::string REGISTER_URL("https://android.clients.google.com/c2dm/register3");
 static const std::string CHECKIN_URL("https://android.clients.google.com/checkin");
 static const std::string MCS_HOST("https://mtalk.google.com");
 static const std::string DEF_CHROME_VER("63.0.3234.0");
 
+static const u_int8_t kMCSVersion = 41;
+
 static const std::string HDR_CONTENT_TYPE("Content-Type: ");
 static const std::string HDR_AUTHORIZATION("Authorization : ");
+
+// MCS Message tags.
+enum MCSProtoTag 
+{
+	kHeartbeatPingTag       = 0,
+	kHeartbeatAckTag        = 1,
+	kLoginRequestTag        = 2,
+	kLoginResponseTag       = 3,
+	kCloseTag               = 4,
+	kMessageStanzaTag       = 5,
+	kPresenceStanzaTag      = 6,
+	kIqStanzaTag            = 7,
+	kDataMessageStanzaTag   = 8,
+	kBatchPresenceStanzaTag = 9,
+	kStreamErrorStanzaTag   = 10,
+	kHttpRequestTag         = 11,
+	kHttpResponseTag        = 12,
+	kBindAccountRequestTag  = 13,
+	kBindAccountResponseTag = 14,
+	kTalkMetadataTag        = 15,
+	kNumProtoTypes          = 16
+};
 
 using namespace checkin_proto;
 using namespace mcs_proto;
@@ -254,17 +282,21 @@ MCSClient::MCSClient(const MCSClient& other)
 
 MCSClient::~MCSClient()
 {
-
+	stop();
 }
 
-MCSClient& MCSClient::operator=(const MCSClient& other)
+int readLoop(SSL *ssl, bool &stop)
 {
-
-}
-
-bool MCSClient::operator==(const MCSClient& other) const
-{
-
+		unsigned char buffer[4096];
+		while (!stop)
+		{
+			int r = SSL_read(ssl, buffer, sizeof(buffer));
+			if (r > 0) {
+				std::cerr << hexString(std::string((char *)&buffer, r)) << std::endl;
+			}
+			std::cerr << "-" << std::endl;
+			sleep(0);
+		}
 }
 
 int MCSClient::connect()
@@ -275,9 +307,10 @@ int MCSClient::connect()
 		return ERR_NO_KEYS;
 	if (!mCredentials)
 		return ERR_NO_CREDS;
+	int r;
 	if (mCredentials->getAndroidId() == 0)
 	{
-		int r = checkIn();
+		r = checkIn();
 		if (r < 200 || r >= 300)
 		{
 			return ERR_NO_ANDROID_ID_N_TOKEN;
@@ -285,13 +318,38 @@ int MCSClient::connect()
 	}
 	if (mCredentials->getFCMToken().empty())
 	{
-		int r = registerDevice();
+		for (int i = 0; i < 5; i++) 
+		{
+			r = registerDevice();
+			if (r >= 200 && r < 300)
+			{
+				break;
+			}
+			sleep(1);
+		}
 		if (r < 200 || r >= 300)
 		{
 			return ERR_NO_FCM_TOKEN;
 		}
 	}
 	
+	mSsl = mSSLFactory.open(&mSocket, MCS_HOST, MCS_PORT);
+	if (!mSsl)
+		return ERR_NO_CONNECT;
+	mStop = false;
+	mListenerThread = new std::thread(readLoop, std::ref(mSsl), std::ref(mStop));
+	mListenerThread->detach();
+	r = logIn();
+	return 0;
+}
+
+void MCSClient::stop()
+{
+	mStop = true;
+	if (mListenerThread)
+	{
+		mListenerThread = NULL;
+	}
 }
 
 bool MCSClient::hasIdNToken()
@@ -354,39 +412,6 @@ int MCSClient::checkIn()
 	return r;
 }
 
-int MCSClient::logIn()
-{
-	if (!mCredentials)
-		return ERR_NO_CREDS;
-	uint64_t androidId = mCredentials->getAndroidId();
-	uint64_t securityToken = mCredentials->getSecurityToken();
-
-	std::string gcmToken = mCredentials->getFCMToken();
-	std::string protobuf = mkLoginRequest(androidId, securityToken, gcmToken, mPersistentIds);
-	if (mConfig->verbosity > 2)
-	{
-		std::cerr << "Login to " << MCS_HOST << std::endl
-			<< hexString(protobuf) << std::endl;
-	}
-
-	std::string retval;
-	int r = curlPost(CHECKIN_URL, "application/x-protobuffer", protobuf, &retval);
-	if (mConfig->verbosity > 1)
-	{
-		std::cerr << "Check in " << CHECKIN_URL 
-			<< " android id: " << mCredentials->getAndroidId()
-			<< " app id: " << mCredentials->getAppId()
-			<< " security token: " << mCredentials->getSecurityToken()
-			<< " security token: " << mCredentials->getSecurityToken() 
-			<< " return code: " << r 
-			<< " value: " << std::endl << std::endl << retval << std::endl;
-	}
-	if (r < 200 || r >= 300)
-		return r;
-
-	return r;
-}
-
 std::string MCSClient::getAppId()
 {
 	std::stringstream r;
@@ -432,6 +457,32 @@ int MCSClient::registerDevice()
 		{
 			std::cerr << k << ": " << v << std::endl;
 		}
+		r = ERR_REGISTER_FAIL;
 	}
+	return r;
+}
+
+int MCSClient::logIn()
+{
+	if (!mCredentials)
+		return ERR_NO_CREDS;
+	if (!mSsl)
+		return ERR_NO_CONNECT;
+	uint64_t androidId = mCredentials->getAndroidId();
+	uint64_t securityToken = mCredentials->getSecurityToken();
+
+	std::string gcmToken = mCredentials->getFCMToken();
+	std::string protobuf = mkLoginRequest(androidId, securityToken, gcmToken, mPersistentIds);
+	if (mConfig->verbosity > 2)
+	{
+		std::cerr << "Login to " << MCS_HOST << std::endl
+			<< hexString(protobuf) << std::endl;
+	}
+
+	SSL_write(mSsl, &kMCSVersion, 1);
+	uint8_t tag = kLoginRequestTag;
+	SSL_write(mSsl, &tag, 1);
+	SSL_write(mSsl, protobuf.c_str(), protobuf.size());
+	int r = 0;
 	return r;
 }

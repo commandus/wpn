@@ -20,9 +20,11 @@
 #ifndef MCSCLIENT_H
 #define MCSCLIENT_H
 
+#include <thread>
 #include <inttypes.h>
 #include "wpn-config.h"
 #include "wp-storage-file.h"
+#include "sslfactory.h"
 
 #define ERR_NO_CONFIG				-1
 #define ERR_NO_KEYS					-2
@@ -31,10 +33,17 @@
 #define ERR_NO_FCM_TOKEN			-5
 #define ERR_CHECKIN					-6
 #define ERR_REGISTER_VAL			-7	// Error registering
+#define ERR_REGISTER_FAIL			-8
+#define ERR_NO_CONNECT				-9
 
 class MCSClient
 {
 private:
+	bool mStop;
+	std::thread *mListenerThread;
+	SSLFactory mSSLFactory;
+	int mSocket;
+	SSL *mSsl;
 	const WpnConfig *mConfig;
 	const WpnKeys* mKeys;
 	AndroidCredentials *mCredentials;
@@ -61,8 +70,6 @@ public:
 	void setConfig(const WpnConfig *config);
 	void setKeys(const WpnKeys* keys);
 	~MCSClient();
-	MCSClient& operator=(const MCSClient& other);
-	bool operator==(const MCSClient& other) const;
 
 	uint64_t getAndroidId();
     uint64_t getSecurityToken();
@@ -71,6 +78,8 @@ public:
 	int write();
 
 	int connect();
+	
+	void stop();
 };
 
 #endif // MCSCLIENT_H
