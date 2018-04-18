@@ -39,6 +39,7 @@
 #define ERR_REGISTER_VAL			-7	// Error registering
 #define ERR_REGISTER_FAIL			-8
 #define ERR_NO_CONNECT				-9
+#define ERR_MEM						-10
 
 enum PROTO_STATE {
 	STATE_VERSION = 0,
@@ -67,13 +68,10 @@ class MCSClient
 {
 private:
 	MCSReceiveBuffer mBuffer;
-	MCSReceiveBuffer *mStream;
 
-	bool mStop;
 	std::thread *mListenerThread;
 	SSLFactory mSSLFactory;
 	int mSocket;
-	SSL *mSsl;
 	const WpnConfig *mConfig;
 	const WpnKeys* mKeys;
 	AndroidCredentials *mCredentials;
@@ -85,11 +83,14 @@ private:
 		std::string *retval
 	);
 	int checkIn();
-	int logIn();
 	std::string getAppId();
 	int registerDevice();
 	std::vector<std::string> mPersistentIds;
 public:
+	bool mStop;
+	MCSReceiveBuffer *mStream;
+	SSL *mSsl;
+
 	MCSClient();
 	MCSClient(
 		const WpnConfig *config, 
@@ -104,12 +105,15 @@ public:
 	uint64_t getAndroidId();
     uint64_t getSecurityToken();
 	bool hasIdNToken();
+
 	int read();
 	int write();
 
+	int logIn();
+
 	int connect();
 	void stop();
-	int send
+	int sendString
 	(
 		uint8_t tag,
 		const std::string &protobuf

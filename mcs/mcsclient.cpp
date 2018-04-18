@@ -242,7 +242,7 @@ static std::string mkCheckinRequest(
  * @param androidId 0- before register
  * @param securityToken 0- before register
  */
-static std::string mkLoginRequest
+static MessageLite *mkLoginRequest
 (
 	uint64_t androidId,
 	uint64_t securityToken,
@@ -250,17 +250,17 @@ static std::string mkLoginRequest
 	const std::vector<std::string> &persistentIds
 )
 {
-	LoginRequest req;
-	req.set_adaptive_heartbeat(false);
-	req.set_auth_service(LoginRequest_AuthService_ANDROID_ID);
+	LoginRequest *req = new LoginRequest();
+	req->set_adaptive_heartbeat(false);
+	req->set_auth_service(LoginRequest_AuthService_ANDROID_ID);
 
 	std::stringstream st;
 	st << securityToken;
 	std::string securityt = st.str();
-	req.set_auth_token(securityt);	// gcmSecurityToken
+	req->set_auth_token(securityt);	// gcmSecurityToken
 
-	req.set_id("chrome-" + DEF_CHROME_VER);
-	req.set_domain("mcs.android.com");
+	req->set_id("chrome-" + DEF_CHROME_VER);
+	req->set_domain("mcs.android.com");
 
 	std::stringstream sh;
 	sh << std::hex << androidId;
@@ -269,23 +269,20 @@ static std::string mkLoginRequest
 	ss << std::hex << androidId;
 	std::string said = ss.str();
 
-	req.set_device_id("android-" + haid);
-	req.set_network_type(1);
-	req.set_resource(said);
-	req.set_user(said);
-	req.set_use_rmq2(true);
-	auto sc = req.mutable_setting();
+	req->set_device_id("android-" + haid);
+	req->set_network_type(1);
+	req->set_resource(said);
+	req->set_user(said);
+	req->set_use_rmq2(true);
+	auto sc = req->mutable_setting();
 	Setting *s = sc->Add();
 	*s->mutable_name() = "new_vc";
 	*s->mutable_value() = "1";
 	for (std::vector<std::string>::const_iterator it(persistentIds.begin()); it != persistentIds.end(); ++it)
 	{
-		*req.add_received_persistent_id() = *it;
+		*req->add_received_persistent_id() = *it;
 	}
-
-	std::string r;
-	req.SerializeToString(&r);
-	return r;
+	return req;
 }
 
 /**
@@ -438,18 +435,19 @@ MCSClient::~MCSClient()
 	stop();
 }
 
-int readLoop(MCSClient *client, MCSReceiveBuffer *strm, SSL *ssl, bool &stop)
+int readLoop(MCSClient *client)
 {
 	unsigned char buffer[4096];
 	client->log(0, 1, "Start");
-	while (!stop)
+	int r = client->logIn();
+	while (!client->mStop)
 	{
-		int r = SSL_read(ssl, buffer, sizeof(buffer));
+		int r = SSL_read(client->mSsl, buffer, sizeof(buffer));
 		if (r > 0) 
 		{
 			std::cerr << "Received " << r << " bytes:" << std::endl << hexString(std::string((char *) buffer, r)) << std::endl;
-			strm->put(buffer, r);
-			if (size_t c = strm->process())
+			client->mStream->put(buffer, r);
+			if (size_t c = client->mStream->process())
 			{
 				std::cerr << "Processed " << c << " messages" << std::endl;
 			}
@@ -499,12 +497,8 @@ int MCSClient::connect()
 		return ERR_NO_CONNECT;
 	mStop = false;
 	
-	mListenerThread = new std::thread(readLoop, 
-		this,
-		std::ref(mStream), std::ref(mSsl), std::ref(mStop)
-	);
+	mListenerThread = new std::thread(readLoop, this);
 	mListenerThread->detach();
-	r = logIn();
 	return 0;
 }
 
@@ -647,17 +641,25 @@ int MCSClient::logIn()
 	uint64_t securityToken = mCredentials->getSecurityToken();
 
 	std::string gcmToken = mCredentials->getFCMToken();
-	std::string protobuf = mkLoginRequest(androidId, securityToken, gcmToken, mPersistentIds);
+	MessageLite *l =  mkLoginRequest(androidId, securityToken, gcmToken, mPersistentIds);
+	if (!l)
+		return ERR_MEM;
+	std::string protobuf = l->SerializePartialAsString();
 	if (mConfig->verbosity > 2)
 	{
 		std::cerr << "Login to " << MCS_HOST << std::endl;
 	}
 
-	send(kLoginRequestTag, protobuf);
+	sendString(kLoginRequestTag, protobuf);
+	
+	delete l;
+	
 	int r = 0;
+	
 	return r;
 }
 
+/*
 int MCSClient::send
 (
 	uint8_t tag,
@@ -665,7 +667,41 @@ int MCSClient::send
 )
 {
 	std::stringstream ss;
+	OstreamOutputStream rawOutput(&ss);
+	CodedOutputStream codedOutput(&rawOutput);
+	codedOutput.WriteVarint32(kMCSVersion);
+	codedOutput.WriteVarint32(tag);
+	
+	r = message->ParsePartialFromCodedStream(&codedInput);
+			if (!r)
+				break;
+			r = codedInput.ConsumedEntireMessage();
+		}
+		else
+		{
+			r = codedInput.Skip(tagSize);
+		}
+		sz = codedInput.CurrentPosition();
+		codedInput.ConsumedEntireMessage();
+		codedInput.PopLimit(limit);
+
+		
+	std::stringstream ss;
 	ss << kMCSVersion << tag << protobuf;
+	std::string r = ss.str();
+	std::cerr << "Send: " << hexString(r) << std::endl;
+	return SSL_write(mSsl, r.c_str(), r.size());
+}
+*/
+
+int MCSClient::sendString
+(
+	uint8_t tag,
+	const std::string &val
+)
+{
+	std::stringstream ss;
+	ss << kMCSVersion << tag << val;
 	std::string r = ss.str();
 	std::cerr << "Send: " << hexString(r) << std::endl;
 	return SSL_write(mSsl, r.c_str(), r.size());
