@@ -16,7 +16,6 @@
  * 
  */
 
-
 #include <functional>
 #include <stdint.h>
 #include <unistd.h>
@@ -92,7 +91,6 @@ int MCSReceiveBuffer::process()
 			buffer.erase(0, 1);
 			sz--;
 			state = STATE_TAG;
-			count++;
 		} else {
 			sz = parse();
 			if (sz <= 0)
@@ -103,36 +101,97 @@ int MCSReceiveBuffer::process()
 	return count;
 }
 
-Message *MCSReceiveBuffer::getMessage(int tag)
+MessageLite *MCSReceiveBuffer::createMessage(int tag)
 {
-	return NULL;
+	MessageLite *r = NULL;
+	switch(tag)
+	{
+	case kHeartbeatPingTag:
+		r = new HeartbeatPing();
+		break;
+	case kHeartbeatAckTag:
+		r = new HeartbeatAck();
+		break;
+	case kLoginRequestTag:
+		r = new LoginRequest();
+		break;
+	case kLoginResponseTag:
+		r = new LoginResponse();
+		break;
+	case kCloseTag:
+		r = new Close();
+		break;
+	case kMessageStanzaTag:
+		break;
+	case kPresenceStanzaTag:
+		break;
+	case kIqStanzaTag:
+		r = new IqStanza();
+		break;
+	case kDataMessageStanzaTag:
+		r = new DataMessageStanza();
+		break;
+	case kBatchPresenceStanzaTag:
+		break;
+	case kStreamErrorStanzaTag:
+			break;
+	case kHttpRequestTag:
+			break;
+	case kHttpResponseTag:
+			break;
+	case kBindAccountRequestTag:
+			break;
+	case kBindAccountResponseTag:
+			break;
+	case kTalkMetadataTag:
+			break;
+	case kNumProtoTypes:
+			break;
+	default:
+		break;
+	}
+	return r;
 }
 
 int MCSReceiveBuffer::parse()
 {
-	int sz = buffer.size();
-	if (sz < 2)
-		return 0;
 	std::stringstream ss(buffer);
 	IstreamInputStream rawInput(&ss);
 	CodedInputStream codedInput(&rawInput);
-	int tag = codedInput.ReadTag();	// 1 byte long
-	uint32_t tagSize;
-	bool r = codedInput.ReadVarint32(&tagSize);
-	if (!r)
-		return 0;
-	r = codedInput.ReadVarint32(&tagSize);
-
-	google::protobuf::io::CodedInputStream::Limit limit = codedInput.PushLimit(tagSize);
-	
-	Message *message = getMessage(tag);
-	if (!message)
-		return 0;
-	r = message->ParsePartialFromCodedStream(&codedInput);
-	if (!r)
-		return 0;
-	codedInput.ConsumedEntireMessage();
-	codedInput.PopLimit(limit);
+	int c = 0;
+	int sz = 0;
+	while (true)
+	{
+		uint32_t tag;
+		bool r = codedInput.ReadVarint32(&tag);	// 1 byte long
+		if (!r)
+			break;
+		uint32_t tagSize;
+		r = codedInput.ReadVarint32(&tagSize);
+		if (!r)
+			break;
+		google::protobuf::io::CodedInputStream::Limit limit = codedInput.PushLimit(tagSize);
+		MessageLite *message = createMessage(tag);
+		if (message)
+		{
+			r = message->ParsePartialFromCodedStream(&codedInput);
+			if (!r)
+				break;
+			r = codedInput.ConsumedEntireMessage();
+		}
+		else
+		{
+			r = codedInput.Skip(tagSize);
+		}
+		sz = codedInput.CurrentPosition();
+		codedInput.ConsumedEntireMessage();
+		codedInput.PopLimit(limit);
+	}
+	if (sz)
+	{
+		buffer.erase(0, sz);
+	}
+	return c;
 }
 
 void MCSReceiveBuffer::put(const void *buf, int size)

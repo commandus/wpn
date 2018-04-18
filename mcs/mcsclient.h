@@ -53,7 +53,7 @@ private:
 	u_int8_t mVersion;	// last known is 38
 	enum PROTO_STATE state;
 	int parse();
-	Message *getMessage(int tag);
+	MessageLite *createMessage(int tag);
 public:
 	std::string buffer;
 	MCSReceiveBuffer();
