@@ -32,8 +32,6 @@ nobase_dist_include_HEADERS = \
 	third_party/nlohmann/json.hpp \
 	third_party/sole/sole.hpp \
 	$(gengrpcs_h)
-#	mcs/mcs-client.h \
-#	mcs/mcs-message.h mcs/mcs-util.h
 common_src = 
 
 commonlibs = -L/usr/local/lib/ -lssl -lcrypto -largtable2 -lcurl -lece -lnghttp2 -lglog -lunwind -lgrpc++ -lgrpc -lgpr -lprotobuf
@@ -47,8 +45,6 @@ wpn_SOURCES= \
 	mcs/mcsclient.cpp \
 	utilstring.cpp \
 	$(common_src)
-#	mcs/mcs-client.cpp
-#	mcs/mcs-message.cpp mcs/mcs-util.cpp
 
 wpn_LDADD = $(commonlibs)
 wpn_CPPFLAGS = $(commoncppflags)

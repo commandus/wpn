@@ -88,6 +88,7 @@ int MCSReceiveBuffer::process()
 		if (state == STATE_VERSION)
 		{
 			mVersion = (uint8_t) buffer[0];
+			std::cerr << "MCS version: " << (int) mVersion << std::endl;
 			buffer.erase(0, 1);
 			sz--;
 			state = STATE_TAG;
