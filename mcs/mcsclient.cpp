@@ -22,8 +22,10 @@
 #include <unistd.h>
 #include <sstream>
 #include <curl/curl.h>
-#include <google/protobuf/message.h>
 #include <google/protobuf/text_format.h>
+#include <google/protobuf/io/zero_copy_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/io/coded_stream.h>
 
 #include "mcsclient.h"
 
@@ -32,17 +34,6 @@
 #include "android_checkin.pb.h"
 #include "checkin.pb.h"
 #include "mcs.pb.h"
-
-#define MCS_PORT		443
-static const std::string REGISTER_URL("https://android.clients.google.com/c2dm/register3");
-static const std::string CHECKIN_URL("https://android.clients.google.com/checkin");
-static const std::string MCS_HOST("https://mtalk.google.com");
-static const std::string DEF_CHROME_VER("63.0.3234.0");
-
-static const u_int8_t kMCSVersion = 41;
-
-static const std::string HDR_CONTENT_TYPE("Content-Type: ");
-static const std::string HDR_AUTHORIZATION("Authorization : ");
 
 // MCS Message tags.
 enum MCSProtoTag 
@@ -68,6 +59,93 @@ enum MCSProtoTag
 
 using namespace checkin_proto;
 using namespace mcs_proto;
+using namespace google::protobuf::io;
+
+#define MCS_PORT		443
+
+static const std::string REGISTER_URL("https://android.clients.google.com/c2dm/register3");
+static const std::string CHECKIN_URL("https://android.clients.google.com/checkin");
+static const std::string MCS_HOST("mtalk.google.com");
+static const std::string DEF_CHROME_VER("63.0.3234.0");
+
+static const u_int8_t kMCSVersion = 41;
+
+static const std::string HDR_CONTENT_TYPE("Content-Type: ");
+static const std::string HDR_AUTHORIZATION("Authorization : ");
+
+//----------------------------- MCSReceiveBuffer -----------------------------
+
+MCSReceiveBuffer::MCSReceiveBuffer()
+	: mVersion(0), state(STATE_VERSION), buffer("")
+{
+}
+
+int MCSReceiveBuffer::process()
+{
+	int sz = buffer.size();
+	int count = 0;
+	while (sz > 0)
+	{
+		if (state == STATE_VERSION)
+		{
+			mVersion = (uint8_t) buffer[0];
+			buffer.erase(0, 1);
+			sz--;
+			state = STATE_TAG;
+			count++;
+		} else {
+			sz = parse();
+			if (sz <= 0)
+				break;
+			count++;
+		}
+	}
+	return count;
+}
+
+Message *MCSReceiveBuffer::getMessage(int tag)
+{
+	return NULL;
+}
+
+int MCSReceiveBuffer::parse()
+{
+	int sz = buffer.size();
+	if (sz < 2)
+		return 0;
+	std::stringstream ss(buffer);
+	IstreamInputStream rawInput(&ss);
+	CodedInputStream codedInput(&rawInput);
+	int tag = codedInput.ReadTag();	// 1 byte long
+	uint32_t tagSize;
+	bool r = codedInput.ReadVarint32(&tagSize);
+	if (!r)
+		return 0;
+	r = codedInput.ReadVarint32(&tagSize);
+
+	google::protobuf::io::CodedInputStream::Limit limit = codedInput.PushLimit(tagSize);
+	
+	Message *message = getMessage(tag);
+	if (!message)
+		return 0;
+	r = message->ParsePartialFromCodedStream(&codedInput);
+	if (!r)
+		return 0;
+	codedInput.ConsumedEntireMessage();
+	codedInput.PopLimit(limit);
+}
+
+void MCSReceiveBuffer::put(const void *buf, int size)
+{
+	buffer.append(std::string((char*) buf, size));
+}
+
+uint8_t MCSReceiveBuffer::getVersion()
+{
+	return mVersion;
+}
+
+//----------------------------- MCSClient helpers -----------------------------
 
 /**
  * @param androidId 0- before register
@@ -179,6 +257,9 @@ static int curl_trace
 	std::cerr << s << std::endl;
 	return 0;
 }
+
+//----------------------------- MCSClient -----------------------------
+
 /**
   * POST data, return received data in retval
   * @return 200-299 success, otherwise error code. retval contains error description
@@ -250,9 +331,8 @@ int MCSClient::curlPost
 }
 
 MCSClient::MCSClient()
-	: mConfig(NULL), mKeys(NULL), mCredentials(NULL)
+	: mStream(&mBuffer), mConfig(NULL), mKeys(NULL), mCredentials(NULL)
 {
-
 }
 
 MCSClient::MCSClient(
@@ -260,9 +340,8 @@ MCSClient::MCSClient(
 	const WpnKeys* keys,
 	AndroidCredentials *androidCredentials
 )
-	: mConfig(config), mKeys(keys), mCredentials(androidCredentials)
+	: mStream(&mBuffer), mConfig(config), mKeys(keys), mCredentials(androidCredentials)
 {
-
 }
 
 void MCSClient::setConfig(const WpnConfig *config)
@@ -285,18 +364,26 @@ MCSClient::~MCSClient()
 	stop();
 }
 
-int readLoop(SSL *ssl, bool &stop)
+int readLoop(MCSClient *client, MCSReceiveBuffer *strm, SSL *ssl, bool &stop)
 {
-		unsigned char buffer[4096];
-		while (!stop)
+	unsigned char buffer[4096];
+	client->log(0, 1, "Start");
+	while (!stop)
+	{
+		int r = SSL_read(ssl, buffer, sizeof(buffer));
+		if (r > 0) 
 		{
-			int r = SSL_read(ssl, buffer, sizeof(buffer));
-			if (r > 0) {
-				std::cerr << hexString(std::string((char *)&buffer, r)) << std::endl;
+			std::cerr << "Received " << r << " bytes:" << std::endl << hexString(std::string((char *) buffer, r)) << std::endl;
+			strm->put(buffer, r);
+			if (size_t c = strm->process())
+			{
+				std::cerr << "Processed " << c << " messages" << std::endl;
 			}
-			std::cerr << "-" << std::endl;
-			sleep(0);
 		}
+		sleep(0);
+	}
+	client->log(0, 1, "End");
+	return 0;
 }
 
 int MCSClient::connect()
@@ -337,7 +424,11 @@ int MCSClient::connect()
 	if (!mSsl)
 		return ERR_NO_CONNECT;
 	mStop = false;
-	mListenerThread = new std::thread(readLoop, std::ref(mSsl), std::ref(mStop));
+	
+	mListenerThread = new std::thread(readLoop, 
+		this,
+		std::ref(mStream), std::ref(mSsl), std::ref(mStop)
+	);
 	mListenerThread->detach();
 	r = logIn();
 	return 0;
@@ -462,6 +553,16 @@ int MCSClient::registerDevice()
 	return r;
 }
 
+void MCSClient::log
+(
+	int level, 
+	int tag, 
+	const std::string &message
+)
+{
+	std::cerr << ">" << message << std::endl;
+}
+
 int MCSClient::logIn()
 {
 	if (!mCredentials)
@@ -475,14 +576,36 @@ int MCSClient::logIn()
 	std::string protobuf = mkLoginRequest(androidId, securityToken, gcmToken, mPersistentIds);
 	if (mConfig->verbosity > 2)
 	{
-		std::cerr << "Login to " << MCS_HOST << std::endl
-			<< hexString(protobuf) << std::endl;
+		std::cerr << "Login to " << MCS_HOST << std::endl;
 	}
 
-	SSL_write(mSsl, &kMCSVersion, 1);
-	uint8_t tag = kLoginRequestTag;
-	SSL_write(mSsl, &tag, 1);
-	SSL_write(mSsl, protobuf.c_str(), protobuf.size());
+	send(kLoginRequestTag, protobuf);
 	int r = 0;
 	return r;
+}
+
+int MCSClient::send
+(
+	uint8_t tag,
+	const std::string &protobuf
+)
+{
+	std::stringstream ss;
+	ss << kMCSVersion << tag << protobuf;
+	std::string r = ss.str();
+	return SSL_write(mSsl, r.c_str(), r.size());
+}
+
+void MCSClient::writeStream
+(
+	std::istream &strm
+)
+{
+	std::string s;
+	while (!strm.eof())
+	{
+		strm >> s;
+		if (s == "q")
+			break;
+	}
 }

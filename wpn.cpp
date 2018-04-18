@@ -141,7 +141,8 @@ int main(int argc, char** argv)
 				}
 				MCSClient client(&config, &wpnKeys, &androidCredentials);
 				client.connect();
-				std::cerr << "Not implemented yet." << std::endl;
+				std::cerr << "Listen" << std::endl;
+				client.writeStream(std::cin);
 				client.stop();
 			}
 	}

@@ -21,7 +21,11 @@
 #define MCSCLIENT_H
 
 #include <thread>
+#include <sstream>
 #include <inttypes.h>
+
+#include <google/protobuf/message.h>
+
 #include "wpn-config.h"
 #include "wp-storage-file.h"
 #include "sslfactory.h"
@@ -36,9 +40,35 @@
 #define ERR_REGISTER_FAIL			-8
 #define ERR_NO_CONNECT				-9
 
+enum PROTO_STATE {
+	STATE_VERSION = 0,
+	STATE_TAG = 1
+};
+
+using namespace google::protobuf;
+
+class MCSReceiveBuffer
+{
+private:
+	u_int8_t mVersion;	// last known is 38
+	enum PROTO_STATE state;
+	int parse();
+	Message *getMessage(int tag);
+public:
+	std::string buffer;
+	MCSReceiveBuffer();
+	// Return 0 if incomplplete	and is not parcelable
+	int process();
+	void put(const void *buf, int size);
+	uint8_t getVersion();
+};
+
 class MCSClient
 {
 private:
+	MCSReceiveBuffer mBuffer;
+	MCSReceiveBuffer *mStream;
+
 	bool mStop;
 	std::thread *mListenerThread;
 	SSLFactory mSSLFactory;
@@ -78,8 +108,19 @@ public:
 	int write();
 
 	int connect();
-	
 	void stop();
+	int send
+	(
+		uint8_t tag,
+		const std::string &protobuf
+	);
+
+	void writeStream(std::istream &strm);
+	void log(
+		int level, 
+		int tag, 
+		const std::string &message
+	);
 };
 
 #endif // MCSCLIENT_H
