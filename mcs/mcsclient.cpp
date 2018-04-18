@@ -253,12 +253,23 @@ static std::string mkLoginRequest
 	LoginRequest req;
 	req.set_adaptive_heartbeat(false);
 	req.set_auth_service(LoginRequest_AuthService_ANDROID_ID);
-	req.set_auth_token(gcmSecurityToken);
+
+	std::stringstream st;
+	st << securityToken;
+	std::string securityt = st.str();
+	req.set_auth_token(securityt);	// gcmSecurityToken
+
 	req.set_id("chrome-" + DEF_CHROME_VER);
 	req.set_domain("mcs.android.com");
 
-	std::string said = std::to_string(androidId);
-	req.set_device_id("android-" + said);
+	std::stringstream sh;
+	sh << std::hex << androidId;
+	std::string haid = sh.str();
+	std::stringstream ss;
+	ss << std::hex << androidId;
+	std::string said = ss.str();
+
+	req.set_device_id("android-" + haid);
 	req.set_network_type(1);
 	req.set_resource(said);
 	req.set_user(said);
@@ -656,6 +667,7 @@ int MCSClient::send
 	std::stringstream ss;
 	ss << kMCSVersion << tag << protobuf;
 	std::string r = ss.str();
+	std::cerr << "Send: " << hexString(r) << std::endl;
 	return SSL_write(mSsl, r.c_str(), r.size());
 }
 
