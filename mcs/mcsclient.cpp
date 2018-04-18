@@ -174,6 +174,9 @@ int MCSReceiveBuffer::parse()
 		MessageLite *message = createMessage(tag);
 		if (message)
 		{
+			std::string d;
+			message->SerializeToString(&d);
+			std::cerr << "Tag: " << tag << " size: " << tagSize << ": " << hexString(d) << std::endl;
 			r = message->ParsePartialFromCodedStream(&codedInput);
 			if (!r)
 				break;
