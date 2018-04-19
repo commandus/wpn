@@ -216,6 +216,12 @@ int MCSReceiveBuffer::parse()
 					std::cerr << std::endl;
 				}
 					break;
+				case kIqStanzaTag:
+				{
+					IqStanza* r = (IqStanza*) message;
+					std::cerr << "IqStanza " << r->id() << " ";
+				}
+					break;
 				default:
 					break;
 			}
@@ -283,15 +289,15 @@ static MessageLite *mkLoginRequest
 (
 	uint64_t androidId,
 	uint64_t securityToken,
-	const std::string &gcmSecurityToken,
 	const std::vector<std::string> &persistentIds
 )
 {
 	LoginRequest *req = new LoginRequest();
 	req->set_adaptive_heartbeat(false);
 	req->set_auth_service(LoginRequest_AuthService_ANDROID_ID);
-std::cerr << "gcmSecurityToken " << gcmSecurityToken << std::endl;
-	req->set_auth_token(gcmSecurityToken);
+	std::stringstream st;
+	st << securityToken;
+	req->set_auth_token(st.str());
 
 	req->set_id("chrome-" + DEF_CHROME_VER);
 	req->set_domain("mcs.android.com");
@@ -300,7 +306,7 @@ std::cerr << "gcmSecurityToken " << gcmSecurityToken << std::endl;
 	sh << std::hex << androidId;
 	std::string haid = sh.str();
 	std::stringstream ss;
-	ss << std::hex << androidId;
+	ss << androidId;
 	std::string said = ss.str();
 
 	req->set_device_id("android-" + haid);
@@ -680,7 +686,7 @@ int MCSClient::logIn()
 		std::cerr << "Login to " << MCS_HOST << std::endl;
 	}
 
-	MessageLite *l =  mkLoginRequest(androidId, securityToken, gcmToken, mPersistentIds);
+	MessageLite *l =  mkLoginRequest(androidId, securityToken, mPersistentIds);
 	if (!l)
 		return ERR_MEM;
 
