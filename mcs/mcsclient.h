@@ -113,10 +113,11 @@ public:
 
 	int connect();
 	void stop();
-	int sendString
+	int sendVersion();
+	int sendTag
 	(
 		uint8_t tag,
-		const std::string &protobuf
+		const MessageLite *msg
 	);
 
 	void writeStream(std::istream &strm);

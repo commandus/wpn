@@ -254,10 +254,7 @@ static MessageLite *mkLoginRequest
 	req->set_adaptive_heartbeat(false);
 	req->set_auth_service(LoginRequest_AuthService_ANDROID_ID);
 
-	std::stringstream st;
-	st << securityToken;
-	std::string securityt = st.str();
-	req->set_auth_token(securityt);	// gcmSecurityToken
+	req->set_auth_token(gcmSecurityToken);
 
 	req->set_id("chrome-" + DEF_CHROME_VER);
 	req->set_domain("mcs.android.com");
@@ -639,72 +636,53 @@ int MCSClient::logIn()
 		return ERR_NO_CONNECT;
 	uint64_t androidId = mCredentials->getAndroidId();
 	uint64_t securityToken = mCredentials->getSecurityToken();
-
 	std::string gcmToken = mCredentials->getFCMToken();
-	MessageLite *l =  mkLoginRequest(androidId, securityToken, gcmToken, mPersistentIds);
-	if (!l)
-		return ERR_MEM;
-	std::string protobuf = l->SerializePartialAsString();
+	
 	if (mConfig->verbosity > 2)
 	{
 		std::cerr << "Login to " << MCS_HOST << std::endl;
 	}
 
-	sendString(kLoginRequestTag, protobuf);
-	
+	MessageLite *l =  mkLoginRequest(androidId, securityToken, gcmToken, mPersistentIds);
+	if (!l)
+		return ERR_MEM;
+
+	sendVersion();
+
+	sendTag(kLoginRequestTag, l);
+
 	delete l;
-	
 	int r = 0;
-	
 	return r;
 }
 
-/*
-int MCSClient::send
-(
-	uint8_t tag,
-	const std::string &protobuf
-)
+int MCSClient::sendVersion()
 {
 	std::stringstream ss;
-	OstreamOutputStream rawOutput(&ss);
-	CodedOutputStream codedOutput(&rawOutput);
-	codedOutput.WriteVarint32(kMCSVersion);
-	codedOutput.WriteVarint32(tag);
-	
-	r = message->ParsePartialFromCodedStream(&codedInput);
-			if (!r)
-				break;
-			r = codedInput.ConsumedEntireMessage();
-		}
-		else
-		{
-			r = codedInput.Skip(tagSize);
-		}
-		sz = codedInput.CurrentPosition();
-		codedInput.ConsumedEntireMessage();
-		codedInput.PopLimit(limit);
-
-		
-	std::stringstream ss;
-	ss << kMCSVersion << tag << protobuf;
+	ss << kMCSVersion;
 	std::string r = ss.str();
-	std::cerr << "Send: " << hexString(r) << std::endl;
+	std::cerr << "Send version: " << hexString(r) << std::endl;
 	return SSL_write(mSsl, r.c_str(), r.size());
 }
-*/
 
-int MCSClient::sendString
+int MCSClient::sendTag
 (
 	uint8_t tag,
-	const std::string &val
+	const MessageLite *msg
 )
 {
 	std::stringstream ss;
-	ss << kMCSVersion << tag << val;
-	std::string r = ss.str();
-	std::cerr << "Send: " << hexString(r) << std::endl;
-	return SSL_write(mSsl, r.c_str(), r.size());
+	OstreamOutputStream *rawOutput = new OstreamOutputStream(&ss);
+	CodedOutputStream *codedOutput = new CodedOutputStream(rawOutput);
+	codedOutput->WriteRaw(&tag, 1);
+	int sz = msg->ByteSize();
+	codedOutput->WriteVarint32(sz);
+	msg->SerializeToCodedStream(codedOutput);
+	delete codedOutput;
+	delete rawOutput;
+	std::string s(ss.str());
+	std::cerr << "Send tag: " << (int) tag << " (" << sz << " bytes) : " << hexString(s) << std::endl;
+	return SSL_write(mSsl, s.c_str(), s.size());
 }
 
 void MCSClient::writeStream
