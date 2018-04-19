@@ -102,7 +102,7 @@ int MCSReceiveBuffer::process()
 	return count;
 }
 
-MessageLite *MCSReceiveBuffer::createMessage(int tag)
+MessageLite *MCSReceiveBuffer::createMessage(uint8_t tag)
 {
 	MessageLite *r = NULL;
 	switch(tag)
@@ -163,8 +163,8 @@ int MCSReceiveBuffer::parse()
 	int sz = 0;
 	while (true)
 	{
-		uint32_t tag;
-		bool r = codedInput.ReadVarint32(&tag);	// 1 byte long
+		uint8_t tag;
+		bool r = codedInput.ReadRaw(&tag, 1);	// 1 byte long
 		if (!r)
 			break;
 		uint32_t tagSize;
@@ -175,13 +175,50 @@ int MCSReceiveBuffer::parse()
 		MessageLite *message = createMessage(tag);
 		if (message)
 		{
-			std::string d;
-			message->SerializeToString(&d);
-			std::cerr << "Tag: " << tag << " size: " << tagSize << ": " << hexString(d) << std::endl;
 			r = message->ParsePartialFromCodedStream(&codedInput);
 			if (!r)
 				break;
 			r = codedInput.ConsumedEntireMessage();
+			std::string d;
+			message->SerializeToString(&d);
+			std::cerr << "Tag: " << (int) tag << " size: " << tagSize << ": " << hexString(d) << std::endl;
+			switch (tag)
+			{
+				case kLoginResponseTag:
+				{
+					LoginResponse* r = (LoginResponse*) message;
+					std::cerr << "Login " << r->id() << " ";
+					if (r->has_error())
+					{
+						std::cerr << "error " << r->error().code();
+						if (r->error().has_message())
+						{
+							std::cerr << ": " << r->error().message();
+						}
+						std::cerr << " ";
+					}
+					for (int i = 0; i < r->setting_size(); i++)
+					{
+						std::cerr << "setting " << i << ":" << r->setting(i).name() << r->setting(i).value() << std::endl;
+					}
+					if (r->has_server_timestamp())
+					{
+						time_t t = r->server_timestamp()/1000;
+						struct tm *tm = localtime(&t);
+						std::cerr << "server time " <<  std::asctime(tm) << std::endl;
+					}
+					
+					if (r->has_heartbeat_config())
+					{
+						std::cerr << "has heart beat config";
+					}
+					
+					std::cerr << std::endl;
+				}
+					break;
+				default:
+					break;
+			}
 		}
 		else
 		{
@@ -253,7 +290,7 @@ static MessageLite *mkLoginRequest
 	LoginRequest *req = new LoginRequest();
 	req->set_adaptive_heartbeat(false);
 	req->set_auth_service(LoginRequest_AuthService_ANDROID_ID);
-
+std::cerr << "gcmSecurityToken " << gcmSecurityToken << std::endl;
 	req->set_auth_token(gcmSecurityToken);
 
 	req->set_id("chrome-" + DEF_CHROME_VER);
