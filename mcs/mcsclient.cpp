@@ -72,6 +72,12 @@ static const u_int8_t kMCSVersion = 41;
 static const std::string HDR_CONTENT_TYPE("Content-Type: ");
 static const std::string HDR_AUTHORIZATION("Authorization : ");
 
+
+static const char *IQTYPE_NAMES[] = 
+{
+	"GET", "SET", "RESULT", "IQ_ERROR"
+};
+
 //----------------------------- MCSReceiveBuffer -----------------------------
 
 MCSReceiveBuffer::MCSReceiveBuffer()
@@ -212,14 +218,52 @@ int MCSReceiveBuffer::parse()
 					{
 						std::cerr << "has heart beat config";
 					}
-					
 					std::cerr << std::endl;
 				}
 					break;
 				case kIqStanzaTag:
 				{
 					IqStanza* r = (IqStanza*) message;
-					std::cerr << "IqStanza " << r->id() << " ";
+					std::cerr << "IqStanza " << IQTYPE_NAMES[r->type()] << " " << r->id() << " ";
+					if (r->has_rmq_id())
+						std::cerr << "rmq_id: " << r->rmq_id();
+					if (r->has_from())
+						std::cerr << "from: " << r->from();
+					if (r->has_to())
+						std::cerr << " to: " << r->to();
+					if (r->has_error())
+					{
+						std::cerr << " error: ";
+						if (r->error().has_code())
+							std::cerr << " code: " << r->error().code();
+						if (r->error().has_extension())
+						{
+							std::cerr << " extension: ";
+							if (r->error().extension().has_id())
+								std::cerr << " id: " << r->error().extension().id();
+							if (r->error().extension().has_data())
+								std::cerr << " data: " << r->error().extension().data();
+						}
+					}
+					if (r->has_extension())
+					{
+						std::cerr << " extension: ";
+						if (r->error().extension().has_id())
+							std::cerr << " id: " << r->error().extension().id();
+						if (r->error().extension().has_data())
+							std::cerr << " data " << r->error().extension().data();
+					}
+					if (r->has_persistent_id())
+						std::cerr << " persistent_id: " << r->persistent_id();
+					if (r->has_stream_id())
+						std::cerr << " stream_id: " << r->stream_id();
+					if (r->has_last_stream_id_received())
+						std::cerr << " last_stream_id_received: " << r->last_stream_id_received();
+					if (r->has_account_id())
+						std::cerr << " account_id: " << r->account_id();
+  					if (r->has_status())
+						std::cerr << " status: " << r->status();
+					std::cerr << std::endl;
 				}
 					break;
 				default:
@@ -537,6 +581,9 @@ int MCSClient::connect()
 		return ERR_NO_CONNECT;
 	mStop = false;
 	
+	if (mConfig->verbosity > 1)
+		std::cerr << "Android id: " << mCredentials->getAndroidId() 
+			<< " security token: " << mCredentials->getSecurityToken() << std::endl;
 	mListenerThread = new std::thread(readLoop, this);
 	mListenerThread->detach();
 	return 0;
