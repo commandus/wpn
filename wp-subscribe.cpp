@@ -22,6 +22,7 @@ static size_t write_header(char* buffer, size_t size, size_t nitems, void *userp
 	((std::string*)userp)->append((char*)buffer, sz);
     return sz;
 }
+
 /**
   * POST data, return received data in retval
   * @return 200-299 success, otherwise error code. retval contains error description

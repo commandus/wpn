@@ -26,7 +26,9 @@ CLEANFILES = $(gengrpcs)
 bin_PROGRAMS = wpn
 
 nobase_dist_include_HEADERS = \
-	wpn-config.h  wpn.h wp-storage-file.h wp-subscribe.h wp-connection.h sslfactory.h \
+	wpn-config.h  wpn.h \
+	wp-storage-file.h wp-subscribe.h wp-connection.h wp-send.h \
+	sslfactory.h \
 	utilstring.h \
 	mcs/mcsclient.h \
 	third_party/nlohmann/json.hpp \
@@ -40,7 +42,8 @@ commonlibs = -L/usr/local/lib/ -lssl -lcrypto -largtable2 -lcurl -lece -lnghttp2
 #	wpn
 #
 wpn_SOURCES= \
-	wpn-config.cpp wpn.cpp wp-storage-file.cpp wp-subscribe.cpp wp-connection.cpp \
+	wpn-config.cpp wpn.cpp wp-storage-file.cpp \
+	wp-send.cpp wp-subscribe.cpp wp-connection.cpp \
 	sslfactory.cpp \
 	mcs/mcsclient.cpp \
 	utilstring.cpp \
