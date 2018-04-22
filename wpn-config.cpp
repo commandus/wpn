@@ -160,8 +160,8 @@ int WpnConfig::parseCmd
 		}
 		if (a_recipient_tokens->count == 0)
 		{
-			std::cerr << "No recipient(s)." << std::endl;
-			nerrors++;
+//			std::cerr << "No recipient(s)." << std::endl;
+//			nerrors++;
 		}
 	}
 

@@ -37,23 +37,36 @@ int push2ClientFCMToken
 {
 	if (server_key.empty())
 		return ERR_PARAM_SERVER_KEY;
+	json requestBody;
 	if (client_token.empty())
-		return ERR_PARAM_CLIENT_TOKEN;	
-	
-	json requestBody = {
-		{"to", client_token},
-		{"notification", 
-			{
-				{"title", title},
-				{"body", body},
-				{"icon", icon},
-				{"click_action", click_action}
+	{
+		requestBody = {
+			{"to", "1:246829423295:android:2470167fc3aaccc7"},
+			{"notification", 
+				{
+					{"title", title},
+					{"body", body},
+					{"icon", icon},
+					{"click_action", click_action}
+				}
 			}
-		}
-	};
+		};
+	}
+	else
+	{
+		requestBody = {
+			{"to", client_token},
+			{"notification", 
+				{
+					{"title", title},
+					{"body", body},
+					{"icon", icon},
+					{"click_action", click_action}
+				}
+			}
+		};
+	}
 	std::string data = requestBody.dump();
-
-std::cerr << "Send push notification: " << data << std::endl;	
 
 	CURL *curl = curl_easy_init();
 	if (!curl)
@@ -90,9 +103,11 @@ std::cerr << "Send: " << data << std::endl;
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 		if ((http_code >= 200) && (http_code < 300))
 		{
-std::cerr << "Parse result: " << r << std::endl;	
+// std::cerr << "Parse result: " << r << std::endl;	
 			try {
 				json response = json::parse(r);
+				if (retval)
+					*retval = r;
 			} catch(...) {
 std::cerr << "Parse error" << std::endl;				
 				if (client_token.empty())
@@ -102,7 +117,7 @@ std::cerr << "Parse error" << std::endl;
 		else
 		{
 			// Error
-std::cerr << "Error " <<http_code << ": " << r << std::endl;				
+std::cerr << "Error " << http_code << ": " << r << std::endl;				
 		}
 	}
 	curl_easy_cleanup(curl);
