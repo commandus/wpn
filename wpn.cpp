@@ -13,6 +13,7 @@
 #include "wpn.h"
 #include "wp-storage-file.h"
 #include "wp-subscribe.h"
+#include "wp-push.h"
 #include "sslfactory.h"
 #include "mcs/mcsclient.h"
 
@@ -118,7 +119,7 @@ int main(int argc, char** argv)
 				std::string d;
 				std::string headers;
 				int r = subscribe(subscription, SUBSCRIBE_FIREBASE, wpnKeys, 
-					config.subscribeUrl, config.endpoint, config.authorized_entity,  &d, &headers,
+					config.subscribeUrl, config.endpoint, config.authorizedEntity,  &d, &headers,
 					config.verbosity);
 				if ((r < 200) || (r >= 300))
 				{
@@ -132,7 +133,18 @@ int main(int argc, char** argv)
 			break;
 		case CMD_UNSUBSCRIBE:
 			break;
-		case CMD_SEND:
+		case CMD_PUSH:
+		{
+			std::string errstr;
+			for (std::vector<std::string>::const_iterator it(config.recipientTokens.begin()); it != config.recipientTokens.end(); ++it)
+			{
+				int r = push2ClientFCMToken(&errstr,
+					config.serverKey, *it,
+					config.subject,
+					config.body, config.icon, config.link
+				);
+			}
+		}
 			break;
 		default:
 			{

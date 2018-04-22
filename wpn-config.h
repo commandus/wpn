@@ -14,7 +14,7 @@
 #define CMD_LIST 				2
 #define CMD_SUBSCRIBE 			3
 #define CMD_UNSUBSCRIBE			4
-#define CMD_SEND 				5
+#define CMD_PUSH				5
 
 #define SUBSCRIBE_URL_COUNT		1
 #define SUBSCRIBE_URL_1	 		"https://fcm.googleapis.com/fcm/connect/subscribe"
@@ -43,7 +43,16 @@ public:
 	std::string file_name;							///< config file, e.g. https://sure-phone.firebaseio.com"
 	std::string subscribeUrl;						///< e.g. https://fcm.googleapis.com/fcm/connect/subscribe or 1 
 	std::string endpoint;							///<subscription entity
-	std::string authorized_entity;					///<subscription entity, sender Id
+	std::string authorizedEntity;					///<subscription entity, sender Id
+	
+	// send options
+	std::string serverKey;							///< FCM server key
+	std::vector<std::string> recipientTokens;		///< recipient's FCM tokens
+	std::string subject;							///< subject
+	std::string body;								///< message body
+	std::string icon;
+	std::string link;
+	
 	WpnConfig();
 	WpnConfig
 	(

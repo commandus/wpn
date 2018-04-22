@@ -77,4 +77,13 @@ std::string hex2string(const std::string &hex);
 
 std::string arg2String(int argc, char *argv[]);
 
+/**
+ * Escape JSON string
+ * @see https://stackoverflow.com/questions/7724448/simple-json-string-escape-for-c
+ */
+std::string escapeJsonString
+(
+	const std::string& input
+);
+
 #endif

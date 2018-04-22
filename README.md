@@ -6,6 +6,8 @@ wpn
 
 ## Build
 
+C++11 compliant compiler required.
+
 ```
 cd wpn
 ./autogen.sh
@@ -30,9 +32,11 @@ make
 - openssl 1.1.0 https://github.com/openssl/openssl
 - nghttp2 https://github.com/nghttp2/nghttp2
 - ecec https://github.com/web-push-libs/ecec
-- JSON for Modern C++ https://nlohmann.github.io/json/	https://github.com/nlohmann/json	License MIT (included in third_party)
+- JSON for Modern C++ https://nlohmann.github.io/json/	https://github.com/nlohmann/json	License MIT (included in third_party) Niels Lohmann http://nlohmann.me
+- Sole- lightweight C++11 library to generate universally unique identificators https://github.com/r-lyeh/sole r-lyeh. zlib/libpng licensed.
 - glog https://github.com/google/glog
 - unwind https://www.nongnu.org/libunwind/
+- JSON for Modern C++ 3.1.2 https://github.com/nlohmann/json
 
 ### openssl
 
