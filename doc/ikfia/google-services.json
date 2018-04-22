@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "246829423295",
+    "firebase_url": "https://ikfia-wpn.firebaseio.com",
+    "project_id": "ikfia-wpn",
+    "storage_bucket": "ikfia-wpn.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:246829423295:android:2470167fc3aaccc7",
+        "android_client_info": {
+          "package_name": "ru.ysn.ikfia.wpn"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "246829423295-psg4is6vuflp8a76t9jgjqi810pav4vd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwl2zoXQSsOsUlSmrqf3oGx-fq8n5Z5XU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

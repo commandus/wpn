@@ -54,21 +54,21 @@ int WpnConfig::parseCmd
 	struct arg_lit *a_list = arg_lit0("l", "list", "List subscriptions");
 	struct arg_lit *a_credentials = arg_lit0("c", "credentials", "Print credentials");
 	struct arg_lit *a_subscribe = arg_lit0("s", "subscribe", "Subscribe with -a -p -i");
-	struct arg_lit *a_unsubscribe = arg_lit0("u", "unsubscribe", "Unsubscribe with -p -i");
+	struct arg_lit *a_unsubscribe = arg_lit0("d", "unsubscribe", "Unsubscribe with -p -i");
 	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -p -i");
 	
 	struct arg_str *a_file_name = arg_str0("f", "file", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
 	
-	struct arg_str *a_subscribe_url = arg_str0("a", "registrar", "<URL>", "Subscription registrar URL, like https://fcm.googleapis.com/fcm/connect/subscribe or 1");
-	struct arg_str *a_endpoint = arg_str0("p", "pushsvc", "<URL>", "Push service URL, like https://*.firebaseio.com");
-	struct arg_str *a_authorized_entity = arg_str0("i", "entity", "<identifier>", "Push message sender identifier, usually decimal number");
+	struct arg_str *a_subscribe_url = arg_str0("r", "registrar", "<URL>", "Subscription registrar URL, like https://fcm.googleapis.com/fcm/connect/subscribe or 1");
+	struct arg_str *a_endpoint = arg_str0("u", "pushsvc", "<URL>", "Push service URL, like https://*.firebaseio.com");
+	struct arg_str *a_authorized_entity = arg_str0("e", "entity", "<identifier>", "Push message sender identifier, usually decimal number");
 
 	// send options
 	struct arg_str *a_server_key = arg_str0("k", "key", "<server key>", "Server key to send");
-	struct arg_str *a_subject = arg_str0("s", "subject", "<Text>", "Subject");
+	struct arg_str *a_subject = arg_str0("t", "subject", "<Text>", "Subject (topic)");
 	struct arg_str *a_body = arg_str0("b", "body", "<Text>", "Body");
-	struct arg_str *a_icon = arg_str0("p", "icon", "<URI>", "http[s]:// icon address.");
-	struct arg_str *a_link = arg_str0("l", "link", "<URI>", "https:// action address.");
+	struct arg_str *a_icon = arg_str0("i", "icon", "<URI>", "http[s]:// icon address.");
+	struct arg_str *a_link = arg_str0("a", "link", "<URI>", "https:// action address.");
 	struct arg_str *a_recipient_tokens = arg_strn(NULL, NULL, "<account#>", 0, 100, "Recipient token.");
 
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 3, "0- quiet (default), 1- errors, 2- warnings, 3- debug");
@@ -79,7 +79,7 @@ int WpnConfig::parseCmd
 		a_list, a_credentials, a_subscribe, a_unsubscribe, a_send,
 		a_subscribe_url, a_endpoint, a_authorized_entity,
 		a_file_name,
-		a_subject, a_body, a_icon, a_link, a_recipient_tokens,
+		a_server_key, a_subject, a_body, a_icon, a_link, a_recipient_tokens,
 		a_verbosity, a_help, a_end 
 	};
 
@@ -93,8 +93,7 @@ int WpnConfig::parseCmd
 	}
 	// Parse the command line as defined by argtable[]
 	nerrors = arg_parse(argc, argv, argtable);
-	
-	
+
 	if (a_subscribe_url->count)
 		subscribeUrl = *a_subscribe_url->sval;
 	else

@@ -71,9 +71,11 @@ std::cerr << "Send push notification: " << data << std::endl;
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.size());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_string);
 	std::string r;
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, r);
+std::cerr << "Send: " << data << std::endl;		
     res = curl_easy_perform(curl);
 	int http_code;
 
@@ -86,13 +88,21 @@ std::cerr << "Send push notification: " << data << std::endl;
 	else
 	{
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+		if ((http_code >= 200) && (http_code < 300))
+		{
 std::cerr << "Parse result: " << r << std::endl;	
-		try {
-			json response = json::parse(r);
-		} catch(...) {
+			try {
+				json response = json::parse(r);
+			} catch(...) {
 std::cerr << "Parse error" << std::endl;				
-			if (client_token.empty())
-				return ERR_PARSE_RESPONSE;	
+				if (client_token.empty())
+					return ERR_PARSE_RESPONSE;	
+			}
+		}
+		else
+		{
+			// Error
+std::cerr << "Error " <<http_code << ": " << r << std::endl;				
 		}
 	}
 	curl_easy_cleanup(curl);
