@@ -170,3 +170,11 @@ Subscription consists of
 ./wpn -m -k "AIzaSyBfUt1N5aabh8pubYiBPKOq9OcIoHv_41I" -u "https://ikfia-wpn.firebaseio.com" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" -J "https://ikfia.wpn.commandus.com/app/token?accesskey=2117177"
 
 ```
+
+Отправка с сервера
+
+Не забыть accesskey=2117177
+
+```
+https://ikfia.wpn.commandus.com/app/push?accesskey=2117177&title=%D0%9C%D1%80%D0%B0%D0%BA&text=%D0%96%D1%83%D1%82%D1%8C111
+```
