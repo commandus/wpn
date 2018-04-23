@@ -13,6 +13,7 @@
 #include <iomanip>
 
 #include <arpa/inet.h>
+#include <curl/curl.h>
 
 /// http://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
 // trim from start
@@ -63,6 +64,39 @@ std::string file2string(const char *filename)
 std::string file2string(const std::string &filename)
 {
 	return file2string(filename.c_str());
+}
+
+/**
+  * @brief CURL write callback
+  */
+static size_t write_string(void *contents, size_t size, size_t nmemb, void *userp)
+{
+	if (userp)
+		((std::string*)userp)->append((char*)contents, size * nmemb);
+	return size * nmemb;
+}
+
+// read file from URL
+std::string url2string(const std::string &url)
+{
+	CURL *curl = curl_easy_init();
+	if (!curl)
+		return ""; 
+	CURLcode res;
+	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+	curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_string);
+	std::string r;
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &r);
+    res = curl_easy_perform(curl);
+    if (res != CURLE_OK)
+	{
+		r = "";
+	}
+	curl_easy_cleanup(curl);
+	return r;
 }
 
 bool string2file(const std::string &filename, const std::string &value)

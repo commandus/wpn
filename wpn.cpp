@@ -146,16 +146,6 @@ int main(int argc, char** argv)
 				if (r >= 200 && r < 300)
 					std::cout << retval << std::endl;
 			}
-			if (config.recipientTokens.size() == 0)
-			{
-				int r = push2ClientFCMToken(&retval,
-					config.serverKey, "",
-					config.subject,
-					config.body, config.icon, config.link
-				);
-				if (r >= 200 && r < 300)
-					std::cout << retval << std::endl;
-			}
 		}
 			break;
 		default:

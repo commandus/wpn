@@ -5,10 +5,14 @@
 #include <sys/types.h>
 #include <pwd.h>
 
+#include "utilstring.h"
+#include "nlohmann/json.hpp"
+
 #define DEF_FILE_NAME			".wpn"
 
-static const char* progname = "wpn";
+using json = nlohmann::json;
 
+static const char* progname = "wpn";
 
 static const char* SUBSCRIBE_URLS[SUBSCRIBE_URL_COUNT] = {
 	SUBSCRIBE_URL_1
@@ -23,6 +27,30 @@ static std::string getDefaultConfigFileName()
 	const char *homedir = pw->pw_dir;
 	std::string r(homedir);
 	return r + "/" + DEF_FILE_NAME;
+}
+
+static int parseJsonRecipientTokens
+(
+	std::vector<std::string> &retval,
+	const std::string &value
+)
+{
+	int c = 0;
+	try
+	{
+		json list = json::parse(value);
+		// iterate the array
+		for (json::iterator it(list.begin()); it != list.end(); ++it) 
+		{
+			json a = *it;
+			retval.push_back(a[1]);
+			c++;
+		}
+	}
+	catch(...)
+	{
+	}
+	return c;
 }
 
 WpnConfig::WpnConfig()
@@ -70,6 +98,7 @@ int WpnConfig::parseCmd
 	struct arg_str *a_icon = arg_str0("i", "icon", "<URI>", "http[s]:// icon address.");
 	struct arg_str *a_link = arg_str0("a", "link", "<URI>", "https:// action address.");
 	struct arg_str *a_recipient_tokens = arg_strn(NULL, NULL, "<account#>", 0, 100, "Recipient token.");
+	struct arg_str *a_recipient_token_file = arg_str0("J", "json", "<file name or URL>", "JSON file e.g. [[1,\"token\",..");	///< e.g. 
 
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 3, "0- quiet (default), 1- errors, 2- warnings, 3- debug");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
@@ -79,7 +108,7 @@ int WpnConfig::parseCmd
 		a_list, a_credentials, a_subscribe, a_unsubscribe, a_send,
 		a_subscribe_url, a_endpoint, a_authorized_entity,
 		a_file_name,
-		a_server_key, a_subject, a_body, a_icon, a_link, a_recipient_tokens,
+		a_server_key, a_subject, a_body, a_icon, a_link, a_recipient_tokens, a_recipient_token_file,
 		a_verbosity, a_help, a_end 
 	};
 
@@ -158,11 +187,6 @@ int WpnConfig::parseCmd
 			std::cerr << "-l missed." << std::endl;
 			nerrors++;
 		}
-		if (a_recipient_tokens->count == 0)
-		{
-//			std::cerr << "No recipient(s)." << std::endl;
-//			nerrors++;
-		}
 	}
 
 	if ((cmd == CMD_SUBSCRIBE) || (cmd == CMD_UNSUBSCRIBE))
@@ -211,6 +235,20 @@ int WpnConfig::parseCmd
 	for (int i = 0; i < a_recipient_tokens->count; i++)
 	{
 		recipientTokens.push_back(a_recipient_tokens->sval[i]);
+	}
+	
+	if (a_recipient_token_file->count)
+	{
+		std::string fn(*a_recipient_token_file->sval);
+		std::string data = file2string(fn);
+		if (data.empty())
+		{
+			// try load from the Internet;
+			data = url2string(fn);
+		}
+		if (!data.empty()) {
+			parseJsonRecipientTokens(recipientTokens, data);
+		}
 	}
 
 	verbosity = a_verbosity->count;

@@ -48,6 +48,7 @@ public:
 	// send options
 	std::string serverKey;							///< FCM server key
 	std::vector<std::string> recipientTokens;		///< recipient's FCM tokens
+	std::string recipientTokenFile;					///< file name or http[s] link, e.g. https://ikfia.wpn.commandus.com/app/token?accesskey=2117177
 	std::string subject;							///< subject
 	std::string body;								///< message body
 	std::string icon;

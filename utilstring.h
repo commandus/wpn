@@ -29,6 +29,9 @@ std::string file2string(const std::string &filename);
 // read file
 std::string file2string(const char *filename);
 
+// read file from URL
+std::string url2string(const std::string &url);
+
 // write file
 bool string2file(const std::string &filename, const std::string &value);
 

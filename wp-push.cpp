@@ -37,35 +37,20 @@ int push2ClientFCMToken
 {
 	if (server_key.empty())
 		return ERR_PARAM_SERVER_KEY;
-	json requestBody;
 	if (client_token.empty())
-	{
-		requestBody = {
-			{"to", "1:246829423295:android:2470167fc3aaccc7"},
-			{"notification", 
-				{
-					{"title", title},
-					{"body", body},
-					{"icon", icon},
-					{"click_action", click_action}
-				}
+		return ERR_PARAM_CLIENT_TOKEN;
+	json requestBody;
+	requestBody = {
+		{"to", client_token},
+		{"notification", 
+			{
+				{"title", title},
+				{"body", body},
+				{"icon", icon},
+				{"click_action", click_action}
 			}
-		};
-	}
-	else
-	{
-		requestBody = {
-			{"to", client_token},
-			{"notification", 
-				{
-					{"title", title},
-					{"body", body},
-					{"icon", icon},
-					{"click_action", click_action}
-				}
-			}
-		};
-	}
+		}
+	};
 	std::string data = requestBody.dump();
 
 	CURL *curl = curl_easy_init();
@@ -83,13 +68,13 @@ int push2ClientFCMToken
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.size());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_string);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_string);
 	std::string r;
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, r);
-std::cerr << "Send: " << data << std::endl;		
-    res = curl_easy_perform(curl);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &r);
+std::cerr << "Send to " << FCM_SEND << ": " << data << std::endl;		
+	res = curl_easy_perform(curl);
 	int http_code;
 
     if (res != CURLE_OK)
@@ -109,7 +94,7 @@ std::cerr << "Send: " << data << std::endl;
 				if (retval)
 					*retval = r;
 			} catch(...) {
-std::cerr << "Parse error" << std::endl;				
+std::cerr << "Parse error" << std::endl;
 				if (client_token.empty())
 					return ERR_PARSE_RESPONSE;	
 			}
