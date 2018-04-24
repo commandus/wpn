@@ -24,7 +24,7 @@ https://fcm.googleapis.com	246829423295	    drq...
 
 ## Subscribe
 
-Set -e <authorized entity>:
+Set -e authorized-entity:
 
 ```
 
@@ -34,6 +34,8 @@ Set -e <authorized entity>:
 	"pushSet": "eJpriwkjrcU:APA91bHS4Ohb5In3ssqr3nPWI_EtFbAHEYvxN3SX1Omct5hjy48CeyTCZw5bzxyST1Bhj4m0WynXoq7pmw3IM0JuAQ8poeJe99vFJSeYGKgXtut_2Cmyxwu_V6xrDUqp-k8HDaeN_5fy"
 }
 ```
+
+Value of authorized-entity is decimal number identifies subscription if FCM.
 
 ## Unsubscribe
 
