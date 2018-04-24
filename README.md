@@ -161,19 +161,33 @@ Subscription consists of
 - token
 - pushSet
 
+## Client push message
+
+Using list of recipient tokens (up to 100, limited by the size of the environment):
 
 ```
-./wpn -m -k "AIzaSyBfUt1N5aabh8pubYiBPKOq9OcIoHv_41I" -u "https://ikfia-wpn.firebaseio.com" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" dl_liGwFeeA:APA91bEn8GjmoPxbi5xgYYffhrsb6WZjiLZA8Sogb7jBXrsJzoCzplV5SISS9mPd8IN-yFMLTIhCYGsRb925CCqGIZ2TPuoA2kj56hOECvsI-Fou1OdE1j1_FunMoWtkDtSyNx-djcQM
+./wpn -m -k "AIzaSyAyz-oVjsfRNK53XA6o9DVHN9ZNAaHOfxw" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com"  dl_liGwFeeA:APA91bEn8GjmoPxbi5xgYYffhrsb6WZjiLZA8Sogb7jBXrsJzoCzplV5SISS9mPd8IN-yFMLTIhCYGsRb925CCqGIZ2TPuoA2kj56hOECvsI-Fou1OdE1j1_FunMoWtkDtSyNx-djcQM
 ```
 
-```
-./wpn -m -k "AIzaSyBfUt1N5aabh8pubYiBPKOq9OcIoHv_41I" -u "https://ikfia-wpn.firebaseio.com" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" -J "https://ikfia.wpn.commandus.com/app/token?accesskey=2117177"
+Sending by the list of recipient tokens in a file or a web resource (-J option):
 
 ```
+./wpn -m -k "AIzaSyAyz-oVjsfRNK53XA6o9DVHN9ZNAaHOfxw" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" -J "https://ikfia.wpn.commandus.com/app/token?accesskey=2117177"
+```
 
-Отправка с сервера
+If the -J option is specified, the list is padded, that is, you can specify the recipient tokens in both the command line and the file (web resource).
 
-Не забыть accesskey=2117177
+If you specify the -J option wpn 'll open the file. If it can not be opened for reading, or if it is empty, wpn tries to download web resource from the network.
+
+In the -k option, it's better to specify an outdated server key, since it's shorter.
+
+Option -u "https://ikfia-wpn.firebaseio.com" is not required.
+
+## Service push message
+
+push.php script contains keys.
+
+Do not forget accesskey=2117177 option.
 
 ```
 https://ikfia.wpn.commandus.com/app/push?accesskey=2117177&title=%D0%9C%D1%80%D0%B0%D0%BA&text=%D0%96%D1%83%D1%82%D1%8C111
