@@ -24,6 +24,8 @@ https://fcm.googleapis.com	246829423295	    drq...
 
 ## Subscribe
 
+Set -e <authorized entity>:
+
 ```
 
 ./wpn -s -e 246829423295
