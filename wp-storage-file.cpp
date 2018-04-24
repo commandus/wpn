@@ -477,6 +477,12 @@ bool Subscription::valid() const
 	return !endpoint.empty();
 }
 
+bool Subscription::operator==(const Subscription &val) const
+{
+	return (this->endpoint == val.endpoint) &&
+		(this->authorizedEntity == val.authorizedEntity);
+}
+
 // --------------- Subscriptions ---------------
 
 Subscriptions::Subscriptions()
@@ -498,7 +504,19 @@ Subscriptions::Subscriptions(
 	std::ifstream strm(fileName);
 	read(strm, DEF_DELIMITER);
 }
-	
+
+/**
+ * Constructor for find() only
+ */
+
+Subscription::Subscription(
+	const std::string &end_point,
+	const std::string &authorized_entity
+)
+:	endpoint(end_point), authorizedEntity(authorized_entity)
+{
+}
+
 void Subscriptions::write(
 	std::ostream &strm,
 	const std::string &delimiter

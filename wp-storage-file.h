@@ -182,6 +182,11 @@ public:
 	Subscription(
 		const std::string &fileName
 	);
+	/// constructor for find only
+	Subscription(
+		const std::string &endpoint,
+		const std::string &authorizedEntity
+	);
 
 	std::string getSubscribeUrl() const;
 	int getSubscribeMode() const;
@@ -205,6 +210,7 @@ public:
 		const std::string &fileName
 	) const;
 	bool valid() const;
+	bool operator==(const Subscription &val) const;
 };
 
 class Subscriptions

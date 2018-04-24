@@ -4,10 +4,40 @@ wpn
 
 [Project description](https://docs.google.com/document/d/19pM4g-hvx2MUVV2Ggljw1MMTg9tMCEH7aHYYKpJMaWk/edit?usp=sharing)
 
+## Print credentials
+
+Check credentials:
+```
+./wpn -c -vvv
+private_key	public_key	auth_secret
+r1...       BP...       bd..
+```
+
+## Subscription list
+
+```
+./wpn -l -vv
+subscribeUrl                authorizedEntity	token
+https://fcm.googleapis.com	246829423295	    drq...
+
+```
+
 ## Subscribe
 
 ```
-./wpn -s -u https://fcm.googleapis.com -p 518511566414
+
+./wpn -s -e 246829423295
+{
+	"token": "c9UC0WcwvyM:APA91bFlAcs7RbWVDPLW42nfL8RN8YYpe0zFnXcT0pMAJihu0WAOqGuoPujHYVJUHC0eRy5DTFepXvlaIyClHEpy6J6itEdT-QzD5SMCLt3HfBH_20LrWIuAXRrGLOWW8g9Y8aF1ikBc",
+	"pushSet": "eJpriwkjrcU:APA91bHS4Ohb5In3ssqr3nPWI_EtFbAHEYvxN3SX1Omct5hjy48CeyTCZw5bzxyST1Bhj4m0WynXoq7pmw3IM0JuAQ8poeJe99vFJSeYGKgXtut_2Cmyxwu_V6xrDUqp-k8HDaeN_5fy"
+}
+```
+
+## Unsubscribe
+
+```
+
+./wpn -d -e 246829423295
 {
 	"token": "c9UC0WcwvyM:APA91bFlAcs7RbWVDPLW42nfL8RN8YYpe0zFnXcT0pMAJihu0WAOqGuoPujHYVJUHC0eRy5DTFepXvlaIyClHEpy6J6itEdT-QzD5SMCLt3HfBH_20LrWIuAXRrGLOWW8g9Y8aF1ikBc",
 	"pushSet": "eJpriwkjrcU:APA91bHS4Ohb5In3ssqr3nPWI_EtFbAHEYvxN3SX1Omct5hjy48CeyTCZw5bzxyST1Bhj4m0WynXoq7pmw3IM0JuAQ8poeJe99vFJSeYGKgXtut_2Cmyxwu_V6xrDUqp-k8HDaeN_5fy"
@@ -15,6 +45,8 @@ wpn
 ```
 
 ## Client push message
+
+After push wpn exits immediately.
 
 Using list of recipient tokens (up to 100, but limited by system environment):
 
@@ -44,44 +76,6 @@ Do not forget accesskey=2117177 option.
 
 ```
 https://ikfia.wpn.commandus.com/app/push?accesskey=2117177&title=%D0%9C%D1%80%D0%B0%D0%BA&text=%D0%96%D1%83%D1%82%D1%8C111
-```
-
-## Dialogs
-
-Correct enpoint
-
-./wpn -v -s -a 1 -p https://fcm.googleapis.com -i 518511566414
-
-Incorrect enpoint
-
-./wpn -v -s -a 1 -p https://sure-phone.firebaseio.com -i 518511566414
-
-### Request
-```
-POST https://fcm.googleapis.com/fcm/connect/subscribe
-Accept: application/json
-Content-Type: application/json
-
-{
-"endpoint": "https://fcm.googleapis.com",
-"authorized_entity":"518511566414",
-"encryption_key":"BHNg9UFl_BQXmtbclRJEVBnUC9aAIvlgfIKNxGnptLLEZntm8hqV-RrMjJrd7d5fwNlXKSZizfczpMQwz1tQ8tY",
-"encryption_auth":"EWMSz0gFhdAna1UgfhR-Qg"
-}
-```
-
-Curl:
-
-```
-curl -i -H Accept:application/json -H Content-Type:application/json -X POST https://fcm.googleapis.com/fcm/connect/subscribe -H Content-Type: application/json -d '{"endpoint": "https://fcm.googleapis.com","encryption_key":"BHNg9UFl_BQXmtbclRJEVBnUC9aAIvlgfIKNxGnptLLEZntm8hqV-RrMjJrd7d5fwNlXKSZizfczpMQwz1tQ8tY","encryption_auth":"EWMSz0gFhdAna1UgfhR-Qg","authorized_entity":"518511566414"}'
-```
-
-### Response
-```
-{
-	"token": "c9UC0WcwvyM:APA91bFlAcs7RbWVDPLW42nfL8RN8YYpe0zFnXcT0pMAJihu0WAOqGuoPujHYVJUHC0eRy5DTFepXvlaIyClHEpy6J6itEdT-QzD5SMCLt3HfBH_20LrWIuAXRrGLOWW8g9Y8aF1ikBc",
-	"pushSet": "eJpriwkjrcU:APA91bHS4Ohb5In3ssqr3nPWI_EtFbAHEYvxN3SX1Omct5hjy48CeyTCZw5bzxyST1Bhj4m0WynXoq7pmw3IM0JuAQ8poeJe99vFJSeYGKgXtut_2Cmyxwu_V6xrDUqp-k8HDaeN_5fy"
-}
 ```
 
 ### List of recipient FCM token format
@@ -227,3 +221,38 @@ This software depends on libraries which has differen licenses:
 - glog Copyright (c) 2006, Google Inc.
 - unwind is licensed under MIT license
 - JSON for Modern C++ 3.1.2  is licensed under MIT
+
+## Dialogs
+
+```
+./wpn -v -s -a 1 -p https://fcm.googleapis.com -i 518511566414
+```
+similar to request:
+
+```
+POST https://fcm.googleapis.com/fcm/connect/subscribe
+Accept: application/json
+Content-Type: application/json
+
+{
+"endpoint": "https://fcm.googleapis.com",
+"authorized_entity":"518511566414",
+"encryption_key":"BHNg9UFl_BQXmtbclRJEVBnUC9aAIvlgfIKNxGnptLLEZntm8hqV-RrMjJrd7d5fwNlXKSZizfczpMQwz1tQ8tY",
+"encryption_auth":"EWMSz0gFhdAna1UgfhR-Qg"
+}
+```
+
+Curl:
+
+```
+curl -i -H Accept:application/json -H Content-Type:application/json -X POST https://fcm.googleapis.com/fcm/connect/subscribe -H Content-Type: application/json -d '{"endpoint": "https://fcm.googleapis.com","encryption_key":"BHNg9UFl_BQXmtbclRJEVBnUC9aAIvlgfIKNxGnptLLEZntm8hqV-RrMjJrd7d5fwNlXKSZizfczpMQwz1tQ8tY","encryption_auth":"EWMSz0gFhdAna1UgfhR-Qg","authorized_entity":"518511566414"}'
+```
+
+### Response
+```
+{
+	"token": "c9UC0WcwvyM:APA91bFlAcs7RbWVDPLW42nfL8RN8YYpe0zFnXcT0pMAJihu0WAOqGuoPujHYVJUHC0eRy5DTFepXvlaIyClHEpy6J6itEdT-QzD5SMCLt3HfBH_20LrWIuAXRrGLOWW8g9Y8aF1ikBc",
+	"pushSet": "eJpriwkjrcU:APA91bHS4Ohb5In3ssqr3nPWI_EtFbAHEYvxN3SX1Omct5hjy48CeyTCZw5bzxyST1Bhj4m0WynXoq7pmw3IM0JuAQ8poeJe99vFJSeYGKgXtut_2Cmyxwu_V6xrDUqp-k8HDaeN_5fy"
+}
+```
+

@@ -9,6 +9,7 @@
 #include "nlohmann/json.hpp"
 
 #define DEF_FILE_NAME			".wpn"
+#define DEF_PUSH_SVC			"https://fcm.googleapis.com"
 
 using json = nlohmann::json;
 
@@ -81,15 +82,14 @@ int WpnConfig::parseCmd
 {
 	struct arg_lit *a_list = arg_lit0("l", "list", "List subscriptions");
 	struct arg_lit *a_credentials = arg_lit0("c", "credentials", "Print credentials");
-	struct arg_lit *a_subscribe = arg_lit0("s", "subscribe", "Subscribe with -a -p -i");
-	struct arg_lit *a_unsubscribe = arg_lit0("d", "unsubscribe", "Unsubscribe with -p -i");
-	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -p -i");
-	
+	struct arg_lit *a_subscribe = arg_lit0("s", "subscribe", "Subscribe with -e, [-u, -r])");
+	struct arg_lit *a_unsubscribe = arg_lit0("d", "unsubscribe", "Unsubscribe with -e, [-u]");
+	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -k, -e, -t, -b, -i, -a");
 	struct arg_str *a_file_name = arg_str0("f", "file", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
 	
-	struct arg_str *a_subscribe_url = arg_str0("r", "registrar", "<URL>", "Subscription registrar URL, like https://fcm.googleapis.com/fcm/connect/subscribe or 1");
-	struct arg_str *a_endpoint = arg_str0("u", "pushsvc", "<URL>", "Push service URL, like https://*.firebaseio.com");
-	struct arg_str *a_authorized_entity = arg_str0("e", "entity", "<identifier>", "Push message sender identifier, usually decimal number");
+	struct arg_str *a_subscribe_url = arg_str0("r", "registrar", "<URL>", "Subscription registrar URL, like https://fcm.googleapis.com/fcm/connect/subscribe or 1. Default 1");
+	struct arg_str *a_endpoint = arg_str0("u", "pushsvc", "<URL>", "Push service URL. Default " DEF_PUSH_SVC);
+	struct arg_str *a_authorized_entity = arg_str0("e", "entity", "<entity-id>", "Push message sender identifier, usually decimal number");
 
 	// send options
 	struct arg_str *a_server_key = arg_str0("k", "key", "<server key>", "Server key to send");
@@ -133,11 +133,13 @@ int WpnConfig::parseCmd
 		m--;
 		subscribeUrl = SUBSCRIBE_URLS[m];
 	}
+	if (subscribeUrl.empty())
+		subscribeUrl = SUBSCRIBE_URLS[0];
 
 	if (a_endpoint->count)
 		endpoint = *a_endpoint->sval;
 	else
-		endpoint = "";
+		endpoint = DEF_PUSH_SVC;
 
 	if (a_authorized_entity->count)
 		authorizedEntity = *a_authorized_entity->sval;
@@ -199,9 +201,9 @@ int WpnConfig::parseCmd
 				nerrors++;
 			}
 		}
-		if (endpoint.empty() || authorizedEntity.empty()) 
+		if (authorizedEntity.empty()) 
 		{
-			std::cerr << "Missing -p, -i options." << std::endl;
+			std::cerr << "Missing -e <entity-id> option." << std::endl;
 			nerrors++;
 		}
 	}

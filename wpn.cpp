@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include <signal.h>
 #include <argtable2.h>
 #include <curl/curl.h>
@@ -132,6 +133,16 @@ int main(int argc, char** argv)
 			}
 			break;
 		case CMD_UNSUBSCRIBE:
+			{
+				if (true)
+				{
+					Subscription f(config.endpoint, config.authorizedEntity);
+					std::vector<Subscription>::iterator it = std::find(subscriptions.list.begin(),
+						subscriptions.list.end(), f);
+					if (it != subscriptions.list.end())
+						subscriptions.list.erase(it);
+				}
+			}
 			break;
 		case CMD_PUSH:
 		{
