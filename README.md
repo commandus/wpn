@@ -4,17 +4,6 @@ wpn
 
 [Project description](https://docs.google.com/document/d/19pM4g-hvx2MUVV2Ggljw1MMTg9tMCEH7aHYYKpJMaWk/edit?usp=sharing)
 
-## Build
-
-C++11 compliant compiler required.
-
-```
-cd wpn
-./autogen.sh
-./configure
-make
-```
-
 ## Subscribe
 
 ```
@@ -24,6 +13,121 @@ make
 	"pushSet": "eJpriwkjrcU:APA91bHS4Ohb5In3ssqr3nPWI_EtFbAHEYvxN3SX1Omct5hjy48CeyTCZw5bzxyST1Bhj4m0WynXoq7pmw3IM0JuAQ8poeJe99vFJSeYGKgXtut_2Cmyxwu_V6xrDUqp-k8HDaeN_5fy"
 }
 ```
+
+## Client push message
+
+Using list of recipient tokens (up to 100, but limited by system environment):
+
+```
+./wpn -m -k "AIzaSyAyz-oVjsfRNK53XA6o9DVHN9ZNAaHOfxw" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com"  dl_liGwFeeA:APA91bEn8GjmoPxbi5xgYYffhrsb6WZjiLZA8Sogb7jBXrsJzoCzplV5SISS9mPd8IN-yFMLTIhCYGsRb925CCqGIZ2TPuoA2kj56hOECvsI-Fou1OdE1j1_FunMoWtkDtSyNx-djcQM
+```
+
+Sending by the list of recipient tokens in a file or a web resource (-J option):
+
+```
+./wpn -m -k "AIzaSyAyz-oVjsfRNK53XA6o9DVHN9ZNAaHOfxw" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" -J "https://ikfia.wpn.commandus.com/app/token?accesskey=2117177"
+```
+
+If the -J option is specified, the list is padded, that is, you can specify the recipient tokens in both the command line and the file (web resource).
+
+If you specify the -J option wpn 'll open the file. If it can not be opened for reading, or if it is empty, wpn tries to download web resource from the network.
+
+In the -k option, it's better to specify an outdated server key, since it's shorter.
+
+Option -u "https://ikfia-wpn.firebaseio.com" is not required.
+
+## Service push message
+
+push.php script contains keys.
+
+Do not forget accesskey=2117177 option.
+
+```
+https://ikfia.wpn.commandus.com/app/push?accesskey=2117177&title=%D0%9C%D1%80%D0%B0%D0%BA&text=%D0%96%D1%83%D1%82%D1%8C111
+```
+
+## Dialogs
+
+Correct enpoint
+
+./wpn -v -s -a 1 -p https://fcm.googleapis.com -i 518511566414
+
+Incorrect enpoint
+
+./wpn -v -s -a 1 -p https://sure-phone.firebaseio.com -i 518511566414
+
+### Request
+```
+POST https://fcm.googleapis.com/fcm/connect/subscribe
+Accept: application/json
+Content-Type: application/json
+
+{
+"endpoint": "https://fcm.googleapis.com",
+"authorized_entity":"518511566414",
+"encryption_key":"BHNg9UFl_BQXmtbclRJEVBnUC9aAIvlgfIKNxGnptLLEZntm8hqV-RrMjJrd7d5fwNlXKSZizfczpMQwz1tQ8tY",
+"encryption_auth":"EWMSz0gFhdAna1UgfhR-Qg"
+}
+```
+
+Curl:
+
+```
+curl -i -H Accept:application/json -H Content-Type:application/json -X POST https://fcm.googleapis.com/fcm/connect/subscribe -H Content-Type: application/json -d '{"endpoint": "https://fcm.googleapis.com","encryption_key":"BHNg9UFl_BQXmtbclRJEVBnUC9aAIvlgfIKNxGnptLLEZntm8hqV-RrMjJrd7d5fwNlXKSZizfczpMQwz1tQ8tY","encryption_auth":"EWMSz0gFhdAna1UgfhR-Qg","authorized_entity":"518511566414"}'
+```
+
+### Response
+```
+{
+	"token": "c9UC0WcwvyM:APA91bFlAcs7RbWVDPLW42nfL8RN8YYpe0zFnXcT0pMAJihu0WAOqGuoPujHYVJUHC0eRy5DTFepXvlaIyClHEpy6J6itEdT-QzD5SMCLt3HfBH_20LrWIuAXRrGLOWW8g9Y8aF1ikBc",
+	"pushSet": "eJpriwkjrcU:APA91bHS4Ohb5In3ssqr3nPWI_EtFbAHEYvxN3SX1Omct5hjy48CeyTCZw5bzxyST1Bhj4m0WynXoq7pmw3IM0JuAQ8poeJe99vFJSeYGKgXtut_2Cmyxwu_V6xrDUqp-k8HDaeN_5fy"
+}
+```
+
+### List of recipient FCM token format
+
+JSON array of array e.g.:
+```
+[
+	[1,"<FCM Token>",0,...],
+	...
+]
+```
+FCM token must be second item in array.
+
+### Settings format
+
+~/.wpn text file keeps settings in lines:
+
+- GCM Credentials
+- FCM Credentials
+- Subscription 1
+- ...
+- Subscription N
+
+Each line separated by one space.
+
+GCM Credentials consists of
+
+- appId Application-wide unique identifier UUID 16 bytes (128 bits) long e.g. 550e8400-e29b-41d4-a716-446655440000. See https://tools.ietf.org/html/rfc4122
+- androidId Android identifier assigned by Google service 64 bits long unsigned integer
+- token Security token 64 bits long unsigned integer
+- FCMToken FCM token string
+
+FCM Credentials consists of
+
+- privateKey base64 encoded 32 bytes
+- publicKey base64 encoded 65 bytes
+- authSecret base64 encoded 16 bytes
+
+Subscription consists of
+
+- subscribeUrl
+- subscribeMode always 1
+- endpoint
+- authorizedEntity
+- token
+- pushSet
 
 ## Dependencies
 
@@ -83,116 +187,22 @@ sudo cp -r * /usr/local/include
 - Autoconf 2.63
 - CMake 3.1 or higher
 
-## Dialogs
+## Building
 
-Correct enpoint
-
-./wpn -v -s -a 1 -p https://fcm.googleapis.com -i 518511566414
-
-Incorrect enpoint
-
-./wpn -v -s -a 1 -p https://sure-phone.firebaseio.com -i 518511566414
-
-### Request
-```
-POST https://fcm.googleapis.com/fcm/connect/subscribe
-Accept: application/json
-Content-Type: application/json
-
-{
-"endpoint": "https://fcm.googleapis.com",
-"authorized_entity":"518511566414",
-"encryption_key":"BHNg9UFl_BQXmtbclRJEVBnUC9aAIvlgfIKNxGnptLLEZntm8hqV-RrMjJrd7d5fwNlXKSZizfczpMQwz1tQ8tY",
-"encryption_auth":"EWMSz0gFhdAna1UgfhR-Qg"
-}
-```
-
-Curl:
+C++11 compliant compiler required.
 
 ```
-curl -i -H Accept:application/json -H Content-Type:application/json -X POST https://fcm.googleapis.com/fcm/connect/subscribe -H Content-Type: application/json -d '{"endpoint": "https://fcm.googleapis.com","encryption_key":"BHNg9UFl_BQXmtbclRJEVBnUC9aAIvlgfIKNxGnptLLEZntm8hqV-RrMjJrd7d5fwNlXKSZizfczpMQwz1tQ8tY","encryption_auth":"EWMSz0gFhdAna1UgfhR-Qg","authorized_entity":"518511566414"}'
+cd wpn
+./autogen.sh
+./configure
+make
 ```
 
-### Response
-```
-{
-	"token": "c9UC0WcwvyM:APA91bFlAcs7RbWVDPLW42nfL8RN8YYpe0zFnXcT0pMAJihu0WAOqGuoPujHYVJUHC0eRy5DTFepXvlaIyClHEpy6J6itEdT-QzD5SMCLt3HfBH_20LrWIuAXRrGLOWW8g9Y8aF1ikBc",
-	"pushSet": "eJpriwkjrcU:APA91bHS4Ohb5In3ssqr3nPWI_EtFbAHEYvxN3SX1Omct5hjy48CeyTCZw5bzxyST1Bhj4m0WynXoq7pmw3IM0JuAQ8poeJe99vFJSeYGKgXtut_2Cmyxwu_V6xrDUqp-k8HDaeN_5fy"
-}
-```
-
-### Send notification
-```
-cd ~/src/surephone-commander
-./surephone-commander -i 149 -m -s Subject -b Body -p "https://commandus.com/favicon.ico" -l "https://commandus.com" 79141040619
-```
-
-### Settingsformat
-
-~/.wpn text file keeps settings in lines:
-
-- GCM Credentials
-- FCM Credentials
-- Subscription 1
-- ...
-- Subscription N
-
-Each line separated by one space.
-
-GCM Credentials consists of
-
-- appId Application-wide unique identifier UUID 16 bytes (128 bits) long e.g. 550e8400-e29b-41d4-a716-446655440000. See https://tools.ietf.org/html/rfc4122
-- androidId Android identifier assigned by Google service 64 bits long unsigned integer
-- token Security token 64 bits long unsigned integer
-- FCMToken FCM token string
-
-FCM Credentials consists of
-
-- privateKey base64 encoded 32 bytes
-- publicKey base64 encoded 65 bytes
-- authSecret base64 encoded 16 bytes
-
-Subscription consists of
-
-- subscribeUrl
-- subscribeMode always 1
-- endpoint
-- authorizedEntity
-- token
-- pushSet
-
-## Client push message
-
-Using list of recipient tokens (up to 100, but limited by system environment):
+If you want, install:
 
 ```
-./wpn -m -k "AIzaSyAyz-oVjsfRNK53XA6o9DVHN9ZNAaHOfxw" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com"  dl_liGwFeeA:APA91bEn8GjmoPxbi5xgYYffhrsb6WZjiLZA8Sogb7jBXrsJzoCzplV5SISS9mPd8IN-yFMLTIhCYGsRb925CCqGIZ2TPuoA2kj56hOECvsI-Fou1OdE1j1_FunMoWtkDtSyNx-djcQM
+sudo make install
 ```
-
-Sending by the list of recipient tokens in a file or a web resource (-J option):
-
-```
-./wpn -m -k "AIzaSyAyz-oVjsfRNK53XA6o9DVHN9ZNAaHOfxw" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" -J "https://ikfia.wpn.commandus.com/app/token?accesskey=2117177"
-```
-
-If the -J option is specified, the list is padded, that is, you can specify the recipient tokens in both the command line and the file (web resource).
-
-If you specify the -J option wpn 'll open the file. If it can not be opened for reading, or if it is empty, wpn tries to download web resource from the network.
-
-In the -k option, it's better to specify an outdated server key, since it's shorter.
-
-Option -u "https://ikfia-wpn.firebaseio.com" is not required.
-
-## Service push message
-
-push.php script contains keys.
-
-Do not forget accesskey=2117177 option.
-
-```
-https://ikfia.wpn.commandus.com/app/push?accesskey=2117177&title=%D0%9C%D1%80%D0%B0%D0%BA&text=%D0%96%D1%83%D1%82%D1%8C111
-```
-
 
 ## License
 
