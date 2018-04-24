@@ -32,10 +32,10 @@ make
 - openssl 1.1.0 https://github.com/openssl/openssl
 - nghttp2 https://github.com/nghttp2/nghttp2
 - ecec https://github.com/web-push-libs/ecec
-- JSON for Modern C++ https://nlohmann.github.io/json/	https://github.com/nlohmann/json	License MIT (included in third_party) Niels Lohmann http://nlohmann.me
-- Sole- lightweight C++11 library to generate universally unique identificators https://github.com/r-lyeh/sole r-lyeh. zlib/libpng licensed.
+- JSON for Modern C++ https://nlohmann.github.io/json/	https://github.com/nlohmann/json
+- Sole- lightweight C++11 library to generate universally unique identificators https://github.com/r-lyeh/sole
 - glog https://github.com/google/glog
-- unwind https://www.nongnu.org/libunwind/
+- unwind https://github.com/libunwind/libunwind
 - JSON for Modern C++ 3.1.2 https://github.com/nlohmann/json
 
 ### openssl
@@ -163,7 +163,7 @@ Subscription consists of
 
 ## Client push message
 
-Using list of recipient tokens (up to 100, limited by the size of the environment):
+Using list of recipient tokens (up to 100, but limited by system environment):
 
 ```
 ./wpn -m -k "AIzaSyAyz-oVjsfRNK53XA6o9DVHN9ZNAaHOfxw" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com"  dl_liGwFeeA:APA91bEn8GjmoPxbi5xgYYffhrsb6WZjiLZA8Sogb7jBXrsJzoCzplV5SISS9mPd8IN-yFMLTIhCYGsRb925CCqGIZ2TPuoA2kj56hOECvsI-Fou1OdE1j1_FunMoWtkDtSyNx-djcQM
@@ -192,3 +192,28 @@ Do not forget accesskey=2117177 option.
 ```
 https://ikfia.wpn.commandus.com/app/push?accesskey=2117177&title=%D0%9C%D1%80%D0%B0%D0%BA&text=%D0%96%D1%83%D1%82%D1%8C111
 ```
+
+
+## License
+
+This software is licensed under the MIT License:
+
+Copyright © 2018 Andrei Ivanov
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+This software depends on libraries which has differen licenses:
+
+- curl  is licensed under MIT
+- openssl 1.1.0  is licensed under original SSL license, original SSLeay License
+- nghttp2  is licensed under MIT
+- ecec  is licensed under MIT
+- JSON for Modern C++  is licensed under MIT
+- Sole, lightweight C++11 library to generate universally unique identificators is licensed under  zlib/libpng licensed.
+- glog Copyright (c) 2006, Google Inc.
+- unwind is licensed under MIT license
+- JSON for Modern C++ 3.1.2  is licensed under MIT
