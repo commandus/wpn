@@ -1,4 +1,5 @@
 #include <inttypes.h>
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 #include <curl/curl.h>
@@ -23,6 +24,8 @@ static size_t write_header(char* buffer, size_t size, size_t nitems, void *userp
     return sz;
 }
 
+static const std::string HDR_AUTHORIZATION("Authorization : ");
+
 /**
   * POST data, return received data in retval
   * @return 200-299 success, otherwise error code. retval contains error description
@@ -34,6 +37,8 @@ static int curlPost
 	const std::string &data,
 	const std::string *headers,
 	std::string *retval,
+	uint64_t androidId,
+	uint64_t securityToken,
 	int verbosity
 )
 {
@@ -45,8 +50,14 @@ static int curlPost
 	
 	struct curl_slist *chunk = NULL;
 	chunk = curl_slist_append(chunk, ("Content-Type: " + contentType).c_str());
-	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
+	std::stringstream ss;
+	ss << "Authorization: Bearer eJpuAioExgY:APA91bEehiEOf2UfagQGk9hJGBQOgUAkbXWQAu2NJAETofuCcB8mYhL5jDKD_qrcDcR3kAPUJ3YBOH9r8GddFXYDo4q3Ze7XG6KBx4mKp7tdSPDlbIJ6w_sh6RpDvDJKyg7flTiEg47i";
+	// ss << HDR_AUTHORIZATION << "AidLogin " << androidId << ":" << securityToken;
+	curl_slist_append(chunk, ss.str().c_str());
+
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+	
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -90,6 +101,8 @@ static int curlPost
  * @param authorizedEntity usual decimal number string
  * @param retVal can be NULL
  * @param retHeaders can be NULL
+ * @param androidId number
+ * @param securityToken number
  * @param verbosity default 0- none
  * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
  */
@@ -103,6 +116,8 @@ int subscribe
 	const std::string &authorizedEntity,
 	std::string *retVal,
 	std::string *retHeaders,
+ 	uint64_t androidId,
+	uint64_t securityToken,
 	int verbosity
 )
 {
@@ -129,17 +144,43 @@ int subscribe
 	switch (subscribeMode) {
 		case SUBSCRIBE_FIREBASE:
 		{
+			std::string key = wpnKeys.getPublicKey();
+			std::string auth = wpnKeys.getAuthSecret();
+/*			
+std::cerr 
+	<< "key before: " << std::endl
+	<< key << std::endl;
+	key.erase(std::remove(key.begin(), key.end(), '='), key.end());
+	std::replace(key.begin(), key.end(), '+', '-');
+	std::replace(key.begin(), key.end(), '/', '_');
+
+std::cerr 	
+	<< "key after: " << std::endl
+	<< key << std::endl;
+
+std::cerr 
+	<< "auth before: " << std::endl
+	<< auth << std::endl;
+	auth.erase(std::remove(auth.begin(), auth.end(), '='), auth.end());
+	std::replace(auth.begin(), auth.end(), '+', '-');
+	std::replace(auth.begin(), auth.end(), '/', '_');
+
+std::cerr 	
+	<< "auth after: " << std::endl
+	<< auth << std::endl;
+*/	
 			json j = {
 				{"endpoint", endPoint},
-				{"encryption_key", wpnKeys.getPublicKey()},
-				{"encryption_auth", wpnKeys.getAuthSecret()},
+				{"encryption_key", key},
+				{"encryption_auth", auth},
 				{"authorized_entity", authorizedEntity}
 			};
 			std::string s(j.dump());
 
 			if (verbosity > 2)
 				std::cerr << "Send: " << s << " to " << subscribeUrl << std::endl;
-			r = curlPost(subscribeUrl, "application/json", s, retHeaders,  retVal, verbosity);
+			r = curlPost(subscribeUrl, "application/json", s, retHeaders,  retVal, 
+						 androidId, securityToken, verbosity);
 			if (retVal) {
 				if (verbosity > 2)
 					std::cerr << "Receive response code: "<< r << ", body:" << *retVal << " from " << subscribeUrl << std::endl;

@@ -10,7 +10,7 @@ using json = nlohmann::json;
 // --------------- AndroidCredentials ---------------
 
 AndroidCredentials::AndroidCredentials()
-	: mAppId(genAppId()), mAndroidId(0), mSecurityToken(0), mFCMToken("")
+	: mAppId(genAppId()), mAndroidId(0), mSecurityToken(0), mGCMToken("")
 {
 }
 
@@ -59,13 +59,13 @@ void AndroidCredentials::init(
 	const std::string &appId,
 	uint64_t androidId,
 	uint64_t securityToken,
-	const std::string &fcmToken
+	const std::string &gcmToken
 )
 {
 	mAppId = appId;
 	mAndroidId = androidId;
 	mSecurityToken = securityToken;
-	mFCMToken = fcmToken;
+	mGCMToken = gcmToken;
 }
 
 void AndroidCredentials::parse(
@@ -90,7 +90,7 @@ void AndroidCredentials::parse(
 		mAppId = genAppId();
 		mAndroidId = 0;
 		mSecurityToken = 0;
-		mFCMToken = "";
+		mGCMToken = "";
 	}
 	else
 		init(k[0], strtoul(k[1].c_str(), NULL, 10), strtoul(k[2].c_str(), NULL, 10), k[3]); 
@@ -105,7 +105,7 @@ void AndroidCredentials::read(
 		mAppId = genAppId();
 		mAndroidId = 0;
 		mSecurityToken = 0;
-		mFCMToken = "";
+		mGCMToken = "";
 		return;
 	}
 
@@ -129,9 +129,9 @@ uint64_t AndroidCredentials::getSecurityToken() const
 	return mSecurityToken;
 }
 
-const std::string &AndroidCredentials::getFCMToken() const
+const std::string &AndroidCredentials::getGCMToken() const
 {
-	return mFCMToken;
+	return mGCMToken;
 }
 
 void AndroidCredentials::setAndroidId(uint64_t value)
@@ -144,9 +144,9 @@ void AndroidCredentials::setSecurityToken(uint64_t value)
 	mSecurityToken = value;
 }
 
-void AndroidCredentials::setFCMToken(const std::string &value)
+void AndroidCredentials::setGCMToken(const std::string &value)
 {
-	mFCMToken = value;
+	mGCMToken = value;
 }
 
 void AndroidCredentials::write
@@ -164,13 +164,13 @@ void AndroidCredentials::write
 					{"appId", mAppId},
 					{"androidId ", mAndroidId},
 					{"securityToken", mSecurityToken},
-					{"FCMToken", mFCMToken}
+					{"GCMToken", mGCMToken}
 				};
 				strm << j.dump();
 			}
 			break;
 		default:
-			strm << mAppId << delimiter << mAndroidId << delimiter << mSecurityToken << delimiter << mFCMToken << std::endl;
+			strm << mAppId << delimiter << mAndroidId << delimiter << mSecurityToken << delimiter << mGCMToken << std::endl;
 	}
 }
 

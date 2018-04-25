@@ -59,7 +59,7 @@ std::string WpnConfig::getDefaultEndPoint()
 {
 	std::string r(DEF_FCM_ENDPOINT_PREFIX);
 	if (androidCredentials)
-		r = r + androidCredentials->getFCMToken();
+		r = r + androidCredentials->getGCMToken();
 	return r;
 }
 

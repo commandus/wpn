@@ -589,7 +589,7 @@ int MCSClient::connect()
 			return ERR_NO_ANDROID_ID_N_TOKEN;
 		}
 	}
-	if (mCredentials->getFCMToken().empty())
+	if (mCredentials->getGCMToken().empty())
 	{
 		for (int i = 0; i < 5; i++) 
 		{
@@ -695,6 +695,9 @@ std::string MCSClient::getAppId()
 	return r.str();
 }
 
+/**
+ * obtain GCM token
+ */
 int MCSClient::registerDevice()
 {
 	std::string retval;
@@ -723,9 +726,9 @@ int MCSClient::registerDevice()
 	std::string v = retval.substr(p + 1);
 	if (k == "token") 
 	{
-		mCredentials->setFCMToken(v);
+		mCredentials->setGCMToken(v);
 		if (mConfig->verbosity > 1)
-			std::cerr << "FCM token: " << v << std::endl;
+			std::cerr << "GCM token: " << v << std::endl;
 	}
 	else
 	{
@@ -756,8 +759,6 @@ int MCSClient::logIn()
 		return ERR_NO_CONNECT;
 	uint64_t androidId = mCredentials->getAndroidId();
 	uint64_t securityToken = mCredentials->getSecurityToken();
-	std::string gcmToken = mCredentials->getFCMToken();
-	
 	if (mConfig->verbosity > 2)
 	{
 		std::cerr << "Login to " << MCS_HOST << std::endl;

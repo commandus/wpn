@@ -9,7 +9,7 @@ wpn
 Check credentials:
 ```
 ./wpn -c -vvv
-app Id      android Id  security Token	FCM
+app id      android id  security token	GCM token
 2ea0892f-.. 57468817..  2325..   d5DROBGRLmk:A..
 ```
 

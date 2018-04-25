@@ -25,10 +25,13 @@
  * @param authorizedEntity usual decimal number string
  * @param retVal can be NULL
  * @param retHeaders can be NULL
+ * @param androidId number
+ * @param securityToken number
  * @param verbosity default 0- none
  * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
  */
-int subscribe(
+int subscribe
+(
 	Subscription &subscription, 
 	int subscribeMode, 
 	const WpnKeys &wpnKeys, 
@@ -37,7 +40,9 @@ int subscribe(
 	const std::string &authorizedEntity,
 	std::string *retVal,
 	std::string *retHeaders,
-	int verbosity = 0
+ 	uint64_t androidId,
+	uint64_t securityToken,
+	int verbosity
 );
 
 #endif

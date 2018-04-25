@@ -84,7 +84,8 @@ private:
 	);
 	int checkIn();
 	std::string getAppId();
-	int registerDevice();
+	/// obtain GCM token
+ 	int registerDevice();
 	std::vector<std::string> mPersistentIds;
 public:
 	bool mStop;

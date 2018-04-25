@@ -64,14 +64,14 @@ int main(int argc, char** argv)
 		case CMD_LIST:
 			{
 				if ((config.outputFormat == 0) && (config.verbosity > 0))
-					std::cout << "subscribeUrl\tsubscribeMode\tendpoint\tauthorizedEntity\ttoken\tpushSet" << std::endl;
+					std::cout << "subscribeUrl\tsubscribe mode\tendpoint\tauthorized entity\tFCM token\tpushSet" << std::endl;
 				config.subscriptions->write(std::cout, "\t", config.outputFormat);
 			}
 			break;
 		case CMD_CREDENTIALS:
 			{
 				if ((config.outputFormat == 0) && (config.verbosity > 0))
-					std::cout << "app Id\tandroid Id\tsecurity Token\tFCM Token" << std::endl;
+					std::cout << "application identifer\tandroid identifer\tsecurity token\tGCM token" << std::endl;
 				config.androidCredentials->write(std::cout, "\t", config.outputFormat);
 				std::cout << std::endl;
 			}
@@ -79,7 +79,7 @@ int main(int argc, char** argv)
 		case CMD_KEYS:
 			{
 				if ((config.outputFormat == 0) && (config.verbosity > 0))
-					std::cout << "private_key\tpublic_key\tauth_secret" << std::endl;
+					std::cout << "private key\tpublic key\tauthentication secret" << std::endl;
 				config.wpnKeys->write(std::cout, "\t", config.outputFormat);
 				std::cout << std::endl;
 			}
@@ -91,6 +91,7 @@ int main(int argc, char** argv)
 				std::string headers;
 				int r = subscribe(subscription, SUBSCRIBE_FIREBASE, *config.wpnKeys, 
 					config.subscribeUrl, config.endpoint, config.authorizedEntity,  &d, &headers,
+					config.androidCredentials->getAndroidId(), config.androidCredentials->getSecurityToken(),
 					config.verbosity);
 				if ((r < 200) || (r >= 300))
 				{

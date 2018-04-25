@@ -22,13 +22,13 @@ private:
 	std::string mAppId;
 	uint64_t mAndroidId;
     uint64_t mSecurityToken;
-	std::string mFCMToken;
+	std::string mGCMToken;
 
 	void init(
 		const std::string &appId,
 		uint64_t androidId,
 		uint64_t securityToken,
-		const std::string &fcmToken
+		const std::string &gcmToken
 	);
 	void parse(
 		const std::string &keys,
@@ -61,10 +61,10 @@ public:
 	const std::string &getAppId() const;
 	uint64_t getAndroidId() const;
 	uint64_t getSecurityToken() const;
-	const std::string &getFCMToken() const;
+	const std::string &getGCMToken() const;
 	void setAndroidId(uint64_t value);
 	void setSecurityToken(uint64_t value);
-	void setFCMToken(const std::string &value);
+	void setGCMToken(const std::string &value);
 
 	void write(
 		std::ostream &strm,
