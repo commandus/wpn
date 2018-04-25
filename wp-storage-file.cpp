@@ -539,7 +539,6 @@ bool Subscription::operator==(const Subscription &val) const
 // --------------- Subscriptions ---------------
 
 Subscriptions::Subscriptions()
-	: writeFormat(0)
 {
 }
 
@@ -547,7 +546,6 @@ Subscriptions::Subscriptions(
 	std::istream &strm,
 	const std::string &delimiter
 )
-	: writeFormat(0)
 {
 	read(strm, delimiter);
 }
@@ -555,7 +553,6 @@ Subscriptions::Subscriptions(
 Subscriptions::Subscriptions(
 	const std::string &fileName
 )
-	: writeFormat(0)
 {
 	std::ifstream strm(fileName);
 	read(strm, DEF_DELIMITER);
@@ -572,15 +569,10 @@ Subscription::Subscription(
 {
 }
 
-/// Set output(write) format: 0- text, 1- JSON. Default 0.
-void Subscriptions::setWriteFormat(int value)
-{
-	writeFormat = value;
-}
-
 void Subscriptions::write(
 	std::ostream &strm,
-	const std::string &delimiter
+	const std::string &delimiter,
+	const int writeFormat
 ) const
 {
 	for (std::vector<Subscription>::const_iterator it(list.begin()); it != list.end(); ++it)

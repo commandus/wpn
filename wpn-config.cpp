@@ -4,12 +4,13 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
+#include <fstream>
 
 #include "utilstring.h"
 #include "nlohmann/json.hpp"
 
 #define DEF_FILE_NAME			".wpn"
-#define DEF_PUSH_SVC			"https://fcm.googleapis.com"
+#define DEF_FCM_ENDPOINT_PREFIX	"https://fcm.googleapis.com/fcm/send/"
 
 using json = nlohmann::json;
 
@@ -54,6 +55,14 @@ static int parseJsonRecipientTokens
 	return c;
 }
 
+std::string WpnConfig::getDefaultEndPoint()
+{
+	std::string r(DEF_FCM_ENDPOINT_PREFIX);
+	if (androidCredentials)
+		r = r + androidCredentials->getFCMToken();
+	return r;
+}
+
 WpnConfig::WpnConfig()
 	: cmd(CMD_LISTEN), verbosity(0), file_name(getDefaultConfigFileName()), endpoint(""), authorizedEntity("")
 {
@@ -66,6 +75,16 @@ WpnConfig::WpnConfig
 )
 {
 	errorcode = parseCmd(argc, argv);
+}
+
+WpnConfig::~WpnConfig()
+{
+	if (androidCredentials)
+		delete androidCredentials;
+	if (wpnKeys)
+		delete wpnKeys;
+	if (subscriptions)
+		delete subscriptions;
 }
 
 /**
@@ -89,7 +108,7 @@ int WpnConfig::parseCmd
 	struct arg_str *a_file_name = arg_str0("f", "file", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
 	
 	struct arg_str *a_subscribe_url = arg_str0("r", "registrar", "<URL>", "Subscription registrar URL, like https://fcm.googleapis.com/fcm/connect/subscribe or 1. Default 1");
-	struct arg_str *a_endpoint = arg_str0("u", "pushsvc", "<URL>", "Push service URL. Default " DEF_PUSH_SVC);
+	struct arg_str *a_endpoint = arg_str0("u", "endpoint", "<URL>", "Push service endpoint URL prefix.");
 	struct arg_str *a_authorized_entity = arg_str0("e", "entity", "<entity-id>", "Push message sender identifier, usually decimal number");
 
 	// send options
@@ -126,6 +145,18 @@ int WpnConfig::parseCmd
 	// Parse the command line as defined by argtable[]
 	nerrors = arg_parse(argc, argv, argtable);
 
+	if (a_file_name->count)
+		file_name = *a_file_name->sval;
+	else
+		file_name = getDefaultConfigFileName();
+
+	// read
+	std::ifstream configRead(file_name.c_str());
+	androidCredentials = new AndroidCredentials(configRead);
+	wpnKeys = new WpnKeys(configRead);
+	subscriptions = new Subscriptions (configRead);
+	configRead.close();
+	
 	if (a_subscribe_url->count)
 		subscribeUrl = *a_subscribe_url->sval;
 	else
@@ -142,7 +173,7 @@ int WpnConfig::parseCmd
 	if (a_endpoint->count)
 		endpoint = *a_endpoint->sval;
 	else
-		endpoint = DEF_PUSH_SVC;
+		endpoint = getDefaultEndPoint();
 
 	if (a_authorized_entity->count)
 		authorizedEntity = *a_authorized_entity->sval;
@@ -214,11 +245,6 @@ int WpnConfig::parseCmd
 		}
 	}
 	
-	if (a_file_name->count)
-		file_name = *a_file_name->sval;
-	else
-		file_name = getDefaultConfigFileName();
-
 	if (a_server_key->count)
 	{
 		serverKey = *a_server_key->sval;
@@ -289,3 +315,13 @@ int WpnConfig::error()
 {
 	return errorcode;
 }
+
+int WpnConfig::write()
+{
+	std::ofstream configWrite(file_name);
+	androidCredentials->write(configWrite);
+	wpnKeys->write(configWrite);
+	subscriptions->write(configWrite);
+	configWrite.close();
+}
+

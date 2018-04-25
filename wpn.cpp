@@ -59,27 +59,20 @@ int main(int argc, char** argv)
 	if (config.error())
 		exit(config.error());
 
-	std::ifstream configRead(config.file_name);
-	AndroidCredentials androidCredentials(configRead);
-	WpnKeys wpnKeys(configRead);
-	Subscriptions subscriptions(configRead);
-	configRead.close();
-
 	switch (config.cmd)
 	{
 		case CMD_LIST:
 			{
 				if ((config.outputFormat == 0) && (config.verbosity > 0))
 					std::cout << "subscribeUrl\tsubscribeMode\tendpoint\tauthorizedEntity\ttoken\tpushSet" << std::endl;
-				subscriptions.setWriteFormat(config.outputFormat);
-				subscriptions.write(std::cout, "\t");
+				config.subscriptions->write(std::cout, "\t", config.outputFormat);
 			}
 			break;
 		case CMD_CREDENTIALS:
 			{
 				if ((config.outputFormat == 0) && (config.verbosity > 0))
 					std::cout << "app Id\tandroid Id\tsecurity Token\tFCM Token" << std::endl;
-				androidCredentials.write(std::cout, "\t", config.outputFormat);
+				config.androidCredentials->write(std::cout, "\t", config.outputFormat);
 				std::cout << std::endl;
 			}
 			break;
@@ -87,7 +80,7 @@ int main(int argc, char** argv)
 			{
 				if ((config.outputFormat == 0) && (config.verbosity > 0))
 					std::cout << "private_key\tpublic_key\tauth_secret" << std::endl;
-				wpnKeys.write(std::cout, "\t", config.outputFormat);
+				config.wpnKeys->write(std::cout, "\t", config.outputFormat);
 				std::cout << std::endl;
 			}
 			break;
@@ -96,7 +89,7 @@ int main(int argc, char** argv)
 				Subscription subscription;
 				std::string d;
 				std::string headers;
-				int r = subscribe(subscription, SUBSCRIBE_FIREBASE, wpnKeys, 
+				int r = subscribe(subscription, SUBSCRIBE_FIREBASE, *config.wpnKeys, 
 					config.subscribeUrl, config.endpoint, config.authorizedEntity,  &d, &headers,
 					config.verbosity);
 				if ((r < 200) || (r >= 300))
@@ -105,7 +98,7 @@ int main(int argc, char** argv)
 				}
 				else 
 				{
-					subscriptions.list.push_back(subscription);
+					config.subscriptions->list.push_back(subscription);
 				}
 				if (config.verbosity > 0)
 				{
@@ -118,10 +111,10 @@ int main(int argc, char** argv)
 				if (true)
 				{
 					Subscription f(config.endpoint, config.authorizedEntity);
-					std::vector<Subscription>::iterator it = std::find(subscriptions.list.begin(),
-						subscriptions.list.end(), f);
-					if (it != subscriptions.list.end())
-						subscriptions.list.erase(it);
+					std::vector<Subscription>::iterator it = std::find(config.subscriptions->list.begin(),
+						config.subscriptions->list.end(), f);
+					if (it != config.subscriptions->list.end())
+						config.subscriptions->list.erase(it);
 				}
 			}
 			break;
@@ -145,7 +138,7 @@ int main(int argc, char** argv)
 				if (config.verbosity > 0)
 				{
 				}
-				MCSClient client(&config, &wpnKeys, &androidCredentials);
+				MCSClient client(&config, config.wpnKeys, config.androidCredentials);
 				client.connect();
 				std::cerr << "Listen" << std::endl
 				<< "Enter q to quit" << std::endl
@@ -155,11 +148,7 @@ int main(int argc, char** argv)
 			}
 	}
 
-	std::ofstream configWrite(config.file_name);
-	androidCredentials.write(configWrite);
-	wpnKeys.write(configWrite);
-	subscriptions.write(configWrite);
-	configWrite.close();
+	config.write();
 	
 	return 0;
 }

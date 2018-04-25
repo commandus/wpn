@@ -8,6 +8,7 @@
 
 #include <string>
 #include <vector>
+#include "wp-storage-file.h"
 
 #define CMD_LISTEN				0
 #define CMD_KEYS				1
@@ -62,7 +63,14 @@ public:
 		int argc,
 		char* argv[]
 	);
+	~WpnConfig();
 	int error();
+	std::string getDefaultEndPoint();
+	
+	AndroidCredentials *androidCredentials;
+	WpnKeys *wpnKeys;
+	Subscriptions *subscriptions;
+	int write();
 };
 
 #endif

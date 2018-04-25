@@ -219,9 +219,6 @@ public:
 class Subscriptions
 {
 private:
-	/// output(write) format: 0- text, 1- JSON. Default 0.
-	int writeFormat;
-
 	void read(
 		std::istream &strm,
 		const std::string &delimiter
@@ -238,12 +235,10 @@ public:
 	
 	std::vector<Subscription> list;
 
-	/// Set output(write) format: 0- text, 1- JSON. Default 0.
-	void setWriteFormat(int value);
-
 	void write(
 		std::ostream &strm,
-		const std::string &delimiter = DEF_DELIMITER
+		const std::string &delimiter = DEF_DELIMITER,
+		const int writeFormat = 0
 	)  const;
 	void write(
 		const std::string &fileName
