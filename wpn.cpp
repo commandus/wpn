@@ -143,7 +143,9 @@ int main(int argc, char** argv)
 				}
 				MCSClient client(&config, &wpnKeys, &androidCredentials);
 				client.connect();
-				std::cerr << "Listen" << std::endl;
+				std::cerr << "Listen" << std::endl
+				<< "Enter q to quit" << std::endl
+				<< "p: ping" << std::endl;
 				client.writeStream(std::cin);
 				client.stop();
 			}
