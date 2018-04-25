@@ -221,6 +221,29 @@ int MCSReceiveBuffer::parse()
 					std::cerr << std::endl;
 				}
 					break;
+				case kHeartbeatAckTag:
+				{
+					HeartbeatAck* r = (HeartbeatAck*) message;
+					std::cerr << "HeartbeatAck " ;
+					if (r->has_last_stream_id_received())
+					{
+						std::cerr << "last_stream_id_received: " << r->last_stream_id_received() << " ";
+					}
+					if (r->has_status())
+					{
+						std::cerr << "status: " << r->status() << " ";
+					}
+					if (r->has_stream_id())
+					{
+						std::cerr << "stream_id: " << r->stream_id() << " ";
+					}
+					std::cerr << std::endl;
+				}
+					break;
+				case kBindAccountResponseTag:
+					{
+					}
+					break;
 				case kIqStanzaTag:
 				{
 					IqStanza* r = (IqStanza*) message;
