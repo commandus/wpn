@@ -107,6 +107,10 @@ int main(int argc, char** argv)
 				{
 					subscriptions.list.push_back(subscription);
 				}
+				if (config.verbosity > 0)
+				{
+					subscription.write(std::cout, "\t", config.outputFormat);
+				}
 			}
 			break;
 		case CMD_UNSUBSCRIBE:

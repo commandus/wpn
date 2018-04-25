@@ -129,27 +129,35 @@ int subscribe
 	switch (subscribeMode) {
 		case SUBSCRIBE_FIREBASE:
 		{
-			std::stringstream q;
-			q << "{\"endpoint\": \""
-				<< endPoint << "\","
-				<< "\"encryption_key\": \""
-				<< wpnKeys.getPublicKey() << "\","
-				<< "\"encryption_auth\": \""
-				<< wpnKeys.getAuthSecret() << "\","
-				<< "\"authorized_entity\": \""
-				<< authorizedEntity << "\""
-				<< "}";
+			json j = {
+				{"endpoint", endPoint},
+				{"encryption_key", wpnKeys.getPublicKey()},
+				{"encryption_auth", wpnKeys.getAuthSecret()},
+				{"authorized_entity", authorizedEntity}
+			};
+			std::string s(j.dump());
+
 			if (verbosity > 2)
-				std::cerr << "Send: " << q.str() << " to " << subscribeUrl << std::endl;
-			r = curlPost(subscribeUrl, "application/json", q.str(), retHeaders,  retVal, verbosity);
+				std::cerr << "Send: " << s << " to " << subscribeUrl << std::endl;
+			r = curlPost(subscribeUrl, "application/json", s, retHeaders,  retVal, verbosity);
 			if (retVal) {
 				if (verbosity > 2)
 					std::cerr << "Receive response code: "<< r << ", body:" << *retVal << " from " << subscribeUrl << std::endl;
-
-				// {"token": "...", "pushSet":"..."}
-				json js = json::parse(*retVal);
-				subscription.setToken(js["token"]);
-				subscription.setPushSet(js["pushSet"]);
+				if (r >= 200 && r < 300)
+				{
+					json js = json::parse(*retVal);
+					subscription.setToken(js["token"]);
+					subscription.setPushSet(js["pushSet"]);
+				}
+				else
+				{
+					json js = json::parse(*retVal);
+					if (retVal)
+					{
+						json e = js["error"];
+						*retVal = e["message"];
+					}
+				}
 			}
 			break;
 		}

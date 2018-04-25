@@ -261,7 +261,11 @@ Content-Type: application/json
 Curl:
 
 ```
-curl -i -H Accept:application/json -H Content-Type:application/json -X POST https://fcm.googleapis.com/fcm/connect/subscribe -H Content-Type: application/json -d '{"endpoint": "https://fcm.googleapis.com","encryption_key":"BHNg9UFl_BQXmtbclRJEVBnUC9aAIvlgfIKNxGnptLLEZntm8hqV-RrMjJrd7d5fwNlXKSZizfczpMQwz1tQ8tY","encryption_auth":"EWMSz0gFhdAna1UgfhR-Qg","authorized_entity":"518511566414"}'
+curl -i -H "Accept:application/json" -H "Content-Type:application/json" -X POST https://fcm.googleapis.com/fcm/connect/subscribe -d '{"endpoint": "https://fcm.googleapis.com","encryption_key":"BHNg9UFl_BQXmtbclRJEVBnUC9aAIvlgfIKNxGnptLLEZntm8hqV-RrMjJrd7d5fwNlXKSZizfczpMQwz1tQ8tY","encryption_auth":"EWMSz0gFhdAna1UgfhR-Qg","authorized_entity":"518511566414"}'
+```
+
+```
+curl -i -H "Accept:application/json" -H "Content-Type:application/json" -X POST https://fcm.googleapis.com/fcm/connect/subscribe -d '{"endpoint": "https://fcm.googleapis.com","encryption_key":"BHNg9UFl_BQXmtbclRJEVBnUC9aAIvlgfIKNxGnptLLEZntm8hqV-RrMjJrd7d5fwNlXKSZizfczpMQwz1tQ8tY","encryption_auth":"EWMSz0gFhdAna1UgfhR-Qg","authorized_entity":"518511566414"}'
 ```
 
 ### Response
