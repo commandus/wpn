@@ -1,8 +1,11 @@
 #include <inttypes.h>
 
 #include <fstream>
-#include "third_party/sole/sole.hpp"
+#include "sole/sole.hpp"
+#include "nlohmann/json.hpp"
 #include "wp-storage-file.h"
+
+using json = nlohmann::json;
 
 // --------------- AndroidCredentials ---------------
 
@@ -149,10 +152,26 @@ void AndroidCredentials::setFCMToken(const std::string &value)
 void AndroidCredentials::write
 (
 	std::ostream &strm,
-	const std::string &delimiter
+	const std::string &delimiter,
+	const int writeFormat
 ) const
 {
-	strm << mAppId << delimiter << mAndroidId << delimiter << mSecurityToken << delimiter << mFCMToken << std::endl;
+		switch (writeFormat)
+	{
+		case 1:
+			{
+				json j = {
+					{"appId", mAppId},
+					{"androidId ", mAndroidId},
+					{"securityToken", mSecurityToken},
+					{"FCMToken", mFCMToken}
+				};
+				strm << j.dump();
+			}
+			break;
+		default:
+			strm << mAppId << delimiter << mAndroidId << delimiter << mSecurityToken << delimiter << mFCMToken << std::endl;
+	}
 }
 
 void AndroidCredentials::write(
@@ -289,10 +308,25 @@ std::string WpnKeys::getAuthSecret() const
 
 void WpnKeys::write(
 	std::ostream &strm,
-	const std::string &delimiter
+	const std::string &delimiter,
+	const int writeFormat
 ) const
 {
-	strm << getPrivateKey() << delimiter << getPublicKey() << delimiter << getAuthSecret() << std::endl;
+	switch (writeFormat)
+	{
+		case 1:
+			{
+				json j = {
+					{"privateKey", getPrivateKey()},
+					{"publicKey", getPublicKey()},
+					{"authSecret", getAuthSecret()}
+				};
+				strm << j.dump();
+			}
+			break;
+		default:
+			strm << getPrivateKey() << delimiter << getPublicKey() << delimiter << getAuthSecret() << std::endl;
+	}
 }
 
 void WpnKeys::write(
@@ -307,7 +341,7 @@ void WpnKeys::write(
 // --------------- Subscription ---------------
 
 Subscription::Subscription()
-	:	subscribeUrl(""), subscribeMode(0), endpoint(""), authorizedEntity(""), token(""), pushSet("")
+	: subscribeUrl(""), subscribeMode(0), endpoint(""), authorizedEntity(""), token(""), pushSet("")
 {
 }
 
@@ -319,7 +353,7 @@ Subscription::Subscription(
 	const std::string &a_token,
 	const std::string &a_pushSet
 )
-	:	subscribeUrl(aSubscribeUrl), subscribeMode(aSubscribeMode), endpoint(a_endpoint), authorizedEntity(a_authorizedEntity), token(a_token), pushSet(a_pushSet)
+	: subscribeUrl(aSubscribeUrl), subscribeMode(aSubscribeMode), endpoint(a_endpoint), authorizedEntity(a_authorizedEntity), token(a_token), pushSet(a_pushSet)
 {
 }
 
@@ -402,12 +436,31 @@ void Subscription::setPushSet(const std::string &value)
 void Subscription::write
 (
 	std::ostream &strm,
-	const std::string &delimiter
+	const std::string &delimiter,
+	const int writeFormat
 ) const
 {
-	strm << getSubscribeUrl() << delimiter << getSubscribeMode() << delimiter 
-		<< getEndpoint() << delimiter << getAuthorizedEntity() << delimiter 
-		<< getToken() << delimiter << getPushSet() << std::endl;
+	switch (writeFormat)
+	{
+		case 1:
+			{
+				json j = {
+					{"subscribeUrl", getSubscribeUrl()},
+					{"subscribeMode", getSubscribeMode()},
+					{"endpoint", getEndpoint()},
+					{"authorizedEntity", getAuthorizedEntity()},
+					{"token", getToken()},
+					{"pushSet", getPushSet()}
+				};
+				strm << j.dump();
+			}
+			break;
+		default:
+			strm << getSubscribeUrl() << delimiter << getSubscribeMode() << delimiter 
+				<< getEndpoint() << delimiter << getAuthorizedEntity() << delimiter 
+				<< getToken() << delimiter << getPushSet() << std::endl;
+			break;
+	}
 }
 
 void Subscription::write
@@ -416,7 +469,7 @@ void Subscription::write
 ) const
 {
 	std::ofstream strm(fileName);
-	write(strm, DEF_DELIMITER);
+	write(strm, DEF_DELIMITER, 0);
 	strm.close();
 }
 
@@ -486,6 +539,7 @@ bool Subscription::operator==(const Subscription &val) const
 // --------------- Subscriptions ---------------
 
 Subscriptions::Subscriptions()
+	: writeFormat(0)
 {
 }
 
@@ -493,6 +547,7 @@ Subscriptions::Subscriptions(
 	std::istream &strm,
 	const std::string &delimiter
 )
+	: writeFormat(0)
 {
 	read(strm, delimiter);
 }
@@ -500,6 +555,7 @@ Subscriptions::Subscriptions(
 Subscriptions::Subscriptions(
 	const std::string &fileName
 )
+	: writeFormat(0)
 {
 	std::ifstream strm(fileName);
 	read(strm, DEF_DELIMITER);
@@ -508,13 +564,18 @@ Subscriptions::Subscriptions(
 /**
  * Constructor for find() only
  */
-
 Subscription::Subscription(
 	const std::string &end_point,
 	const std::string &authorized_entity
 )
 :	endpoint(end_point), authorizedEntity(authorized_entity)
 {
+}
+
+/// Set output(write) format: 0- text, 1- JSON. Default 0.
+void Subscriptions::setWriteFormat(int value)
+{
+	writeFormat = value;
 }
 
 void Subscriptions::write(
@@ -524,7 +585,7 @@ void Subscriptions::write(
 {
 	for (std::vector<Subscription>::const_iterator it(list.begin()); it != list.end(); ++it)
 	{
-		it->write(strm, delimiter);
+		it->write(strm, delimiter, writeFormat);
 	}
 }
 

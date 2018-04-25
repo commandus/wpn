@@ -10,11 +10,12 @@
 #include <vector>
 
 #define CMD_LISTEN				0
-#define CMD_CREDENTIALS			1
-#define CMD_LIST 				2
-#define CMD_SUBSCRIBE 			3
-#define CMD_UNSUBSCRIBE			4
-#define CMD_PUSH				5
+#define CMD_KEYS				1
+#define CMD_CREDENTIALS			2
+#define CMD_LIST 				3
+#define CMD_SUBSCRIBE 			4
+#define CMD_UNSUBSCRIBE			5
+#define CMD_PUSH				6
 
 #define SUBSCRIBE_URL_COUNT		1
 #define SUBSCRIBE_URL_1	 		"https://fcm.googleapis.com/fcm/connect/subscribe"
@@ -39,12 +40,13 @@ private:
 	int errorcode;
 public:
 	int cmd;										///< CMD_*
+	int outputFormat;								///< 0- text, 1- json
 	int verbosity;									///< 0-quiet, 3- debug
 	std::string file_name;							///< config file, e.g. https://sure-phone.firebaseio.com"
 	std::string subscribeUrl;						///< default https://fcm.googleapis.com/fcm/connect/subscribe
 	std::string endpoint;							///<subscription entity
 	std::string authorizedEntity;					///<subscription entity, sender Id
-	
+
 	// send options
 	std::string serverKey;							///< FCM server key
 	std::vector<std::string> recipientTokens;		///< recipient's FCM tokens

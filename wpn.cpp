@@ -69,48 +69,25 @@ int main(int argc, char** argv)
 	{
 		case CMD_LIST:
 			{
-				switch (config.verbosity)
-				{
-					case 0:
-						{
-							for (std::vector<Subscription>::const_iterator it(subscriptions.list.begin()); it != subscriptions.list.end(); ++it)
-							{
-								std::cout << it->getEndpoint() << std::endl;
-							}
-							break;
-						}
-					case 1:
-						{
-							for (std::vector<Subscription>::const_iterator it(subscriptions.list.begin()); it != subscriptions.list.end(); ++it)
-							{
-								std::cout << it->getEndpoint() << "\t" << it->getAuthorizedEntity() << std::endl;
-							}
-							break;
-						}
-					case 2:
-						{
-							for (std::vector<Subscription>::const_iterator it(subscriptions.list.begin()); it != subscriptions.list.end(); ++it)
-							{
-								std::cout << it->getEndpoint() << "\t" << it->getAuthorizedEntity() << "\t" << it->getToken() << std::endl;
-							}
-							break;
-						}
-					case 3:
-					{
-						std::cout << "subscribeUrl\tsubscribeMode\tendpoint\tauthorizedEntity\ttoken\tpushSet" << std::endl;
-						subscriptions.write(std::cout, "\t");
-						break;
-					}
-				default:
-					break;
-				}
+				if ((config.outputFormat == 0) && (config.verbosity > 0))
+					std::cout << "subscribeUrl\tsubscribeMode\tendpoint\tauthorizedEntity\ttoken\tpushSet" << std::endl;
+				subscriptions.setWriteFormat(config.outputFormat);
+				subscriptions.write(std::cout, "\t");
 			}
 			break;
 		case CMD_CREDENTIALS:
 			{
-				if (config.verbosity > 0)
+				if ((config.outputFormat == 0) && (config.verbosity > 0))
+					std::cout << "app Id\tandroid Id\tsecurity Token\tFCM Token" << std::endl;
+				androidCredentials.write(std::cout, "\t", config.outputFormat);
+				std::cout << std::endl;
+			}
+			break;
+		case CMD_KEYS:
+			{
+				if ((config.outputFormat == 0) && (config.verbosity > 0))
 					std::cout << "private_key\tpublic_key\tauth_secret" << std::endl;
-				wpnKeys.write(std::cout, "\t");
+				wpnKeys.write(std::cout, "\t", config.outputFormat);
 				std::cout << std::endl;
 			}
 			break;

@@ -81,6 +81,7 @@ int WpnConfig::parseCmd
 )
 {
 	struct arg_lit *a_list = arg_lit0("l", "list", "List subscriptions");
+	struct arg_lit *a_keys = arg_lit0("y", "keys", "Print keys");
 	struct arg_lit *a_credentials = arg_lit0("c", "credentials", "Print credentials");
 	struct arg_lit *a_subscribe = arg_lit0("s", "subscribe", "Subscribe with -e, [-u, -r])");
 	struct arg_lit *a_unsubscribe = arg_lit0("d", "unsubscribe", "Unsubscribe with -e, [-u]");
@@ -99,16 +100,18 @@ int WpnConfig::parseCmd
 	struct arg_str *a_link = arg_str0("a", "link", "<URI>", "https:// action address.");
 	struct arg_str *a_recipient_tokens = arg_strn(NULL, NULL, "<account#>", 0, 100, "Recipient token.");
 	struct arg_str *a_recipient_token_file = arg_str0("J", "json", "<file name or URL>", "JSON file e.g. [[1,\"token\",..");	///< e.g. 
+	struct arg_str *a_output = arg_str0("o", "format", "<text|json>", "Output format. Default text.");
 
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 3, "0- quiet (default), 1- errors, 2- warnings, 3- debug");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
-		a_list, a_credentials, a_subscribe, a_unsubscribe, a_send,
+		a_list, a_credentials, a_keys, a_subscribe, a_unsubscribe, a_send,
 		a_subscribe_url, a_endpoint, a_authorized_entity,
 		a_file_name,
 		a_server_key, a_subject, a_body, a_icon, a_link, a_recipient_tokens, a_recipient_token_file,
+		a_output,
 		a_verbosity, a_help, a_end 
 	};
 
@@ -150,17 +153,20 @@ int WpnConfig::parseCmd
 	if (a_list->count)
 		cmd = CMD_LIST;
 	else
-		if (a_credentials->count)
-			cmd = CMD_CREDENTIALS;
+		if (a_keys->count)
+			cmd = CMD_KEYS;
 		else
-			if (a_subscribe->count)
-				cmd = CMD_SUBSCRIBE;
+			if (a_credentials->count)
+				cmd = CMD_CREDENTIALS;
 			else
-				if (a_unsubscribe->count)
-					cmd = CMD_UNSUBSCRIBE;
+				if (a_subscribe->count)
+					cmd = CMD_SUBSCRIBE;
 				else
-					if (a_send->count)
-						cmd = CMD_PUSH;
+					if (a_unsubscribe->count)
+						cmd = CMD_UNSUBSCRIBE;
+					else
+						if (a_send->count)
+							cmd = CMD_PUSH;
 
 	if (cmd == CMD_PUSH)
 	{
@@ -251,6 +257,13 @@ int WpnConfig::parseCmd
 		if (!data.empty()) {
 			parseJsonRecipientTokens(recipientTokens, data);
 		}
+	}
+
+	outputFormat = 0;	// 0- text, 1- json
+	if (a_output->count)
+	{
+		if (strcmp("json", *a_output->sval) == 0)
+			outputFormat = 1;
 	}
 
 	verbosity = a_verbosity->count;

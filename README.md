@@ -9,6 +9,15 @@ wpn
 Check credentials:
 ```
 ./wpn -c -vvv
+app Id      android Id  security Token	FCM
+2ea0892f-.. 57468817..  2325..   d5DROBGRLmk:A..
+```
+
+## Print keys
+
+Check keys:
+```
+./wpn -y -vvv
 private_key	public_key	auth_secret
 r1...       BP...       bd..
 ```
@@ -100,22 +109,22 @@ FCM token must be second item in array.
 
 ~/.wpn text file keeps settings in lines:
 
-- GCM Credentials
-- FCM Credentials
+- Credentials
+- Keys
 - Subscription 1
 - ...
 - Subscription N
 
 Each line separated by one space.
 
-GCM Credentials consists of
+Credentials consists of
 
 - appId Application-wide unique identifier UUID 16 bytes (128 bits) long e.g. 550e8400-e29b-41d4-a716-446655440000. See https://tools.ietf.org/html/rfc4122
 - androidId Android identifier assigned by Google service 64 bits long unsigned integer
 - token Security token 64 bits long unsigned integer
-- FCMToken FCM token string
+- GCMToken GCM token string
 
-FCM Credentials consists of
+Keys consists of
 
 - privateKey base64 encoded 32 bytes
 - publicKey base64 encoded 65 bytes
