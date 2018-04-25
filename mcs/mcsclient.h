@@ -120,6 +120,8 @@ public:
 		const MessageLite *msg
 	);
 
+	void ping();
+	
 	void writeStream(std::istream &strm);
 	void log(
 		int level, 

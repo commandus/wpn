@@ -325,6 +325,13 @@ static std::string mkCheckinRequest(
 	return r;
 }
 
+static MessageLite * mkPing()
+{
+	HeartbeatPing *req = new HeartbeatPing();
+	// req->set_status(0);
+	return req;
+}
+
 /**
  * @param androidId 0- before register
  * @param securityToken 0- before register
@@ -775,6 +782,16 @@ int MCSClient::sendTag
 	return SSL_write(mSsl, s.c_str(), s.size());
 }
 
+void MCSClient::ping()
+{
+	std::cerr << "ping.." << std::endl;
+	MessageLite *l =  mkPing();
+	if (!l)
+		return;
+	sendTag(kHeartbeatPingTag, l);
+	delete l;
+}
+
 void MCSClient::writeStream
 (
 	std::istream &strm
@@ -786,5 +803,9 @@ void MCSClient::writeStream
 		strm >> s;
 		if (s == "q")
 			break;
+		if (s == "p")
+		{
+			ping();
+		}
 	}
 }
