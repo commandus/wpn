@@ -4,6 +4,7 @@
 #include <sstream>
 #include <curl/curl.h>
 #include "nlohmann/json.hpp"
+#include <ece.h>
 #include "wp-subscribe.h"
 
 using json = nlohmann::json;
@@ -25,6 +26,14 @@ static size_t write_header(char* buffer, size_t size, size_t nitems, void *userp
 }
 
 static const std::string HDR_AUTHORIZATION("Authorization : ");
+
+std::string encodeBase64Uint64(uint64_t value)
+{
+	int len = ece_base64url_encode(&value, sizeof(value), ECE_BASE64URL_OMIT_PADDING, NULL, 0);
+	std::string an64(len, '\0');
+	ece_base64url_encode(&value, sizeof(value), ECE_BASE64URL_OMIT_PADDING, (char *) an64.c_str(), len);
+	return an64;
+}
 
 /**
   * POST data, return received data in retval
@@ -50,11 +59,26 @@ static int curlPost
 	
 	struct curl_slist *chunk = NULL;
 	chunk = curl_slist_append(chunk, ("Content-Type: " + contentType).c_str());
-
+/*
 	std::stringstream ss;
 	ss << "Authorization: Bearer eJpuAioExgY:APA91bEehiEOf2UfagQGk9hJGBQOgUAkbXWQAu2NJAETofuCcB8mYhL5jDKD_qrcDcR3kAPUJ3YBOH9r8GddFXYDo4q3Ze7XG6KBx4mKp7tdSPDlbIJ6w_sh6RpDvDJKyg7flTiEg47i";
 	// ss << HDR_AUTHORIZATION << "AidLogin " << androidId << ":" << securityToken;
 	curl_slist_append(chunk, ss.str().c_str());
+*/
+	std::string s;
+	std::string an;
+	an = "246829423295:AIzaSyBfUt1N5aabh8pubYiBPKOq9OcIoHv_41I";
+	// an = "MjQ2ODI5NDIzMjk1:AIzaSyBfUt1N5aabh8pubYiBPKOq9OcIoHv_41I";
+	int len = ece_base64url_encode(an.c_str(), an.size(), ECE_BASE64URL_OMIT_PADDING, NULL, 0);
+	std::string an64(len, '\0');
+	ece_base64url_encode(an.c_str(), an.size(), ECE_BASE64URL_OMIT_PADDING, (char *) an64.c_str(), len);
+	
+	std::stringstream ss;
+	
+	ss << "Authorization: Bearer " << an;
+	curl_slist_append(chunk, ss.str().c_str());
+	
+std::cerr << "============>" << ss.str().c_str() << std::endl;
 
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 	
@@ -168,7 +192,9 @@ std::cerr
 std::cerr 	
 	<< "auth after: " << std::endl
 	<< auth << std::endl;
-*/	
+
+	
+	*/	
 			json j = {
 				{"endpoint", endPoint},
 				{"encryption_key", key},
@@ -179,6 +205,7 @@ std::cerr
 
 			if (verbosity > 2)
 				std::cerr << "Send: " << s << " to " << subscribeUrl << std::endl;
+			signupNewUser
 			r = curlPost(subscribeUrl, "application/json", s, retHeaders,  retVal, 
 						 androidId, securityToken, verbosity);
 			if (retVal) {
