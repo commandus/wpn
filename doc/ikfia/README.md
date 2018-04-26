@@ -156,3 +156,34 @@ https://console.firebase.google.com/u/2/project/ikfia-wpn/notification
 
 access_key
 2117177
+
+
+## OAuth 2.0
+
+### Anonymously
+
+POST https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=AIzaSyBfUt1N5aabh8pubYiBPKOq9OcIoHv_41I
+{
+"identifier": "user@example.com",
+"providerId": "google.com",
+"continueUri": "https://commandus.com/",
+"customParameter": {
+  "hd": "example.com",
+  "login_hint": "user@example.com"
+},
+"oauthScope": "google.com"
+}
+
+
+{
+	"kind": "identitytoolkit#SignupNewUserResponse",
+	"idToken": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjMwNDZhMTU2MzczNjZiNGQ2NGQ5YTVhYmIzMzczMTgyYmE0ZDdjZmIifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vaWtmaWEtd3BuIiwicHJvdmlkZXJfaWQiOiJhbm9ueW1vdXMiLCJhdWQiOiJpa2ZpYS13cG4iLCJhdXRoX3RpbWUiOjE1MjQ3MjI2NDMsInVzZXJfaWQiOiJQbVdEY0FWN2tCY3FsSHE5eXd5QVBLeUMwMW0xIiwic3ViIjoiUG1XRGNBVjdrQmNxbEhxOXl3eUFQS3lDMDFtMSIsImlhdCI6MTUyNDcyMjY0MywiZXhwIjoxNTI0NzI2MjQzLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7fSwic2lnbl9pbl9wcm92aWRlciI6ImFub255bW91cyJ9fQ.qPjc7NGq2GRmDHZPOk9knGKfVxadOQiDTXJaCnVA0xWj4Igyhv7xeilyrYZJrKtyG2ti6aPDe5QreF1A7FBJCQrI04FnRwm4viFBSsTn1_Y5eaUJDCK4K_mVxBVP6nazZb3FegF3dL8SolwpB3E87cptMoLWyNfcS8LSRU5MfjMpDr4dkpEdcji88t5Ljpm3qEu6eX1SVR_MF_4XZo5ILIE7-n2wdirC4HVAuqG322OfPkbTkJbOTYWxz0xIg4ioEazRQRoVW0CGWs-_C5DUY9NOBQaSDUH7k9PWSEnC6Fy-OSB0LzTzZZAuNBAUip9WxlqfeP8M58N_I7u8SV8Oog",
+	"refreshToken": "AK2wQ-x5Z0Ei7yXlgk0UZeBbGe_mPNLWRlDtL-fICothZj0UyVX3lONkurPabs90jw-pjiKk2p1SJO3QWoKbT79JJAMPeTFIBhq2HEl2XLBm4JWucqfErTOHxpirePuLMLuEuSRv35fSeoCCvQNAxnloGJYoEvf26MuZvrevZkFGvvOqkGt5Iuk",
+	"expiresIn": "3600",
+	"localId": "PmWDcAV7kBcqlHq9ywyAPKyC01m1"
+}
+
+phoneNumber', 'recaptchaToken
+POST https://www.googleapis.com/identitytoolkit/v3/relyingparty/sendVerificationCode
+
+{ "error": { "errors": [ { "domain": "usageLimits", "reason": "dailyLimitExceededUnreg", "message": "Daily Limit for Unauthenticated Use Exceeded. Continued use requires signup.", "extendedHelp": "https://code.google.com/apis/console" } ], "code": 403, "message": "Daily Limit for Unauthenticated Use Exceeded. Continued use requires signup." } }
