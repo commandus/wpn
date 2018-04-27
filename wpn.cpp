@@ -134,6 +134,7 @@ int main(int argc, char** argv)
 						if (config.verbosity > 0)
 						{
 							std::cerr << "Bearer token: " << token << std::endl;
+							std::cerr << "user auth: " << userAuth.toString() << std::endl;
 						}
 						int r = subscribe(subscription, SUBSCRIBE_FIREBASE, *config.wpnKeys, 
 							config.subscribeUrl, config.endpoint, config.authorizedEntity, token,
