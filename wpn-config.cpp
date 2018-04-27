@@ -64,7 +64,7 @@ std::string WpnConfig::getDefaultEndPoint()
 }
 
 WpnConfig::WpnConfig()
-	: cmd(CMD_LISTEN), verbosity(0), file_name(getDefaultConfigFileName()), endpoint(""), authorizedEntity("")
+	: cmd(CMD_LISTEN), verbosity(0), file_name(getDefaultConfigFileName()), endpoint(""), authorizedEntity(""), oauth(0)
 {
 }
 
@@ -111,6 +111,10 @@ int WpnConfig::parseCmd
 	struct arg_str *a_endpoint = arg_str0("u", "endpoint", "<URL>", "Push service endpoint URL prefix.");
 	struct arg_str *a_authorized_entity = arg_str0("e", "entity", "<entity-id>", "Push message sender identifier, usually decimal number");
 
+	// OAuth 2.0 options
+	struct arg_str *a_api_key = arg_str0("K", "apikey", "<string>", "Project API key");	///< API key
+	struct arg_str *a_user_id = arg_str0("E", "email", "<address>", "e.g. alice@acme.com");	///< user identifier
+
 	// send options
 	struct arg_str *a_server_key = arg_str0("k", "key", "<server key>", "Server key to send");
 	struct arg_str *a_subject = arg_str0("t", "subject", "<Text>", "Subject (topic)");
@@ -120,7 +124,7 @@ int WpnConfig::parseCmd
 	struct arg_str *a_recipient_tokens = arg_strn(NULL, NULL, "<account#>", 0, 100, "Recipient token.");
 	struct arg_str *a_recipient_token_file = arg_str0("J", "json", "<file name or URL>", "JSON file e.g. [[1,\"token\",..");	///< e.g. 
 	struct arg_str *a_output = arg_str0("o", "format", "<text|json>", "Output format. Default text.");
-
+	struct arg_str *a_oauth = arg_str0(NULL, "auth", "<anonymous|email|phone|google|play|facebook|twitter|github>", "Default anonymous.");
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 3, "0- quiet (default), 1- errors, 2- warnings, 3- debug");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
@@ -129,8 +133,9 @@ int WpnConfig::parseCmd
 		a_list, a_credentials, a_keys, a_subscribe, a_unsubscribe, a_send,
 		a_subscribe_url, a_endpoint, a_authorized_entity,
 		a_file_name,
+		a_api_key, a_user_id,
 		a_server_key, a_subject, a_body, a_icon, a_link, a_recipient_tokens, a_recipient_token_file,
-		a_output,
+		a_output, a_oauth,
 		a_verbosity, a_help, a_end 
 	};
 
@@ -198,6 +203,30 @@ int WpnConfig::parseCmd
 					else
 						if (a_send->count)
 							cmd = CMD_PUSH;
+	oauth = 0;
+	if (a_oauth->count)
+	{
+		if (strcmp(*a_oauth->sval, "email") == 0)
+			oauth = 1;
+		else
+			if (strcmp(*a_oauth->sval, "phone") == 0)
+				oauth = 2;
+			else
+				if (strcmp(*a_oauth->sval, "google") == 0)
+					oauth = 3;
+				else
+					if (strcmp(*a_oauth->sval, "play") == 0)
+						oauth = 4;
+					else
+						if (strcmp(*a_oauth->sval, "facebook") == 0)
+							oauth = 5;
+						else
+							if (strcmp(*a_oauth->sval, "twitter") == 0)
+								oauth = 6;
+							else
+								if (strcmp(*a_oauth->sval, "github") == 0)
+									oauth = 7;
+	}
 
 	if (cmd == CMD_PUSH)
 	{
@@ -228,6 +257,24 @@ int WpnConfig::parseCmd
 		}
 	}
 
+	if (a_api_key->count)
+	{
+		apiKey = *a_api_key->sval;
+	}
+	else
+	{
+		apiKey = "";
+	}
+	
+	if (a_user_id->count)
+	{
+		userIdentifier = *a_user_id->sval;
+	}
+	else
+	{
+		userIdentifier = "";
+	}
+
 	if ((cmd == CMD_SUBSCRIBE) || (cmd == CMD_UNSUBSCRIBE))
 	{
 		if (cmd == CMD_SUBSCRIBE)
@@ -237,6 +284,16 @@ int WpnConfig::parseCmd
 				std::cerr << "Missing -a option." << std::endl;
 				nerrors++;
 			}
+			if (apiKey.empty()) 
+			{
+				std::cerr << "Missing --apikey option." << std::endl;
+				nerrors++;
+			}
+			if (userIdentifier.empty()) 
+			{
+				std::cerr << "Missing --email option." << std::endl;
+				nerrors++;
+			}
 		}
 		if (authorizedEntity.empty()) 
 		{
@@ -244,7 +301,7 @@ int WpnConfig::parseCmd
 			nerrors++;
 		}
 	}
-	
+
 	if (a_server_key->count)
 	{
 		serverKey = *a_server_key->sval;

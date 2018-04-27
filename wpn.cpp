@@ -1,5 +1,29 @@
 /**
+ * Copyright (c) 2018 Andrei Ivanov <andrei.i.ivanov@commandus.com>
+ * 
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ * 
  * @file wpn.cpp
+ * 
  */
 
 #include <string>
@@ -17,6 +41,7 @@
 #include "wp-push.h"
 #include "sslfactory.h"
 #include "mcs/mcsclient.h"
+#include "oauth/oauth20.h"
 
 #ifdef _WIN32
 
@@ -89,21 +114,43 @@ int main(int argc, char** argv)
 				Subscription subscription;
 				std::string d;
 				std::string headers;
-				int r = subscribe(subscription, SUBSCRIBE_FIREBASE, *config.wpnKeys, 
-					config.subscribeUrl, config.endpoint, config.authorizedEntity,  &d, &headers,
-					config.androidCredentials->getAndroidId(), config.androidCredentials->getSecurityToken(),
-					config.verbosity);
-				if ((r < 200) || (r >= 300))
+				
+				OAuth20Credentials userAuth((enum AUTH_PROVIDER) config.oauth, config.apiKey,
+					config.userIdentifier, "https://ikfia.wpn.commandus.com/");
+				int r = userAuth.authenticate();
+				if (r < 200 || r >= 300)
 				{
-					std::cerr << "Error " << r << ": " << d << std::endl;
+					std::cerr << "Authentication error " << r << std::endl;
 				}
-				else 
+				else
 				{
-					config.subscriptions->list.push_back(subscription);
-				}
-				if (config.verbosity > 0)
-				{
-					subscription.write(std::cout, "\t", config.outputFormat);
+					std::string token = userAuth.getBearerToken();
+					if (token.empty())
+					{
+						std::cerr << "No bearer token, exit";
+					}
+					else
+					{
+						if (config.verbosity > 0)
+						{
+							std::cerr << "Bearer token: " << token << std::endl;
+						}
+						int r = subscribe(subscription, SUBSCRIBE_FIREBASE, *config.wpnKeys, 
+							config.subscribeUrl, config.endpoint, config.authorizedEntity, token,
+							&d, &headers, config.verbosity);
+						if ((r < 200) || (r >= 300))
+						{
+							std::cerr << "Error " << r << ": " << d << std::endl;
+						}
+						else 
+						{
+							config.subscriptions->list.push_back(subscription);
+						}
+						if (config.verbosity > 0)
+						{
+							subscription.write(std::cout, "\t", config.outputFormat);
+						}
+					}
 				}
 			}
 			break;

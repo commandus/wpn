@@ -48,6 +48,10 @@ public:
 	std::string endpoint;							///<subscription entity
 	std::string authorizedEntity;					///<subscription entity, sender Id
 
+	// OAuth 2.0 options
+	std::string apiKey;								///< API key
+	std::string userIdentifier;						///< email address
+
 	// send options
 	std::string serverKey;							///< FCM server key
 	std::vector<std::string> recipientTokens;		///< recipient's FCM tokens
@@ -56,6 +60,7 @@ public:
 	std::string body;								///< message body
 	std::string icon;
 	std::string link;
+	int oauth;
 	
 	WpnConfig();
 	WpnConfig
