@@ -187,3 +187,6 @@ phoneNumber', 'recaptchaToken
 POST https://www.googleapis.com/identitytoolkit/v3/relyingparty/sendVerificationCode
 
 { "error": { "errors": [ { "domain": "usageLimits", "reason": "dailyLimitExceededUnreg", "message": "Daily Limit for Unauthenticated Use Exceeded. Continued use requires signup.", "extendedHelp": "https://code.google.com/apis/console" } ], "code": 403, "message": "Daily Limit for Unauthenticated Use Exceeded. Continued use requires signup." } }
+
+FireBase Token
+djYXV0bI61A:APA91bF3P0NXRHDRjf609w_GDMx0D8uhb1nhUzWwhHhM8Qld__0-aH9OvGiAFnunMi_WlZrdOmtv_GOVzWu6XOdqCcFEaGkPDUZhEiaGT4RaIXnpWPegVyHWcIB7AKDw_DbpUHyE3CiJ
