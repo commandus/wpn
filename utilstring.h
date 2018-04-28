@@ -89,4 +89,13 @@ std::string escapeJsonString
 	const std::string& input
 );
 
+/**
+ * Escape URL
+ * @see https://stackoverflow.com/questions/7724448/simple-json-string-escape-for-c
+ */
+std::string escapeURLString
+(
+	const std::string& input
+);
+
 #endif

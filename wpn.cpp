@@ -137,7 +137,7 @@ int main(int argc, char** argv)
 							std::cerr << "user auth: " << userAuth.toString() << std::endl;
 						}
 						int r = subscribe(subscription, SUBSCRIBE_FIREBASE, *config.wpnKeys, 
-							config.subscribeUrl, config.endpoint, config.authorizedEntity, token,
+							config.subscribeUrl, config.getDefaultEndPoint(), config.authorizedEntity,
 							&d, &headers, config.verbosity);
 						if ((r < 200) || (r >= 300))
 						{

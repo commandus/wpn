@@ -3,8 +3,9 @@
 #include <fstream>
 #include <sstream>
 #include <curl/curl.h>
+#include "ece.h"
 #include "nlohmann/json.hpp"
-#include <ece.h>
+#include "utilstring.h"
 #include "wp-subscribe.h"
 
 using json = nlohmann::json;
@@ -33,7 +34,6 @@ static int curlPost
 (
 	const std::string &url,
 	const std::string &contentType,
-	const std::string &token,
 	const std::string &data,
 	const std::string *headers,
 	std::string *retval,
@@ -47,7 +47,6 @@ static int curlPost
 
 	struct curl_slist *chunk = NULL;
 	chunk = curl_slist_append(chunk, ("Content-Type: " + contentType).c_str());
-	curl_slist_append(chunk, ("Authorization: Bearer " + token).c_str());
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -98,7 +97,7 @@ static int curlPost
  * @param verbosity default 0- none
  * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
  */
-int subscribe
+int subscribe2
 (
 	Subscription &subscription, 
 	int subscribeMode, 
@@ -147,7 +146,100 @@ int subscribe
 
 			if (verbosity > 2)
 				std::cerr << "Send: " << s << " to " << subscribeUrl << std::endl;
-			r = curlPost(subscribeUrl, "application/json", token, s, retHeaders,  retVal, verbosity);
+			r = curlPost(subscribeUrl, "application/json", s, retHeaders,  retVal, verbosity);
+std::cerr << "Headers received: " << retHeaders << std::endl;			
+			if (retVal) {
+				if (verbosity > 2)
+					std::cerr << "Receive response code: "<< r << ", body:" << *retVal << " from " << subscribeUrl << std::endl;
+				if (r >= 200 && r < 300)
+				{
+					json js = json::parse(*retVal);
+					subscription.setToken(js["token"]);
+					subscription.setPushSet(js["pushSet"]);
+				}
+				else
+				{
+					json js = json::parse(*retVal);
+					if (retVal)
+					{
+						json e = js["error"];
+						*retVal = e["message"];
+					}
+				}
+			}
+			break;
+		}
+		default:
+		{
+			if (retVal)
+				*retVal = "Unsupported mode";
+			return ERR_MODE;
+		}
+	}
+	return r;
+}
+
+/**
+ * Make subscription
+ * @param subscription return value
+ * @param subscribeMode always 1
+ * @param wpnKeys reserved
+ * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/connect/subscribe
+ * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
+ * @param authorizedEntity usual decimal number string
+ * @param retVal can be NULL
+ * @param retHeaders can be NULL
+ * @param verbosity default 0- none
+ * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
+ */
+int subscribe
+(
+	Subscription &subscription, 
+	int subscribeMode, 
+	const WpnKeys &wpnKeys, 
+	const std::string &subscribeUrl,
+	const std::string &endPoint,
+	const std::string &authorizedEntity,
+	std::string *retVal,
+	std::string *retHeaders,
+	int verbosity
+)
+{
+	int r = 0;
+
+	if (endPoint.empty())
+	{
+		if (retVal)
+			*retVal = "Endpoint is empty";
+		return ERR_PARAM_ENDPOINT;
+	}
+	if (authorizedEntity.empty())
+	{
+		if (retVal)
+			*retVal = "Authorized entity is empty";
+		return ERR_PARAM_AUTH_ENTITY;
+	}
+
+	subscription.setSubscribeUrl(subscribeUrl);
+	subscription.setSubscribeMode(subscribeMode);
+	subscription.setEndpoint(endPoint);
+	subscription.setAuthorizedEntity(authorizedEntity);
+
+	switch (subscribeMode) {
+		case SUBSCRIBE_FIREBASE:
+		{
+			std::string key = wpnKeys.getPublicKey();
+			std::string auth = wpnKeys.getAuthSecret();
+			std::string s = 
+				"authorized_entity=" + escapeURLString(authorizedEntity)
+				+ "&endpoint=" + escapeURLString(endPoint)
+				+ "&encryption_key=" + escapeURLString(key)
+				+ "&encryption_auth=" + escapeURLString(auth)
+			;
+			if (verbosity > 2)
+				std::cerr << "Send: " << s << " to " << subscribeUrl << std::endl;
+			r = curlPost(subscribeUrl, "application/x-www-form-urlencoded", s, retHeaders,  retVal, verbosity);
+std::cerr << "Headers received: " << *retHeaders << std::endl;			
 			if (retVal) {
 				if (verbosity > 2)
 					std::cerr << "Receive response code: "<< r << ", body:" << *retVal << " from " << subscribeUrl << std::endl;

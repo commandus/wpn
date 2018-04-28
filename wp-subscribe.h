@@ -23,7 +23,6 @@
  * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/connect/subscribe
  * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
  * @param authorizedEntity usual decimal number string
- * @param token OAuth 2.0 oth other kind token 
  * @param retVal can be NULL
  * @param retHeaders can be NULL
  * @param verbosity default 0- none
@@ -37,7 +36,6 @@ int subscribe
 	const std::string &subscribeUrl,
 	const std::string &endPoint,
 	const std::string &authorizedEntity,
-	const std::string &token,
 	std::string *retVal,
 	std::string *retHeaders,
 	int verbosity

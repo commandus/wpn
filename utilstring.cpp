@@ -278,10 +278,10 @@ std::string escapeJsonString
 )
 {
 	std::ostringstream ss;
-	for (auto iter = input.cbegin(); iter != input.cend(); iter++) {
-	//C++98/03:
-	//for (std::string::const_iterator iter = input.begin(); iter != input.end(); iter++) {
-		switch (*iter) {
+	for (std::string::const_iterator iter = input.begin(); iter != input.end(); iter++) 
+	{
+		switch (*iter) 
+		{
 			case '\\': ss << "\\\\"; break;
 			case '"': ss << "\\\""; break;
 			case '/': ss << "\\/"; break;
@@ -292,6 +292,29 @@ std::string escapeJsonString
 			case '\t': ss << "\\t"; break;
 			default: ss << *iter; break;
 		}
+	}
+	return ss.str();
+}
+
+/**
+ * Escape URL
+ * @see https://stackoverflow.com/questions/7724448/simple-json-string-escape-for-c
+ */
+std::string escapeURLString
+(
+	const std::string& input
+)
+{
+	std::ostringstream ss;
+	for (std::string::const_iterator c = input.begin(); c != input.end(); c++) 
+	{
+		// Keep alphanumeric and other accepted characters intact
+        if (isalnum(*c) || *c == '-' || *c == '_' || *c == '.' || *c == '~') 
+		{
+            ss << *c;
+            continue;
+        }
+        ss << std::uppercase << std::hex << '%' << std::setw(2) << int((unsigned char) *c) << std::nouppercase;
 	}
 	return ss.str();
 }
