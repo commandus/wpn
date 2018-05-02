@@ -31,7 +31,7 @@ nobase_dist_include_HEADERS = \
 	sslfactory.h \
 	utilstring.h \
 	mcs/mcsclient.h \
-	oauth/tokenpair.h oauth/oauth20.h oauth/oauthrequest.h \
+	oauth/oauth.h oauth/tokenpair.h oauth/oauth20.h oauth/oauthrequest.h \
 	third_party/nlohmann/json.hpp \
 	third_party/sole/sole.hpp \
 	$(gengrpcs_h)
