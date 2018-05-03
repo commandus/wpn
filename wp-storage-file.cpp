@@ -288,6 +288,11 @@ int WpnKeys::generate()
 	return err;
 }
 
+const uint8_t *WpnKeys::getPrivateKeyArray() const
+{
+	return (const uint8_t *) &privateKey;
+}
+
 std::string WpnKeys::getPrivateKey() const
 {
 	char r[ECE_WEBPUSH_PRIVATE_KEY_LENGTH * 3];
@@ -300,9 +305,14 @@ std::string WpnKeys::getPublicKey() const
 	return std::string(r, ece_base64url_encode(publicKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH, ECE_BASE64URL_OMIT_PADDING, r, sizeof(r)));
 }
 
+const uint8_t *WpnKeys::getAuthSecretArray() const
+{
+	return (const uint8_t *) &authSecret;
+}
+
 std::string WpnKeys::getAuthSecret() const
 {
-	char r[ECE_WEBPUSH_AUTH_SECRET_LENGTH* 3];
+	char r[ECE_WEBPUSH_AUTH_SECRET_LENGTH * 3];
 	return std::string(r, ece_base64url_encode(authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH, ECE_BASE64URL_OMIT_PADDING, r, sizeof(r)));
 }
 

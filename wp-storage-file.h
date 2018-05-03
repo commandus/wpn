@@ -14,7 +14,7 @@
 #include <vector>
 #include <ece.h>
 
-#define DEF_DELIMITER " "
+#define DEF_DELIMITER " "	// space character
 
 class AndroidCredentials
 {
@@ -128,8 +128,10 @@ public:
 	);
 
 	std::string getPrivateKey() const;
+	const uint8_t *getPrivateKeyArray() const;
 	std::string getPublicKey() const;
 	std::string getAuthSecret() const;
+	const uint8_t *getAuthSecretArray() const;
 	
 	void write(
 		std::ostream &strm,
