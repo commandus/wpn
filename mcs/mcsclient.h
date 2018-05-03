@@ -48,9 +48,12 @@ enum PROTO_STATE {
 
 using namespace google::protobuf;
 
+class MCSClient;
+
 class MCSReceiveBuffer
 {
 private:
+	MCSClient *mClient;
 	u_int8_t mVersion;	// last known is 38
 	enum PROTO_STATE state;
 	int parse();
@@ -58,6 +61,7 @@ private:
 public:
 	std::string buffer;
 	MCSReceiveBuffer();
+	void setClient(MCSClient *client);
 	// Return 0 if incomplplete	and is not parcelable
 	int process();
 	void put(const void *buf, int size);
@@ -128,6 +132,13 @@ public:
 		int level, 
 		int tag, 
 		const std::string &message
+	);
+
+	std::string decode
+	(
+		const std::string &source,
+		const std::string &cryptoKeyHeader,
+		const std::string &encryptionHeader
 	);
 };
 

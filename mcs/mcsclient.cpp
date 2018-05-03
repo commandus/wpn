@@ -26,6 +26,8 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/io/coded_stream.h>
 
+#include <ece.h>
+
 #include "mcsclient.h"
 
 #include "utilstring.h"
@@ -53,7 +55,9 @@ enum MCSProtoTag
 	kBindAccountRequestTag  = 13,
 	kBindAccountResponseTag = 14,
 	kTalkMetadataTag        = 15,
-	kNumProtoTypes          = 16
+	kNumProtoTypes          = 16,
+	kDontKnow				= 17,
+	kHeaders				= 18
 };
 
 using namespace checkin_proto;
@@ -83,6 +87,11 @@ static const char *IQTYPE_NAMES[] =
 MCSReceiveBuffer::MCSReceiveBuffer()
 	: mVersion(0), state(STATE_VERSION), buffer("")
 {
+}
+
+void MCSReceiveBuffer::setClient(MCSClient *client)
+{
+	mClient = client;
 }
 
 int MCSReceiveBuffer::process()
@@ -169,15 +178,29 @@ int MCSReceiveBuffer::parse()
 	int sz = 0;
 	while (true)
 	{
+		// tag number, size, message
 		uint8_t tag;
 		bool r = codedInput.ReadRaw(&tag, 1);	// 1 byte long
 		if (!r)
 			break;
-		uint32_t tagSize;
-		r = codedInput.ReadVarint32(&tagSize);
+		uint32_t msgSize;
+		r = codedInput.ReadVarint32(&msgSize);
 		if (!r)
 			break;
-		google::protobuf::io::CodedInputStream::Limit limit = codedInput.PushLimit(tagSize);
+
+		
+		std::cerr << "<<<  Tag " << (int) tag << " size " << msgSize << "  >>>" << std::endl;
+
+		if (tag == kHeaders)
+		{
+			std::cerr << "Headers size " << msgSize << std::endl;
+			std::string h(msgSize, '\0'); 
+			codedInput.ReadRaw((void *) h.c_str(), msgSize);
+			std::cerr << h << std::endl;
+			continue;
+		}
+
+		google::protobuf::io::CodedInputStream::Limit limit = codedInput.PushLimit(msgSize);
 		MessageLite *message = createMessage(tag);
 		if (message)
 		{
@@ -187,7 +210,7 @@ int MCSReceiveBuffer::parse()
 			r = codedInput.ConsumedEntireMessage();
 			std::string d;
 			message->SerializeToString(&d);
-			std::cerr << "Tag: " << (int) tag << " size: " << tagSize << ": " << hexString(d) << std::endl;
+			std::cerr << "Tag: " << (int) tag << " size: " << msgSize << ": " << hexString(d) << std::endl;
 			switch (tag)
 			{
 				case kLoginResponseTag:
@@ -216,7 +239,7 @@ int MCSReceiveBuffer::parse()
 					
 					if (r->has_heartbeat_config())
 					{
-						std::cerr << "has heart beat config";
+						std::cerr << " has heart beat config";
 					}
 					std::cerr << std::endl;
 				}
@@ -227,15 +250,15 @@ int MCSReceiveBuffer::parse()
 					std::cerr << "HeartbeatAck " ;
 					if (r->has_last_stream_id_received())
 					{
-						std::cerr << "last_stream_id_received: " << r->last_stream_id_received() << " ";
+						std::cerr << " last_stream_id_received: " << r->last_stream_id_received() << " ";
 					}
 					if (r->has_status())
 					{
-						std::cerr << "status: " << r->status() << " ";
+						std::cerr << " status: " << r->status() << " ";
 					}
 					if (r->has_stream_id())
 					{
-						std::cerr << "stream_id: " << r->stream_id() << " ";
+						std::cerr << " stream_id: " << r->stream_id() << " ";
 					}
 					std::cerr << std::endl;
 				}
@@ -249,9 +272,9 @@ int MCSReceiveBuffer::parse()
 					IqStanza* r = (IqStanza*) message;
 					std::cerr << "IqStanza " << IQTYPE_NAMES[r->type()] << " " << r->id() << " ";
 					if (r->has_rmq_id())
-						std::cerr << "rmq_id: " << r->rmq_id();
+						std::cerr << " rmq_id: " << r->rmq_id();
 					if (r->has_from())
-						std::cerr << "from: " << r->from();
+						std::cerr << " from: " << r->from();
 					if (r->has_to())
 						std::cerr << " to: " << r->to();
 					if (r->has_error())
@@ -289,13 +312,72 @@ int MCSReceiveBuffer::parse()
 					std::cerr << std::endl;
 				}
 					break;
+				case kDataMessageStanzaTag:
+				{
+					DataMessageStanza* r = (DataMessageStanza*) message;
+					std::string cryptoKeyHeader;
+					std::string encryptionHeader;
+					std::cerr << "DataMessageStanza ";
+					for (int a = 0; a < r->app_data_size(); a++)
+					{
+						std::cerr << " app_data key: " << r->app_data(a).key() 
+						<< " data: " << r->app_data(a).value() << std::endl;
+						if (r->app_data(a).key() == "crypto-key")
+							cryptoKeyHeader = r->app_data(a).value();
+						if (r->app_data(a).key() == "encryption")
+							encryptionHeader = r->app_data(a).value();
+					}
+					if (r->has_persistent_id())
+						std::cerr << " persistent_id: " << r->persistent_id();
+					if (r->has_id())
+						std::cerr << " id: " << r->id();
+					if (r->has_category())
+						std::cerr << " category: " << r->category();
+					if (r->has_device_user_id())
+						std::cerr << " device_user_id: " << r->device_user_id();
+					if (r->has_from())
+						std::cerr << " from: " << r->from();
+					if (r->has_from_trusted_server())
+						std::cerr << " from_trusted_server: " << r->from_trusted_server();
+					if (r->has_immediate_ack())
+						std::cerr << " immediate_ack: " << r->immediate_ack();
+					if (r->has_last_stream_id_received())
+						std::cerr << " last_stream_id_received: " << r->last_stream_id_received();
+					if (r->has_queued())
+						std::cerr << " queued: " << r->queued();
+					if (r->has_raw_data())
+					{
+						std::cerr << " raw_data: " << hexString(r->raw_data());
+						if (mClient)
+						{
+							std::string d = mClient->decode(r->raw_data(), cryptoKeyHeader, encryptionHeader);
+							std::cerr << " data: " << d;
+						}
+					}
+					if (r->has_reg_id())
+						std::cerr << " reg_id: " << r->reg_id();
+					if (r->has_sent())
+						std::cerr << " sent: " << r->sent();
+					if (r->has_status())
+						std::cerr << " status: " << r->status();
+					if (r->has_stream_id())
+						std::cerr << " stream_id: " << r->stream_id();
+					if (r->has_to())
+						std::cerr << " to: " << r->to();
+					if (r->has_token())
+						std::cerr << " token: " << r->token();
+					if (r->has_ttl())
+						std::cerr << " ttl: " << r->ttl();
+					std::cerr << std::endl;
+				}
+					break;
 				default:
 					break;
 			}
 		}
 		else
 		{
-			r = codedInput.Skip(tagSize);
+			r = codedInput.Skip(msgSize);
 		}
 		sz = codedInput.CurrentPosition();
 		codedInput.ConsumedEntireMessage();
@@ -518,6 +600,7 @@ int MCSClient::curlPost
 MCSClient::MCSClient()
 	: mStream(&mBuffer), mConfig(NULL), mKeys(NULL), mCredentials(NULL)
 {
+	mStream->setClient(this);
 }
 
 MCSClient::MCSClient(
@@ -559,7 +642,9 @@ int readLoop(MCSClient *client)
 		int r = SSL_read(client->mSsl, buffer, sizeof(buffer));
 		if (r > 0) 
 		{
-			std::cerr << "Received " << r << " bytes:" << std::endl << hexString(std::string((char *) buffer, r)) << std::endl;
+			std::cerr << "Received " << r << " bytes: " << std::endl << std::endl
+				<< std::string((char *) buffer, r) << std::endl << std::endl
+				<< hexString(std::string((char *) buffer, r)) << std::endl << std::endl;
 			client->mStream->put(buffer, r);
 			if (size_t c = client->mStream->process())
 			{
@@ -695,6 +780,87 @@ std::string MCSClient::getAppId()
 	return r.str();
 }
 
+const uint8_t REGISTER_SERVER_KEY[] = 
+{
+	0x04,
+	0x33,
+	0x94,
+	0xf7,
+	0xdf,
+	0xa1,
+	0xeb,
+	0xb1,
+	0xdc,
+	0x03,
+	0xa2,
+	0x5e,
+	0x15,
+	0x71,
+	0xdb,
+	0x48,
+	0xd3,
+	0x2e,
+	0xed,
+	0xed,
+	0xb2,
+	0x34,
+	0xdb,
+	0xb7,
+	0x47,
+	0x3a,
+	0x0c,
+	0x8f,
+	0xc4,
+	0xcc,
+	0xe1,
+	0x6f,
+	0x3c,
+	0x8c,
+	0x84,
+	0xdf,
+	0xab,
+	0xb6,
+	0x66,
+	0x3e,
+	0xf2,
+	0x0c,
+	0xd4,
+	0x8b,
+	0xfe,
+	0xe3,
+	0xf9,
+	0x76,
+	0x2f,
+	0x14,
+	0x1c,
+	0x63,
+	0x08,
+	0x6a,
+	0x6f,
+	0x2d,
+	0xb1,
+	0x1a,
+	0x95,
+	0xb0,
+	0xce,
+	0x37,
+	0xc0,
+	0x9c,
+	0x6e
+};
+
+static std::string base64encode
+(
+	const void *source,
+	size_t size
+)
+{
+	size_t requiredSize =  ece_base64url_encode(source, size, ECE_BASE64URL_OMIT_PADDING, NULL, 0);
+	std::string r(requiredSize, '\0');
+	ece_base64url_encode(source, size, ECE_BASE64URL_OMIT_PADDING, (char *) r.c_str(), r.size());
+	return r;
+}
+
 /**
  * obtain GCM token
  */
@@ -702,9 +868,11 @@ int MCSClient::registerDevice()
 {
 	std::string retval;
 	std::stringstream formData;
-	formData << "app=org.chromium.linux&X-subtype=" << getAppId() 
+	std::string rkb64 = base64encode(REGISTER_SERVER_KEY, sizeof(REGISTER_SERVER_KEY));
+	formData << "app=org.chromium.linux" 
+		<< "&X-subtype=" << escapeURLString(getAppId()) 
 		<< "&device=" << mCredentials->getAndroidId()
-		<< "&sender=" << mKeys->getPublicKey();
+		<< "&sender=" << rkb64;
 
 	int r = curlPost(REGISTER_URL, "application/x-www-form-urlencoded", formData.str(), &retval);
 
@@ -832,4 +1000,40 @@ void MCSClient::writeStream
 			ping();
 		}
 	}
+}
+
+/**
+ * Decode string
+ * @see https://tools.ietf.org/html/draft-ietf-webpush-encryption-03
+ */
+std::string MCSClient::decode
+(
+	const std::string &source,
+	const std::string &cryptoKeyHeader,
+	const std::string &encryptionHeader
+)
+{
+	uint32_t rs = 0;
+	uint8_t salt[ECE_SALT_LENGTH];
+	uint8_t rawSenderPubKey[ECE_WEBPUSH_PUBLIC_KEY_LENGTH];
+	int err = ece_webpush_aesgcm_headers_extract_params(cryptoKeyHeader.c_str(), encryptionHeader.c_str(),
+		salt, ECE_SALT_LENGTH, rawSenderPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH, &rs);
+	if (err != ECE_OK)
+		return "";
+	size_t outSize = ece_aes128gcm_plaintext_max_length((const uint8_t*) source.c_str(), source.size());
+	if (outSize > 0)
+	{
+		std::string r(outSize, '\0');
+		ece_webpush_aesgcm_decrypt(
+			mKeys->getPrivateKeyArray(), ECE_WEBPUSH_PRIVATE_KEY_LENGTH,
+			mKeys->getAuthSecretArray(), ECE_WEBPUSH_AUTH_SECRET_LENGTH,
+			salt, ECE_SALT_LENGTH,
+			rawSenderPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH,
+			rs,
+			(const uint8_t *) source.c_str(), source.size(), 
+			(uint8_t *) r.c_str(), &outSize);
+		r.resize(outSize);
+		return r;
+	}
+	return "";
 }
