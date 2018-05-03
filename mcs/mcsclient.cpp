@@ -55,9 +55,7 @@ enum MCSProtoTag
 	kBindAccountRequestTag  = 13,
 	kBindAccountResponseTag = 14,
 	kTalkMetadataTag        = 15,
-	kNumProtoTypes          = 16,
-	kDontKnow				= 17,
-	kHeaders				= 18
+	kNumProtoTypes          = 16
 };
 
 using namespace checkin_proto;
@@ -190,15 +188,6 @@ int MCSReceiveBuffer::parse()
 
 		
 		std::cerr << "<<<  Tag " << (int) tag << " size " << msgSize << "  >>>" << std::endl;
-
-		if (tag == kHeaders)
-		{
-			std::cerr << "Headers size " << msgSize << std::endl;
-			std::string h(msgSize, '\0'); 
-			codedInput.ReadRaw((void *) h.c_str(), msgSize);
-			std::cerr << h << std::endl;
-			continue;
-		}
 
 		google::protobuf::io::CodedInputStream::Limit limit = codedInput.PushLimit(msgSize);
 		MessageLite *message = createMessage(tag);
@@ -1013,16 +1002,30 @@ std::string MCSClient::decode
 	const std::string &encryptionHeader
 )
 {
+	
+std::cerr << "<<< Decode >>>" << std::endl;
+std::cerr << "cryptoKeyHeader:" << cryptoKeyHeader << std::endl;
+std::cerr << "encryptionHeader: " << encryptionHeader << std::endl;
+std::cerr << "source length: " << source.size() << std::endl;
 	uint32_t rs = 0;
 	uint8_t salt[ECE_SALT_LENGTH];
 	uint8_t rawSenderPubKey[ECE_WEBPUSH_PUBLIC_KEY_LENGTH];
 	int err = ece_webpush_aesgcm_headers_extract_params(cryptoKeyHeader.c_str(), encryptionHeader.c_str(),
 		salt, ECE_SALT_LENGTH, rawSenderPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH, &rs);
 	if (err != ECE_OK)
+	{
+		std::cerr << "Error webpush headers extract params: " << err << std::endl;
 		return "";
+	}
 	size_t outSize = ece_aes128gcm_plaintext_max_length((const uint8_t*) source.c_str(), source.size());
+	if (outSize <= 0)
+	{
+		std::cerr << "Error outSize: " << outSize << std::endl;
+		return "";
+	}
 	if (outSize > 0)
 	{
+std::cerr << "outSize: " << outSize << std::endl;
 		std::string r(outSize, '\0');
 		ece_webpush_aesgcm_decrypt(
 			mKeys->getPrivateKeyArray(), ECE_WEBPUSH_PRIVATE_KEY_LENGTH,
