@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include "wp-storage-file.h"
+#include "wpn-notify.h"
 
 #define CMD_LISTEN				0
 #define CMD_KEYS				1
@@ -76,6 +77,23 @@ public:
 	WpnKeys *wpnKeys;
 	Subscriptions *subscriptions;
 	int write();
+	
+	size_t loadDesktopNotifyFuncs();
+	void unloadDesktopNotifyFuncs();
+	std::vector <std::string> notifyLibFileNames;
+	std::vector <void *> notifyLibs;
+	std::vector <desktopNotifyFunc> desktopNotifyFuncs;
+	size_t notifyAll
+	(
+		const std::string &title,
+		const std::string &body,
+		const std::string &icon,
+		const std::string &click_action
+	) const;
+	size_t notifyAll
+	(
+		const std::string &json
+	) const;
 };
 
 #endif

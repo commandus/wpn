@@ -344,6 +344,7 @@ int MCSReceiveBuffer::parse()
 							if (dr == 0)
 							{
 								std::cout << " data size " << d.size() << " :" << d;
+								mClient->getConfig()->notifyAll(d);
 							}
 							else
 							{
@@ -614,6 +615,11 @@ MCSClient::MCSClient(
 	: mConfig(config)
 {
 	init();
+}
+
+const WpnConfig * MCSClient::getConfig() const
+{
+	return mConfig;
 }
 
 void MCSClient::setConfig
@@ -1012,17 +1018,6 @@ int ece_webpush_aesgcm_headers_extract_params1
 	uint32_t* rs
 );
 
-int ece_webpush_aesgcm_decrypt1
-(
-	const uint8_t* rawRecvPrivKey,
-	size_t rawRecvPrivKeyLen, const uint8_t* authSecret,
-	size_t authSecretLen, const uint8_t* salt,
-	size_t saltLen, const uint8_t* rawSenderPubKey,
-	size_t rawSenderPubKeyLen, uint32_t rs,
-	const uint8_t* ciphertext, size_t ciphertextLen,
-	uint8_t* plaintext, size_t* plaintextLen
-);
-
 /**
  * Decode string
  * @see https://tools.ietf.org/html/draft-ietf-webpush-encryption-03
@@ -1074,7 +1069,7 @@ std::cerr << "source length: " << source.size() << std::endl;
 		if (outSize < 4096)
 			outSize = 4096;
 		retval = std::string(outSize, '\0');
-		ece_webpush_aesgcm_decrypt1(
+		ece_webpush_aesgcm_decrypt(
 			mConfig->wpnKeys->getPrivateKeyArray(), ECE_WEBPUSH_PRIVATE_KEY_LENGTH,
 			mConfig->wpnKeys->getAuthSecretArray(), ECE_WEBPUSH_AUTH_SECRET_LENGTH,
 			(const uint8_t *) &salt, ECE_SALT_LENGTH,

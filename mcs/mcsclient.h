@@ -99,6 +99,7 @@ public:
 	);
 	MCSClient(const MCSClient& other);
 	void setConfig(const WpnConfig *config);
+	const WpnConfig *getConfig() const;
 	~MCSClient();
 
 	uint64_t getAndroidId();

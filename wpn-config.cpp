@@ -5,12 +5,14 @@
 #include <sys/types.h>
 #include <pwd.h>
 #include <fstream>
+#include <dlfcn.h>
 
 #include "utilstring.h"
 #include "nlohmann/json.hpp"
 
 #define DEF_FILE_NAME			".wpn"
 #define DEF_FCM_ENDPOINT_PREFIX	"https://fcm.googleapis.com/fcm/send/"
+#define DEF_OUTPUT_SO_FN		"libwpn-stdout.so"
 
 using json = nlohmann::json;
 
@@ -125,6 +127,10 @@ int WpnConfig::parseCmd
 	struct arg_str *a_recipient_token_file = arg_str0("J", "json", "<file name or URL>", "JSON file e.g. [[1,\"token\",..");	///< e.g. 
 	struct arg_str *a_output = arg_str0("o", "format", "<text|json>", "Output format. Default text.");
 	struct arg_str *a_oauth = arg_str0(NULL, "auth", "<anonymous|email|phone|google|play|facebook|twitter|github>", "Default anonymous.");
+	
+	// output options
+	struct arg_str *a_output_lib_filenames = arg_strn("O", "output", "<file name>", 0, 100, "Output shared library file name");	///< API key
+	
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 3, "0- quiet (default), 1- errors, 2- warnings, 3- debug");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
@@ -136,6 +142,7 @@ int WpnConfig::parseCmd
 		a_api_key, a_user_id,
 		a_server_key, a_subject, a_body, a_icon, a_link, a_recipient_tokens, a_recipient_token_file,
 		a_output, a_oauth,
+		a_output_lib_filenames,
 		a_verbosity, a_help, a_end 
 	};
 
@@ -228,6 +235,18 @@ int WpnConfig::parseCmd
 									oauth = 7;
 	}
 
+	if (a_output_lib_filenames->count)
+	{
+		for (int i = 0; i < a_output_lib_filenames->count; i++)
+		{
+			notifyLibFileNames.push_back(a_output_lib_filenames->sval[i]);
+		}
+	}
+	else
+	{
+		notifyLibFileNames.push_back(DEF_OUTPUT_SO_FN);
+	}
+	
 	if (cmd == CMD_PUSH)
 	{
 		if (a_server_key->count == 0)
@@ -382,3 +401,72 @@ int WpnConfig::write()
 	configWrite.close();
 }
 
+size_t WpnConfig::loadDesktopNotifyFuncs()
+{
+	notifyLibs.clear();
+	desktopNotifyFuncs.clear();
+	for (std::vector <std::string>::const_iterator it(notifyLibFileNames.begin()); it != notifyLibFileNames.end(); ++it)
+	{
+		void *so = dlopen(it->c_str(), RTLD_LAZY);
+		if (!so)
+		{
+			continue;
+		}
+		notifyLibs.push_back(so);
+		desktopNotifyFunc desktopNotify = (desktopNotifyFunc) dlsym(so, "desktopNotify");
+		desktopNotifyFuncs.push_back(desktopNotify);
+	}
+}
+
+void WpnConfig::unloadDesktopNotifyFuncs()
+{
+	for (std::vector <void *>::const_iterator it(notifyLibs.begin()); it != notifyLibs.end(); ++it)
+	{
+		dlclose(*it);
+	}
+	notifyLibs.clear();
+}
+
+size_t WpnConfig::notifyAll
+(
+	const std::string &title,
+	const std::string &body,
+	const std::string &icon,
+	const std::string &click_action
+) const
+{
+	size_t c = 0;
+	for (std::vector <desktopNotifyFunc>::const_iterator it(desktopNotifyFuncs.begin()); it != desktopNotifyFuncs.end(); ++it)
+	{
+		bool r = (*it)(title, body, icon, "", click_action, "", 0, 0, "", "") ? 0 : -1;
+		if (r)
+			c++;
+	}
+	return c;
+}
+
+size_t WpnConfig::notifyAll
+(
+	const std::string &value
+) const
+{
+	size_t r = 0;
+	std::string title;
+	std::string body;
+	std::string icon;
+	std::string click_action;
+	try
+	{
+		json m = json::parse(value);
+		json notification  = m["notification"];
+		title = notification["title"];
+		body = notification["body"];
+		icon = notification["icon"];
+		click_action = notification["click_action"];
+		r= notifyAll(title, body, icon, click_action);
+	}
+	catch(...)
+	{
+	}
+	return r;
+}
