@@ -48,7 +48,7 @@ wpn_SOURCES= \
 	sslfactory.cpp \
 	mcs/mcsclient.cpp \
 	oauth/tokenpair.cpp oauth/oauth20.cpp oauth/oauthrequest.cpp \
-	utilstring.cpp \
+	utilstring.cpp params.cpp \
 	$(common_src)
 
 wpn_LDADD = $(commonlibs)
