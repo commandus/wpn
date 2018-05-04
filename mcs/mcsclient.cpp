@@ -83,7 +83,7 @@ static const char *IQTYPE_NAMES[] =
 //----------------------------- MCSReceiveBuffer -----------------------------
 
 MCSReceiveBuffer::MCSReceiveBuffer()
-	: mVersion(0), state(STATE_VERSION), buffer("")
+	: mClient(NULL), mVersion(0), state(STATE_VERSION), buffer("")
 {
 }
 
@@ -306,7 +306,7 @@ int MCSReceiveBuffer::parse()
 					DataMessageStanza* r = (DataMessageStanza*) message;
 					std::string cryptoKeyHeader;
 					std::string encryptionHeader;
-					std::cerr << "DataMessageStanza ";
+					std::cerr << "DataMessageStanza" << std::endl;
 					for (int a = 0; a < r->app_data_size(); a++)
 					{
 						std::cerr << " app_data key: " << r->app_data(a).key() 
@@ -339,8 +339,16 @@ int MCSReceiveBuffer::parse()
 						std::cerr << " raw_data: " << hexString(r->raw_data());
 						if (mClient)
 						{
-							std::string d = mClient->decode(r->raw_data(), cryptoKeyHeader, encryptionHeader);
-							std::cerr << " data: " << d;
+							std::string d;
+							int dr = mClient->decode(d, r->raw_data(), cryptoKeyHeader, encryptionHeader);
+							if (dr == 0)
+							{
+								std::cout << " data size " << d.size() << " :" << d;
+							}
+							else
+							{
+								std::cerr << " error decode data " << dr;
+							}
 						}
 					}
 					if (r->has_reg_id())
@@ -537,7 +545,9 @@ int MCSClient::curlPost
 	struct curl_slist *chunk = NULL;
 	chunk = curl_slist_append(chunk, (HDR_CONTENT_TYPE + contentType).c_str());
 	std::stringstream ss;
-	ss << HDR_AUTHORIZATION << "AidLogin " << mCredentials->getAndroidId() << ":" << mCredentials->getSecurityToken();
+	ss << HDR_AUTHORIZATION << "AidLogin " 
+		<< mConfig->androidCredentials->getAndroidId() << ":" 
+		<< mConfig->androidCredentials->getSecurityToken();
 	if (hasIdNToken())
 		curl_slist_append(chunk, ss.str().c_str());
 	
@@ -586,33 +596,40 @@ int MCSClient::curlPost
 	return http_code;
 }
 
-MCSClient::MCSClient()
-	: mStream(&mBuffer), mConfig(NULL), mKeys(NULL), mCredentials(NULL)
+void MCSClient::init()
 {
+	mStream = &mBuffer; 
 	mStream->setClient(this);
 }
 
-MCSClient::MCSClient(
-	const WpnConfig *config, 
-	const WpnKeys* keys,
-	AndroidCredentials *androidCredentials
-)
-	: mStream(&mBuffer), mConfig(config), mKeys(keys), mCredentials(androidCredentials)
+MCSClient::MCSClient()
+	: mConfig(NULL)
 {
+	init();
 }
 
-void MCSClient::setConfig(const WpnConfig *config)
+MCSClient::MCSClient(
+	const WpnConfig *config
+)
+	: mConfig(config)
+{
+	init();
+}
+
+void MCSClient::setConfig
+(
+	const WpnConfig *config
+)
 {
 	mConfig = config;
 }
 
-void MCSClient::setKeys(const WpnKeys* keys)
+MCSClient::MCSClient
+(
+	const MCSClient& other
+)
 {
-	mKeys = keys;
-}
-
-MCSClient::MCSClient(const MCSClient& other)
-{
+	init();
 	mConfig = other.mConfig;
 }
 
@@ -631,9 +648,7 @@ int readLoop(MCSClient *client)
 		int r = SSL_read(client->mSsl, buffer, sizeof(buffer));
 		if (r > 0) 
 		{
-			std::cerr << "Received " << r << " bytes: " << std::endl << std::endl
-				<< std::string((char *) buffer, r) << std::endl << std::endl
-				<< hexString(std::string((char *) buffer, r)) << std::endl << std::endl;
+			// std::cerr << "Received " << r << " bytes: " << std::endl << hexString(std::string((char *) buffer, r)) << std::endl;
 			client->mStream->put(buffer, r);
 			if (size_t c = client->mStream->process())
 			{
@@ -650,12 +665,12 @@ int MCSClient::connect()
 {
 	if (!mConfig)
 		return ERR_NO_CONFIG;
-	if (!mKeys)
+	if (!mConfig->wpnKeys)
 		return ERR_NO_KEYS;
-	if (!mCredentials)
+	if (!mConfig->androidCredentials)
 		return ERR_NO_CREDS;
 	int r;
-	if (mCredentials->getAndroidId() == 0)
+	if (mConfig->androidCredentials->getAndroidId() == 0)
 	{
 		r = checkIn();
 		if (r < 200 || r >= 300)
@@ -663,7 +678,7 @@ int MCSClient::connect()
 			return ERR_NO_ANDROID_ID_N_TOKEN;
 		}
 	}
-	if (mCredentials->getGCMToken().empty())
+	if (mConfig->androidCredentials->getGCMToken().empty())
 	{
 		for (int i = 0; i < 5; i++) 
 		{
@@ -686,35 +701,31 @@ int MCSClient::connect()
 	mStop = false;
 	
 	if (mConfig->verbosity > 1)
-		std::cerr << "Android id: " << mCredentials->getAndroidId() 
-			<< " security token: " << mCredentials->getSecurityToken() << std::endl;
-	mListenerThread = new std::thread(readLoop, this);
-	mListenerThread->detach();
+		std::cerr << "Android id: " << mConfig->androidCredentials->getAndroidId() 
+			<< " security token: " << mConfig->androidCredentials->getSecurityToken() << std::endl;
+	std::thread listenerThread(readLoop, this);
+	listenerThread.detach();
 	return 0;
 }
 
 void MCSClient::stop()
 {
 	mStop = true;
-	if (mListenerThread)
-	{
-		mListenerThread = NULL;
-	}
 }
 
 bool MCSClient::hasIdNToken()
 {
-	if (!mCredentials)
+	if (!mConfig->androidCredentials)
 		return false;
-	return (mCredentials->getAndroidId() && mCredentials->getSecurityToken());
+	return (mConfig->androidCredentials->getAndroidId() && mConfig->androidCredentials->getSecurityToken());
 }
 
 int MCSClient::checkIn()
 {
-	if (!mCredentials)
+	if (!mConfig->androidCredentials)
 		return ERR_NO_CREDS;
-	uint64_t androidId = mCredentials->getAndroidId();
-	uint64_t securityToken = mCredentials->getSecurityToken();
+	uint64_t androidId = mConfig->androidCredentials->getAndroidId();
+	uint64_t securityToken = mConfig->androidCredentials->getSecurityToken();
 	std::string protobuf = mkCheckinRequest(androidId, securityToken);
 	if (mConfig->verbosity > 2)
 	{
@@ -728,10 +739,10 @@ int MCSClient::checkIn()
 	if (mConfig->verbosity > 1)
 	{
 		std::cerr << "Check in " << CHECKIN_URL 
-			<< " android id: " << mCredentials->getAndroidId()
-			<< " app id: " << mCredentials->getAppId()
-			<< " security token: " << mCredentials->getSecurityToken()
-			<< " security token: " << mCredentials->getSecurityToken() 
+			<< " android id: " << mConfig->androidCredentials->getAndroidId()
+			<< " app id: " << mConfig->androidCredentials->getAppId()
+			<< " security token: " << mConfig->androidCredentials->getSecurityToken()
+			<< " security token: " << mConfig->androidCredentials->getSecurityToken() 
 			<< " return code: " << r 
 			<< " value: " << std::endl << std::endl << retval << std::endl;
 	}
@@ -744,12 +755,12 @@ int MCSClient::checkIn()
 	if (!cr)
 		return -r;
 	
-	if (mCredentials)
+	if (mConfig->androidCredentials)
 	{
 		uint64_t androidId = resp.android_id();
 		uint64_t securityToken = resp.security_token();
-		mCredentials->setAndroidId(androidId);
-		mCredentials->setSecurityToken(securityToken);
+		mConfig->androidCredentials->setAndroidId(androidId);
+		mConfig->androidCredentials->setSecurityToken(securityToken);
 		if (androidId && securityToken)
 		{
 			if (mConfig->verbosity > 2)
@@ -765,7 +776,7 @@ int MCSClient::checkIn()
 std::string MCSClient::getAppId()
 {
 	std::stringstream r;
-	r << "wp:com.commandus.wpn#" << mCredentials->getAppId();
+	r << "wp:com.commandus.wpn#" << mConfig->androidCredentials->getAppId();
 	return r.str();
 }
 
@@ -860,7 +871,7 @@ int MCSClient::registerDevice()
 	std::string rkb64 = base64encode(REGISTER_SERVER_KEY, sizeof(REGISTER_SERVER_KEY));
 	formData << "app=org.chromium.linux" 
 		<< "&X-subtype=" << escapeURLString(getAppId()) 
-		<< "&device=" << mCredentials->getAndroidId()
+		<< "&device=" << mConfig->androidCredentials->getAndroidId()
 		<< "&sender=" << rkb64;
 
 	int r = curlPost(REGISTER_URL, "application/x-www-form-urlencoded", formData.str(), &retval);
@@ -883,7 +894,7 @@ int MCSClient::registerDevice()
 	std::string v = retval.substr(p + 1);
 	if (k == "token") 
 	{
-		mCredentials->setGCMToken(v);
+		mConfig->androidCredentials->setGCMToken(v);
 		if (mConfig->verbosity > 1)
 			std::cerr << "GCM token: " << v << std::endl;
 	}
@@ -910,12 +921,12 @@ void MCSClient::log
 
 int MCSClient::logIn()
 {
-	if (!mCredentials)
+	if (!mConfig->androidCredentials)
 		return ERR_NO_CREDS;
 	if (!mSsl)
 		return ERR_NO_CONNECT;
-	uint64_t androidId = mCredentials->getAndroidId();
-	uint64_t securityToken = mCredentials->getSecurityToken();
+	uint64_t androidId = mConfig->androidCredentials->getAndroidId();
+	uint64_t securityToken = mConfig->androidCredentials->getSecurityToken();
 	if (mConfig->verbosity > 2)
 	{
 		std::cerr << "Login to " << MCS_HOST << std::endl;
@@ -991,52 +1002,87 @@ void MCSClient::writeStream
 	}
 }
 
+int ece_webpush_aesgcm_headers_extract_params1
+(
+	const char* cryptoKeyHeader,
+	const char* encryptionHeader,
+	uint8_t* salt, size_t saltLen,
+	uint8_t* rawSenderPubKey,
+	size_t rawSenderPubKeyLen,
+	uint32_t* rs
+);
+
+int ece_webpush_aesgcm_decrypt1
+(
+	const uint8_t* rawRecvPrivKey,
+	size_t rawRecvPrivKeyLen, const uint8_t* authSecret,
+	size_t authSecretLen, const uint8_t* salt,
+	size_t saltLen, const uint8_t* rawSenderPubKey,
+	size_t rawSenderPubKeyLen, uint32_t rs,
+	const uint8_t* ciphertext, size_t ciphertextLen,
+	uint8_t* plaintext, size_t* plaintextLen
+);
+
 /**
  * Decode string
  * @see https://tools.ietf.org/html/draft-ietf-webpush-encryption-03
  */
-std::string MCSClient::decode
+int MCSClient::decode
 (
+	std::string &retval,
 	const std::string &source,
 	const std::string &cryptoKeyHeader,
 	const std::string &encryptionHeader
 )
 {
-	
+	if (!mConfig->wpnKeys)
+		return ERR_NO_KEYS;
 std::cerr << "<<< Decode >>>" << std::endl;
-std::cerr << "cryptoKeyHeader:" << cryptoKeyHeader << std::endl;
-std::cerr << "encryptionHeader: " << encryptionHeader << std::endl;
+std::cerr << "crypto-key:" << cryptoKeyHeader << std::endl;
+std::cerr << "encryption: " << encryptionHeader << std::endl;
 std::cerr << "source length: " << source.size() << std::endl;
 	uint32_t rs = 0;
 	uint8_t salt[ECE_SALT_LENGTH];
 	uint8_t rawSenderPubKey[ECE_WEBPUSH_PUBLIC_KEY_LENGTH];
-	int err = ece_webpush_aesgcm_headers_extract_params(cryptoKeyHeader.c_str(), encryptionHeader.c_str(),
+	int err = ece_webpush_aesgcm_headers_extract_params1(cryptoKeyHeader.c_str(), encryptionHeader.c_str(),
 		salt, ECE_SALT_LENGTH, rawSenderPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH, &rs);
 	if (err != ECE_OK)
 	{
-		std::cerr << "Error webpush headers extract params: " << err << std::endl;
-		return "";
+		std::string m;
+		switch (err) {
+			case ECE_ERROR_INVALID_ENCRYPTION_HEADER:
+				m = "Invalid encryption: " + encryptionHeader;
+				break;
+			case ECE_ERROR_INVALID_CRYPTO_KEY_HEADER:
+				m = "Invalid crypto-key: " + cryptoKeyHeader;
+				break;
+			default:
+				m = "";
+				break;
+		}
+		std::cerr << "Error " << err << ", " << m << std::endl;
+		return err;
 	}
 	size_t outSize = ece_aes128gcm_plaintext_max_length((const uint8_t*) source.c_str(), source.size());
 	if (outSize <= 0)
 	{
 		std::cerr << "Error outSize: " << outSize << std::endl;
-		return "";
+		return ERR_MEM;
 	}
 	if (outSize > 0)
 	{
-std::cerr << "outSize: " << outSize << std::endl;
-		std::string r(outSize, '\0');
-		ece_webpush_aesgcm_decrypt(
-			mKeys->getPrivateKeyArray(), ECE_WEBPUSH_PRIVATE_KEY_LENGTH,
-			mKeys->getAuthSecretArray(), ECE_WEBPUSH_AUTH_SECRET_LENGTH,
-			salt, ECE_SALT_LENGTH,
-			rawSenderPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH,
+		if (outSize < 4096)
+			outSize = 4096;
+		retval = std::string(outSize, '\0');
+		ece_webpush_aesgcm_decrypt1(
+			mConfig->wpnKeys->getPrivateKeyArray(), ECE_WEBPUSH_PRIVATE_KEY_LENGTH,
+			mConfig->wpnKeys->getAuthSecretArray(), ECE_WEBPUSH_AUTH_SECRET_LENGTH,
+			(const uint8_t *) &salt, ECE_SALT_LENGTH,
+			(const uint8_t *) &rawSenderPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH,
 			rs,
 			(const uint8_t *) source.c_str(), source.size(), 
-			(uint8_t *) r.c_str(), &outSize);
-		r.resize(outSize);
-		return r;
+			(uint8_t *) retval.c_str(), &outSize);
+		retval.resize(outSize);
 	}
-	return "";
+	return 0;
 }

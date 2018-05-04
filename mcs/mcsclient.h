@@ -72,13 +72,9 @@ class MCSClient
 {
 private:
 	MCSReceiveBuffer mBuffer;
-
-	std::thread *mListenerThread;
 	SSLFactory mSSLFactory;
 	int mSocket;
-	const WpnConfig *mConfig;
-	const WpnKeys* mKeys;
-	AndroidCredentials *mCredentials;
+	const WpnConfig *mConfig;	// config.wpnKeys, config.androidCredentials
 
 	int curlPost(
 		const std::string &url,
@@ -91,6 +87,7 @@ private:
 	/// obtain GCM token
  	int registerDevice();
 	std::vector<std::string> mPersistentIds;
+	void init();
 public:
 	bool mStop;
 	MCSReceiveBuffer *mStream;
@@ -98,13 +95,10 @@ public:
 
 	MCSClient();
 	MCSClient(
-		const WpnConfig *config, 
-		const WpnKeys* mKeys,
-		AndroidCredentials *androidCredentials
+		const WpnConfig *config
 	);
 	MCSClient(const MCSClient& other);
 	void setConfig(const WpnConfig *config);
-	void setKeys(const WpnKeys* keys);
 	~MCSClient();
 
 	uint64_t getAndroidId();
@@ -134,8 +128,9 @@ public:
 		const std::string &message
 	);
 
-	std::string decode
+	int decode
 	(
+		std::string &retval,
 		const std::string &source,
 		const std::string &cryptoKeyHeader,
 		const std::string &encryptionHeader

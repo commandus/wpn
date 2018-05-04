@@ -187,7 +187,7 @@ int main(int argc, char** argv)
 				if (config.verbosity > 0)
 				{
 				}
-				MCSClient client(&config, config.wpnKeys, config.androidCredentials);
+				MCSClient client(&config);
 				client.connect();
 				std::cerr << "Listen" << std::endl
 				<< "Enter q to quit" << std::endl
