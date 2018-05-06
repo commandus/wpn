@@ -31,7 +31,6 @@ nobase_dist_include_HEADERS = \
 	sslfactory.h \
 	utilstring.h \
 	mcs/mcsclient.h \
-	oauth/oauth.h oauth/tokenpair.h oauth/oauth20.h oauth/oauthrequest.h \
 	third_party/nlohmann/json.hpp \
 	third_party/sole/sole.hpp \
 	$(gengrpcs_h)
@@ -47,7 +46,6 @@ wpn_SOURCES= \
 	wp-push.cpp wp-subscribe.cpp wp-connection.cpp \
 	sslfactory.cpp \
 	mcs/mcsclient.cpp \
-	oauth/tokenpair.cpp oauth/oauth20.cpp oauth/oauthrequest.cpp \
 	utilstring.cpp params.cpp \
 	$(common_src)
 
