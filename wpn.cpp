@@ -41,7 +41,6 @@
 #include "wp-push.h"
 #include "sslfactory.h"
 #include "mcs/mcsclient.h"
-#include "oauth/oauth20.h"
 
 #ifdef _WIN32
 
@@ -115,43 +114,20 @@ int main(int argc, char** argv)
 				std::string d;
 				std::string headers;
 				
-				OAuth20Credentials userAuth((enum AUTH_PROVIDER) config.oauth, config.apiKey,
-					config.userIdentifier, "https://ikfia.wpn.commandus.com/");
-				int r = userAuth.authenticate();
-				if (r < 200 || r >= 300)
+				int r = subscribe(subscription, SUBSCRIBE_FIREBASE, *config.wpnKeys, 
+					config.subscribeUrl, config.getDefaultEndPoint(), config.authorizedEntity,
+					&d, &headers, config.verbosity);
+				if ((r < 200) || (r >= 300))
 				{
-					std::cerr << "Authentication error " << r << std::endl;
+					std::cerr << "Error " << r << ": " << d << std::endl;
 				}
-				else
+				else 
 				{
-					std::string token = userAuth.getBearerToken();
-					if (token.empty())
-					{
-						std::cerr << "No bearer token, exit";
-					}
-					else
-					{
-						if (config.verbosity > 0)
-						{
-							std::cerr << "Bearer token: " << token << std::endl;
-							std::cerr << "user auth: " << userAuth.toString() << std::endl;
-						}
-						int r = subscribe(subscription, SUBSCRIBE_FIREBASE, *config.wpnKeys, 
-							config.subscribeUrl, config.getDefaultEndPoint(), config.authorizedEntity,
-							&d, &headers, config.verbosity);
-						if ((r < 200) || (r >= 300))
-						{
-							std::cerr << "Error " << r << ": " << d << std::endl;
-						}
-						else 
-						{
-							config.subscriptions->list.push_back(subscription);
-						}
-						if (config.verbosity > 0)
-						{
-							subscription.write(std::cout, "\t", config.outputFormat);
-						}
-					}
+					config.subscriptions->list.push_back(subscription);
+				}
+				if (config.verbosity > 0)
+				{
+					subscription.write(std::cout, "\t", config.outputFormat);
 				}
 			}
 			break;
