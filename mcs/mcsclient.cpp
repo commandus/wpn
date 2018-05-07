@@ -28,13 +28,16 @@
 
 #include <ece.h>
 
-#include "mcsclient.h"
+#include "nlohmann/json.hpp"
 
+#include "mcsclient.h"
 #include "utilstring.h"
 #include "sslfactory.h"
 #include "android_checkin.pb.h"
 #include "checkin.pb.h"
 #include "mcs.pb.h"
+
+using json = nlohmann::json;
 
 // MCS Message tags.
 enum MCSProtoTag 
@@ -355,7 +358,21 @@ int MCSReceiveBuffer::parse()
 							if (dr == 0)
 							{
 								mClient->log(3) << " data size " << d.size() << " :" << std::endl << d << std::endl;
-								mClient->getConfig()->notifyAll(persistent_id, from, subtype, sent, d);
+								//
+								std::string appName;
+								std::string appId;
+							    size_t start_pos = subtype.find("#");
+								if (start_pos == std::string::npos) 
+								{
+									appName = subtype;
+									appId = "";
+								}
+								else
+								{
+									appName = subtype.substr(0, start_pos);
+									appId = subtype.substr(start_pos + 1);
+								}
+								mClient->notifyAll(persistent_id, from, appName, appId, sent, d);
 							}
 							else
 							{
@@ -1097,3 +1114,130 @@ int MCSClient::decode
 	}
 	return 0;
 }
+
+size_t MCSClient::notifyAll
+(
+	const std::string &persistent_id,
+	const std::string &from,
+	const std::string &appName,
+	const std::string &appId,
+	int64_t sent,
+ 
+	const std::string &authorizedEntity,	///< e.g. 246829423295
+	const std::string &title,
+	const std::string &body,
+	const std::string &icon,
+	const std::string &click_action,
+	const std::string &data
+) const
+{
+	size_t c = 0;
+	for (std::vector <desktopNotifyFunc>::const_iterator it(mConfig->desktopNotifyFuncs.begin()); it != mConfig->desktopNotifyFuncs.end(); ++it)
+	{
+		NotifyMessage request;
+		NotifyMessage response;
+		
+		request.authorizedEntity = authorizedEntity;
+		request.title = title;
+		request.body = body;
+		request.icon = icon;
+		request.link = click_action;
+		request.data = data;
+		
+		bool r = (*it)(persistent_id, from, appName, appId, sent,
+			request, response);
+		if (r)
+			c++;
+	}
+	return c;
+}
+
+size_t MCSClient::notifyAll
+(
+	const std::string &persistent_id,
+	const std::string &from,
+	const std::string &appName,
+	const std::string &appId,
+	int64_t sent,
+
+	const std::string &value
+) const
+{
+	size_t r = 0;
+	std::string authorizedEntity;	///< e.g. 246829423295
+	std::string title;
+	std::string body;
+	std::string icon;
+	std::string click_action;
+	std::string data;
+	
+	try
+	{
+		json m = json::parse(value);
+		try
+		{
+			authorizedEntity = m.at("from");
+		}
+		catch(...)
+		{
+		}
+		try
+		{
+			json notification  = m.at("notification");
+			try
+			{
+				title = notification.at("title");
+			}
+			catch(...)
+			{
+			}
+			try
+			{
+				body = notification.at("body");
+			}
+			catch(...)
+			{
+			}
+			try
+			{
+				icon = notification.at("icon");
+			}
+			catch(...)
+			{
+			}
+			try
+			{
+				click_action = notification.at("click_action");
+			}
+			catch(...)
+			{
+			}
+		}
+		catch(...)
+		{
+		}
+
+		try
+		{
+			json d = m.at("data");
+			data = d.dump();
+		}
+		catch(...)
+		{
+		}
+
+		r = notifyAll(
+			persistent_id, from, appName, appId, sent,
+			authorizedEntity, title, body, icon, click_action, data);
+	}
+	catch(...)
+	{
+		if (mConfig->verbosity > 1)
+		{
+			std::cerr << "Error parse notify json: " << value << std::endl;
+		}
+	}
+	return r;
+}
+
+

@@ -30,45 +30,43 @@
 
 static const std::string APP_NAME("wpn");
 
+typedef struct
+{
+	std::string authorizedEntity;	///< e.g. 246829423295
+	std::string title;
+	std::string body;
+	std::string icon;				///< Specifies an icon filename or stock icon to display.
+	std::string sound;				///< sound file name
+	std::string link;				///< click action
+	std::string linkType;			///< click action content type
+	int urgency; 					///< low- 0, normal, critical
+	int timeout; 					///< timeout in milliseconds at which to expire the notification.
+	std::string category;
+	std::string extra;
+	std::string data;				///< extra data in JSON format
+} NotifyMessage;
+
+// return true if has reply
 typedef bool (*desktopNotifyFunc)
 (
 	const std::string &persistent_id,
-	const std::string &from,						///< e.g. BDOU99-h67HcA6JeFXHbSNMu7e2yNNu3RzoMj8TM4W88jITfq7ZmPvIM1Iv-4_l2LxQcYwhqby2xGpWwzjfAnG4
-	const std::string &subtype,
+	const std::string &from,				///< e.g. BDOU99-h67HcA6JeFXHbSNMu7e2yNNu3RzoMj8TM4W88jITfq7ZmPvIM1Iv-4_l2LxQcYwhqby2xGpWwzjfAnG4
+	const std::string &appName,
+	const std::string &appId,
 	int64_t sent,
  
-	const std::string &authorizedEntity,	///< e.g. 246829423295
-	const std::string &title,
-	const std::string &body,
-	const std::string &icon,				///< Specifies an icon filename or stock icon to display.
-	const std::string &sound,				///< sound file name
-	const std::string &link,				///< click action
-	const std::string &linkType,			///< click action
-	int urgency, 							///< low- 0, normal, critical
-	int timeout, 							///< timeout in milliseconds at which to expire the notification.
-	const std::string &category,
-	const std::string &extra,
-	const std::string &data					///< extra data in JSON format
+	const NotifyMessage &request,
+	NotifyMessage &reply
 );
 
 extern "C"
 bool desktopNotify
 (
 	const std::string &persistent_id,
-	const std::string &from,
+	const std::string &from,				///< e.g. BDOU99-h67HcA6JeFXHbSNMu7e2yNNu3RzoMj8TM4W88jITfq7ZmPvIM1Iv-4_l2LxQcYwhqby2xGpWwzjfAnG4
 	const std::string &subtype,
 	int64_t sent,
  
-	const std::string &authorizedEntity,	///< e.g. 246829423295
-	const std::string &title,
-	const std::string &body,
-	const std::string &icon = "",			///< Specifies an icon filename or stock icon to display.
-	const std::string &sound = "",			///< sound file name
-	const std::string &link = "",			///< click action
-	const std::string &linkType = "",		///< click action
-	int urgency = 0, 						///< low- 0, normal, critical
-	int timeout = 0, 						///< timeout in milliseconds at which to expire the notification.
-	const std::string &category = "",
-	const std::string &extra = "",
-	const std::string &data = ""			///< extra data in JSON format
+	const NotifyMessage &notification,
+	NotifyMessage &reply
 );
