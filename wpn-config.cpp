@@ -409,6 +409,7 @@ size_t WpnConfig::notifyAll
 	std::string subtype,
 	int64_t sent,
  
+	const std::string &authorizedEntity,	///< e.g. 246829423295
 	const std::string &title,
 	const std::string &body,
 	const std::string &icon,
@@ -420,7 +421,7 @@ size_t WpnConfig::notifyAll
 	for (std::vector <desktopNotifyFunc>::const_iterator it(desktopNotifyFuncs.begin()); it != desktopNotifyFuncs.end(); ++it)
 	{
 		bool r = (*it)(persistent_id, from, subtype, sent,
-			title, body, icon, "", click_action, "", 0, 0, "", "", data) ? 0 : -1;
+			authorizedEntity, title, body, icon, "", click_action, "", 0, 0, "", "", data) ? 0 : -1;
 		if (r)
 			c++;
 	}
@@ -438,6 +439,7 @@ size_t WpnConfig::notifyAll
 ) const
 {
 	size_t r = 0;
+	std::string authorizedEntity;	///< e.g. 246829423295
 	std::string title;
 	std::string body;
 	std::string icon;
@@ -447,6 +449,13 @@ size_t WpnConfig::notifyAll
 	try
 	{
 		json m = json::parse(value);
+		try
+		{
+			authorizedEntity = m.at("from");
+		}
+		catch(...)
+		{
+		}
 		try
 		{
 			json notification  = m.at("notification");
@@ -494,7 +503,7 @@ size_t WpnConfig::notifyAll
 
 		r = notifyAll(
 			persistent_id, from, subtype, sent,
-			title, body, icon, click_action, data);
+			authorizedEntity, title, body, icon, click_action, data);
 	}
 	catch(...)
 	{

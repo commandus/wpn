@@ -87,6 +87,7 @@ public:
 		std::string subtype,
 		int64_t sent,
 
+		const std::string &authorizedEntity,	///< e.g. 246829423295
 		const std::string &title,
 		const std::string &body,
 		const std::string &icon,
