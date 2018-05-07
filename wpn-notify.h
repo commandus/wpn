@@ -55,8 +55,8 @@ typedef bool (*desktopNotifyFunc)
 	const std::string &appId,
 	int64_t sent,
  
-	const NotifyMessage &request,
-	NotifyMessage &reply
+	const NotifyMessage *request,
+	NotifyMessage *reply
 );
 
 extern "C"
@@ -64,9 +64,10 @@ bool desktopNotify
 (
 	const std::string &persistent_id,
 	const std::string &from,				///< e.g. BDOU99-h67HcA6JeFXHbSNMu7e2yNNu3RzoMj8TM4W88jITfq7ZmPvIM1Iv-4_l2LxQcYwhqby2xGpWwzjfAnG4
-	const std::string &subtype,
+	const std::string &appName,
+	const std::string &appId,
 	int64_t sent,
  
-	const NotifyMessage &notification,
-	NotifyMessage &reply
+	const NotifyMessage *notification,
+	NotifyMessage *reply
 );

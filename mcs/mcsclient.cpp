@@ -1145,7 +1145,7 @@ size_t MCSClient::notifyAll
 		request.data = data;
 		
 		bool r = (*it)(persistent_id, from, appName, appId, sent,
-			request, response);
+			&request, &response);
 		if (r)
 			c++;
 	}
