@@ -29,6 +29,7 @@
 #include "wpn-config.h"
 #include "wp-storage-file.h"
 #include "sslfactory.h"
+#include "onullstream.hpp"
 
 #define ERR_NO_CONFIG				-1
 #define ERR_NO_KEYS					-2
@@ -71,6 +72,7 @@ public:
 class MCSClient
 {
 private:
+	onullstream onullstrm;
 	MCSReceiveBuffer mBuffer;
 	SSLFactory mSSLFactory;
 	int mSocket;
@@ -123,12 +125,10 @@ public:
 	void ping();
 	
 	void writeStream(std::istream &strm);
-	void log(
-		int level, 
-		int tag, 
-		const std::string &message
+	std::ostream &log
+	(
+		int level
 	);
-
 	int decode
 	(
 		std::string &retval,

@@ -78,7 +78,7 @@ int main(int argc, char** argv)
 	// In windows, this will init the winsock stuff
 	curl_global_init(CURL_GLOBAL_ALL);
 	initSSL();
-	
+
 	WpnConfig config(argc, argv);
 	if (config.error())
 		exit(config.error());
@@ -160,6 +160,7 @@ int main(int argc, char** argv)
 			break;
 		default:
 			{
+				config.loadDesktopNotifyFuncs();
 				if (config.verbosity > 0)
 				{
 				}
@@ -170,6 +171,7 @@ int main(int argc, char** argv)
 				<< "p: ping" << std::endl;
 				client.writeStream(std::cin);
 				client.stop();
+				config.unloadDesktopNotifyFuncs();
 			}
 	}
 

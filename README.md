@@ -94,6 +94,18 @@ Do not forget accesskey=2117177 option.
 https://ikfia.wpn.commandus.com/app/push?accesskey=2117177&title=%D0%9C%D1%80%D0%B0%D0%BA&text=%D0%96%D1%83%D1%82%D1%8C111
 ```
 
+## Output plugins
+
+Output plugins are shared libraries See declaration in wpn-notify.h
+
+```
+./wpn -vv -O ../wpn-lnotify/.libs/libwpn-lnotify.so -O ../wpn-lnotify/.libs/libwpn-stdout.so
+```
+
+## Files
+
+- ~/.wpn
+
 ### List of recipient FCM token format
 
 JSON array of array e.g.:
@@ -275,4 +287,22 @@ curl -i -H "Accept:application/json" -H "Content-Type:application/json" -X POST 
 	"pushSet": "eJpriwkjrcU:APA91bHS4Ohb5In3ssqr3nPWI_EtFbAHEYvxN3SX1Omct5hjy48CeyTCZw5bzxyST1Bhj4m0WynXoq7pmw3IM0JuAQ8poeJe99vFJSeYGKgXtut_2Cmyxwu_V6xrDUqp-k8HDaeN_5fy"
 }
 ```
+
+## Issues
+
+### ECEC library
+
+https://github.com/web-push-libs/ecec/issues/37
+
+MCS using '=' padding, e.g.
+
+```
+encryption: salt=3jFrNEVgtPynKcHPmHXawA==
+```
+
+ece_webpush_aesgcm_headers_extract_params() return -13 error in this case.
+
+Solution:
+
+Line 182  added: || c == '=';
 

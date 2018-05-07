@@ -57,6 +57,8 @@ public:
 	std::string body;								///< message body
 	std::string icon;
 	std::string link;
+	// output external function name
+	std::string notifyFunctionName;
 
 	WpnConfig();
 	WpnConfig

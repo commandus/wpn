@@ -1,3 +1,8 @@
+/**
+ * Issue https://github.com/web-push-libs/ecec/issues/37
+ * Line 182  added: || c == '=';
+ */
+
 #include "ece.h"
 
 // This file implements a parser for the `Crypto-Key` and `Encryption` HTTP

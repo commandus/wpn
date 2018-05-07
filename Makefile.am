@@ -31,6 +31,7 @@ nobase_dist_include_HEADERS = \
 	sslfactory.h \
 	utilstring.h \
 	mcs/mcsclient.h \
+	onullstream.hpp \
 	third_party/nlohmann/json.hpp \
 	third_party/sole/sole.hpp \
 	$(gengrpcs_h)
