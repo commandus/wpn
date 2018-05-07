@@ -7,6 +7,7 @@
 #include <fstream>
 #include <dlfcn.h>
 
+#include "platform.h"
 #include "utilstring.h"
 #include "nlohmann/json.hpp"
 
@@ -356,12 +357,15 @@ size_t WpnConfig::loadDesktopNotifyFuncs()
 	size_t r = 0;
 	for (std::vector <std::string>::const_iterator it(notifyLibFileNames.begin()); it != notifyLibFileNames.end(); ++it)
 	{
-		void *so = dlopen(it->c_str(), RTLD_LAZY);
+		std::string rp;
+		str_realpath(rp, (*it));
+		
+		void *so = dlopen(rp.c_str(), RTLD_LAZY);
 		if (!so)
 		{
 			if (verbosity > 1)
 			{
-				std::cerr << "Can not open shared library file: " << *it << std::endl;
+				std::cerr << "Can not open shared library file: " << rp << std::endl;
 			}
 			continue;
 		}
@@ -371,13 +375,13 @@ size_t WpnConfig::loadDesktopNotifyFuncs()
 		{
 			if (verbosity > 1)
 			{
-				std::cerr << "Can not bind " << notifyFunctionName << "() from shared library file: " << *it << std::endl;
+				std::cerr << "Can not bind " << notifyFunctionName << "() from shared library file: " << rp << std::endl;
 			}
 			continue;
 		}
 		if (verbosity > 2)
 		{
-			std::cerr << "Shared library " << *it << " loaded successfully." << std::endl;
+			std::cerr << "Shared library " << rp << " loaded successfully." << std::endl;
 		}
 		desktopNotifyFuncs.push_back(desktopNotify);
 		r++;
@@ -400,16 +404,23 @@ void WpnConfig::unloadDesktopNotifyFuncs()
 
 size_t WpnConfig::notifyAll
 (
+	std::string persistent_id,
+	std::string from,
+	std::string subtype,
+	int64_t sent,
+ 
 	const std::string &title,
 	const std::string &body,
 	const std::string &icon,
-	const std::string &click_action
+	const std::string &click_action,
+	const std::string &data
 ) const
 {
 	size_t c = 0;
 	for (std::vector <desktopNotifyFunc>::const_iterator it(desktopNotifyFuncs.begin()); it != desktopNotifyFuncs.end(); ++it)
 	{
-		bool r = (*it)(title, body, icon, "", click_action, "", 0, 0, "", "") ? 0 : -1;
+		bool r = (*it)(persistent_id, from, subtype, sent,
+			title, body, icon, "", click_action, "", 0, 0, "", "", data) ? 0 : -1;
 		if (r)
 			c++;
 	}
@@ -418,6 +429,11 @@ size_t WpnConfig::notifyAll
 
 size_t WpnConfig::notifyAll
 (
+	std::string persistent_id,
+	std::string from,
+	std::string subtype,
+	int64_t sent,
+ 
 	const std::string &value
 ) const
 {
@@ -426,15 +442,59 @@ size_t WpnConfig::notifyAll
 	std::string body;
 	std::string icon;
 	std::string click_action;
+	std::string data;
+	
 	try
 	{
 		json m = json::parse(value);
-		json notification  = m["notification"];
-		title = notification["title"];
-		body = notification["body"];
-		icon = notification["icon"];
-		click_action = notification["click_action"];
-		r = notifyAll(title, body, icon, click_action);
+		try
+		{
+			json notification  = m.at("notification");
+			try
+			{
+				title = notification.at("title");
+			}
+			catch(...)
+			{
+			}
+			try
+			{
+				body = notification.at("body");
+			}
+			catch(...)
+			{
+			}
+			try
+			{
+				icon = notification.at("icon");
+			}
+			catch(...)
+			{
+			}
+			try
+			{
+				click_action = notification.at("click_action");
+			}
+			catch(...)
+			{
+			}
+		}
+		catch(...)
+		{
+		}
+
+		try
+		{
+			json d = m.at("data");
+			data = d.dump();
+		}
+		catch(...)
+		{
+		}
+
+		r = notifyAll(
+			persistent_id, from, subtype, sent,
+			title, body, icon, click_action, data);
 	}
 	catch(...)
 	{

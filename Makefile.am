@@ -26,6 +26,7 @@ CLEANFILES = $(gengrpcs)
 bin_PROGRAMS = wpn
 
 nobase_dist_include_HEADERS = \
+	platform.h \
 	wpn-config.h wpn.h wpn-notify.h \
 	wp-storage-file.h wp-subscribe.h wp-connection.h wp-push.h \
 	sslfactory.h \

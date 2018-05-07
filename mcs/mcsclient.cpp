@@ -303,6 +303,11 @@ int MCSReceiveBuffer::parse()
 					DataMessageStanza* r = (DataMessageStanza*) message;
 					std::string cryptoKeyHeader;
 					std::string encryptionHeader;
+					std::string persistent_id;
+					std::string from;
+					std::string subtype;
+					int64_t sent;
+					
 					mClient->log(3) << "DataMessageStanza" << std::endl;
 					for (int a = 0; a < r->app_data_size(); a++)
 					{
@@ -312,9 +317,15 @@ int MCSReceiveBuffer::parse()
 							cryptoKeyHeader = r->app_data(a).value();
 						if (r->app_data(a).key() == "encryption")
 							encryptionHeader = r->app_data(a).value();
+						if (r->app_data(a).key() == "subtype")
+							subtype = r->app_data(a).value();
 					}
 					if (r->has_persistent_id())
+					{
+						persistent_id = r->persistent_id();
 						mClient->log(3) << " persistent_id: " << r->persistent_id();
+						
+					}
 					if (r->has_id())
 						mClient->log(3) << " id: " << r->id();
 					if (r->has_category())
@@ -322,7 +333,10 @@ int MCSReceiveBuffer::parse()
 					if (r->has_device_user_id())
 						mClient->log(3) << " device_user_id: " << r->device_user_id();
 					if (r->has_from())
+					{
+						from = r->from();
 						mClient->log(3) << " from: " << r->from();
+					}
 					if (r->has_from_trusted_server())
 						mClient->log(3) << " from_trusted_server: " << r->from_trusted_server();
 					if (r->has_immediate_ack())
@@ -341,7 +355,7 @@ int MCSReceiveBuffer::parse()
 							if (dr == 0)
 							{
 								mClient->log(3) << " data size " << d.size() << " :" << std::endl << d << std::endl;
-								mClient->getConfig()->notifyAll(d);
+								mClient->getConfig()->notifyAll(persistent_id, from, subtype, sent, d);
 							}
 							else
 							{
@@ -352,7 +366,10 @@ int MCSReceiveBuffer::parse()
 					if (r->has_reg_id())
 						mClient->log(3) << " reg_id: " << r->reg_id();
 					if (r->has_sent())
+					{
+						sent = r->sent();
 						mClient->log(3) << " sent: " << r->sent();
+					}
 					if (r->has_status())
 						mClient->log(3) << " status: " << r->status();
 					if (r->has_stream_id())

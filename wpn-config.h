@@ -82,13 +82,23 @@ public:
 	std::vector <desktopNotifyFunc> desktopNotifyFuncs;
 	size_t notifyAll
 	(
+		std::string persistent_id,
+		std::string from,
+		std::string subtype,
+		int64_t sent,
+
 		const std::string &title,
 		const std::string &body,
 		const std::string &icon,
-		const std::string &click_action
+		const std::string &click_action,
+		const std::string &data
 	) const;
 	size_t notifyAll
 	(
+		std::string persistent_id,
+		std::string from,
+		std::string subtype,
+		int64_t sent,
 		const std::string &json
 	) const;
 };

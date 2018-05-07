@@ -32,6 +32,11 @@ static const std::string APP_NAME("wpn");
 
 typedef bool (*desktopNotifyFunc)
 (
+	std::string persistent_id,
+	std::string from,
+	std::string subtype,
+	int64_t sent,
+ 
 	const std::string &title,
 	const std::string &body,
 	const std::string &icon,		///< Specifies an icon filename or stock icon to display.
@@ -41,12 +46,18 @@ typedef bool (*desktopNotifyFunc)
 	int urgency, 					///< low- 0, normal, critical
 	int timeout, 					///< timeout in milliseconds at which to expire the notification.
 	const std::string &category,
-	const std::string &extra
+	const std::string &extra,
+	const std::string &data			///< extra data in JSON format
 );
 
 extern "C"
 bool desktopNotify
 (
+	std::string persistent_id,
+	std::string from,
+	std::string subtype,
+	int64_t sent,
+ 
 	const std::string &title,
 	const std::string &body,
 	const std::string &icon = "",		///< Specifies an icon filename or stock icon to display.
@@ -56,5 +67,6 @@ bool desktopNotify
 	int urgency = 0, 					///< low- 0, normal, critical
 	int timeout = 0, 					///< timeout in milliseconds at which to expire the notification.
 	const std::string &category = "",
-	const std::string &extra = ""
+	const std::string &extra = "",
+	const std::string &data = ""		///< extra data in JSON format
 );
