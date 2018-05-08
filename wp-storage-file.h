@@ -21,7 +21,7 @@ class AndroidCredentials
 private:
 	std::string mAppId;
 	uint64_t mAndroidId;
-    uint64_t mSecurityToken;
+	uint64_t mSecurityToken;
 	std::string mGCMToken;
 
 	void init(
@@ -66,12 +66,12 @@ public:
 	void setSecurityToken(uint64_t value);
 	void setGCMToken(const std::string &value);
 
-	void write(
+	int write(
 		std::ostream &strm,
 		const std::string &delimiter = DEF_DELIMITER,
 		const int writeFormat = 0
 	) const;
-	void write(
+	int write(
 		const std::string &fileName
 	) const;
 };
@@ -133,12 +133,12 @@ public:
 	std::string getAuthSecret() const;
 	const uint8_t *getAuthSecretArray() const;
 	
-	void write(
+	int write(
 		std::ostream &strm,
 		const std::string &delimiter = DEF_DELIMITER,
 		const int writeFormat = 0
 	) const;
-	void write(
+	int write(
 		const std::string &fileName
 	) const;
 };
@@ -152,13 +152,15 @@ private:
 	std::string authorizedEntity;
 	std::string token;
 	std::string pushSet;
+	std::string mPersistentId;	///< last received message id
 	void init(
 		std::string subscribeUrl,
 		int subscribeMode,
 		const std::string &endpoint,
 		const std::string &authorizedEntity,
 		const std::string &token,
-		const std::string &pushSet
+		const std::string &pushSet,
+		const std::string &persistentId
 	);
 	void parse(
 		const std::string &keys,
@@ -177,7 +179,8 @@ public:
 		const std::string &endpoint,
 		const std::string &authorizedEntity,
 		const std::string &token,
-		const std::string &pushSet
+		const std::string &pushSet,
+		const std::string &persistentId
 	);
 	Subscription(
 		std::istream &strm,
@@ -206,12 +209,15 @@ public:
 	void setToken(const std::string &value);
 	void setPushSet(const std::string &value);
 
-	void write(
+	const std::string &getPersistentId() const;
+	void setPersistentId(const std::string &value);
+
+	int write(
 		std::ostream &strm,
 		const std::string &delimiter,
 		const int writeFormat = 0
 	) const;
-	void write(
+	int write(
 		const std::string &fileName
 	) const;
 	bool valid() const;
@@ -237,12 +243,12 @@ public:
 	
 	std::vector<Subscription> list;
 
-	void write(
+	int write(
 		std::ostream &strm,
 		const std::string &delimiter = DEF_DELIMITER,
 		const int writeFormat = 0
 	)  const;
-	void write(
+	int write(
 		const std::string &fileName
 	) const;
 };

@@ -73,13 +73,16 @@ public:
 	AndroidCredentials *androidCredentials;
 	WpnKeys *wpnKeys;
 	Subscriptions *subscriptions;
-	int write();
-	
+	int read(const std::string &fileName);
+	int write() const;
+
 	size_t loadDesktopNotifyFuncs();
 	void unloadDesktopNotifyFuncs();
 	std::vector <std::string> notifyLibFileNames;
 	std::vector <void *> notifyLibs;
 	std::vector <desktopNotifyFunc> desktopNotifyFuncs;
+	bool setPersistentId(const std::string &authorizedEntity, const std::string &persistent_id);
+	void getPersistentIds(std::vector<std::string> &retval);
 };
 
 #endif

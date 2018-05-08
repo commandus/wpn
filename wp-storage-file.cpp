@@ -55,7 +55,8 @@ std::string AndroidCredentials::genAppId()
 	return sole::uuid4().str();
 }
 
-void AndroidCredentials::init(
+void AndroidCredentials::init
+(
 	const std::string &appId,
 	uint64_t androidId,
 	uint64_t securityToken,
@@ -68,7 +69,8 @@ void AndroidCredentials::init(
 	mGCMToken = gcmToken;
 }
 
-void AndroidCredentials::parse(
+void AndroidCredentials::parse
+(
 	const std::string &keys,
 	const std::string &delimiter
 )
@@ -96,7 +98,8 @@ void AndroidCredentials::parse(
 		init(k[0], strtoul(k[1].c_str(), NULL, 10), strtoul(k[2].c_str(), NULL, 10), k[3]); 
 }
 
-void AndroidCredentials::read(
+void AndroidCredentials::read
+(
 	std::istream &strm,
 	const std::string &delimiter
 )
@@ -149,14 +152,15 @@ void AndroidCredentials::setGCMToken(const std::string &value)
 	mGCMToken = value;
 }
 
-void AndroidCredentials::write
+int AndroidCredentials::write
 (
 	std::ostream &strm,
 	const std::string &delimiter,
 	const int writeFormat
 ) const
 {
-		switch (writeFormat)
+	long r = strm.tellp();
+	switch (writeFormat)
 	{
 		case 1:
 			{
@@ -170,17 +174,22 @@ void AndroidCredentials::write
 			}
 			break;
 		default:
-			strm << mAppId << delimiter << mAndroidId << delimiter << mSecurityToken << delimiter << mGCMToken << std::endl;
+			strm << mAppId << delimiter << mAndroidId << delimiter << mSecurityToken 
+			<< delimiter << mGCMToken << std::endl;
 	}
+	r = strm.tellp() - r;
+	return r;
 }
 
-void AndroidCredentials::write(
+int AndroidCredentials::write
+(
 	const std::string &fileName
 ) const
 {
 	std::ofstream strm(fileName);
-	write(strm, DEF_DELIMITER);
+	int r = write(strm, DEF_DELIMITER);
 	strm.close();
+	return r;
 }
 
 // --------------- WpnKeys ---------------
@@ -316,12 +325,14 @@ std::string WpnKeys::getAuthSecret() const
 	return std::string(r, ece_base64url_encode(authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH, ECE_BASE64URL_OMIT_PADDING, r, sizeof(r)));
 }
 
-void WpnKeys::write(
+int WpnKeys::write
+(
 	std::ostream &strm,
 	const std::string &delimiter,
 	const int writeFormat
 ) const
 {
+	long r = strm.tellp();
 	switch (writeFormat)
 	{
 		case 1:
@@ -337,21 +348,24 @@ void WpnKeys::write(
 		default:
 			strm << getPrivateKey() << delimiter << getPublicKey() << delimiter << getAuthSecret() << std::endl;
 	}
+	return strm.tellp() - r;
 }
 
-void WpnKeys::write(
+int WpnKeys::write(
 	const std::string &fileName
 ) const
 {
 	std::ofstream strm(fileName);
-	write(strm, DEF_DELIMITER);
+	int r = write(strm, DEF_DELIMITER);
 	strm.close();
+	return r;
 }
 
 // --------------- Subscription ---------------
 
 Subscription::Subscription()
-	: subscribeUrl(""), subscribeMode(0), endpoint(""), authorizedEntity(""), token(""), pushSet("")
+	: subscribeUrl(""), subscribeMode(0), endpoint(""), authorizedEntity(""),
+	token(""), pushSet(""), mPersistentId("")
 {
 }
 
@@ -361,9 +375,12 @@ Subscription::Subscription(
 	const std::string &a_endpoint,
 	const std::string &a_authorizedEntity,
 	const std::string &a_token,
-	const std::string &a_pushSet
+	const std::string &a_pushSet,
+	const std::string &aPersistentId
 )
-	: subscribeUrl(aSubscribeUrl), subscribeMode(aSubscribeMode), endpoint(a_endpoint), authorizedEntity(a_authorizedEntity), token(a_token), pushSet(a_pushSet)
+	: subscribeUrl(aSubscribeUrl), subscribeMode(aSubscribeMode), endpoint(a_endpoint), 
+	authorizedEntity(a_authorizedEntity), token(a_token), pushSet(a_pushSet),
+	mPersistentId(aPersistentId)
 {
 }
 
@@ -443,13 +460,33 @@ void Subscription::setPushSet(const std::string &value)
 	pushSet = value;
 }
 
-void Subscription::write
+const std::string &Subscription::getPersistentId() const
+{
+	return mPersistentId;
+}
+
+void setPersistentId
+(
+	const std::string &value
+);
+
+void Subscription::setPersistentId
+(
+	const std::string &value
+)
+{
+	if (!value.empty())
+		mPersistentId = value;
+}
+
+int Subscription::write
 (
 	std::ostream &strm,
 	const std::string &delimiter,
 	const int writeFormat
 ) const
 {
+	long r = strm.tellp();
 	switch (writeFormat)
 	{
 		case 1:
@@ -460,7 +497,8 @@ void Subscription::write
 					{"endpoint", getEndpoint()},
 					{"authorizedEntity", getAuthorizedEntity()},
 					{"token", getToken()},
-					{"pushSet", getPushSet()}
+					{"pushSet", getPushSet()},
+					{"persistentId", getPersistentId()}
 				};
 				strm << j.dump();
 			}
@@ -468,28 +506,32 @@ void Subscription::write
 		default:
 			strm << getSubscribeUrl() << delimiter << getSubscribeMode() << delimiter 
 				<< getEndpoint() << delimiter << getAuthorizedEntity() << delimiter 
-				<< getToken() << delimiter << getPushSet() << std::endl;
+				<< getToken() << delimiter << getPushSet() << delimiter << getPersistentId() << std::endl;
 			break;
 	}
+	return strm.tellp() - r;
 }
 
-void Subscription::write
+int Subscription::write
 (
 	const std::string &fileName
 ) const
 {
 	std::ofstream strm(fileName);
-	write(strm, DEF_DELIMITER, 0);
+	int r = write(strm, DEF_DELIMITER, 0);
 	strm.close();
+	return r;
 }
 
-void Subscription::init(
+void Subscription::init
+(
 	std::string a_subscribeUrl,
 	int a_subscribeMode,
 	const std::string &a_endpoint,
 	const std::string &a_authorizedEntity,
 	const std::string &a_token,
-	const std::string &a_pushSet
+	const std::string &a_pushSet,
+	const std::string &persistentId
 )
 {
 	subscribeUrl = a_subscribeUrl;
@@ -498,14 +540,16 @@ void Subscription::init(
 	authorizedEntity = a_authorizedEntity;
 	token = a_token;
 	pushSet = a_pushSet;
+	mPersistentId = persistentId;
 }
 
-void Subscription::parse(
+void Subscription::parse
+(
 	const std::string &keys,
 	const std::string &delimiter
 )
 {
-	std::string k[6];
+	std::string k[7];
 
 	size_t p0 = 0, p1;
 	int i = 0;
@@ -514,14 +558,15 @@ void Subscription::parse(
 		k[i] = keys.substr(p0, p1 - p0);
 		p0 = p1 + delimiter.length();
 		i++;
-		if (i >= 6)
+		if (i >= 7)
 			break;
 	}
 	if (!k[2].empty())
-		init(k[0], strtol(k[1].c_str(), NULL, 10), k[2], k[3], k[4], k[5]); 
+		init(k[0], strtol(k[1].c_str(), NULL, 10), k[2], k[3], k[4], k[5], k[6]); 
 }
 
-void Subscription::read(
+void Subscription::read
+(
 	std::istream &strm,
 	const std::string &delimiter
 )
@@ -560,7 +605,8 @@ Subscriptions::Subscriptions(
 	read(strm, delimiter);
 }
 
-Subscriptions::Subscriptions(
+Subscriptions::Subscriptions
+(
 	const std::string &fileName
 )
 {
@@ -571,7 +617,8 @@ Subscriptions::Subscriptions(
 /**
  * Constructor for find() only
  */
-Subscription::Subscription(
+Subscription::Subscription
+(
 	const std::string &end_point,
 	const std::string &authorized_entity
 )
@@ -579,25 +626,30 @@ Subscription::Subscription(
 {
 }
 
-void Subscriptions::write(
+int Subscriptions::write
+(
 	std::ostream &strm,
 	const std::string &delimiter,
 	const int writeFormat
 ) const
 {
+	long r = 0;
 	for (std::vector<Subscription>::const_iterator it(list.begin()); it != list.end(); ++it)
 	{
-		it->write(strm, delimiter, writeFormat);
+		r += it->write(strm, delimiter, writeFormat);
 	}
+	return r;
 }
 
-void Subscriptions::write(
+int Subscriptions::write
+(
 	const std::string &fileName
 ) const
 {
 	std::ofstream strm(fileName);
-	write(strm, DEF_DELIMITER);
+	int r = write(strm, DEF_DELIMITER);
 	strm.close();
+	return r;
 }
 
 void Subscriptions::read(

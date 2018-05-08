@@ -19,6 +19,7 @@
 #include <functional>
 #include <stdint.h>
 #include <unistd.h>
+#include <fstream>
 #include <sstream>
 #include <curl/curl.h>
 #include <google/protobuf/text_format.h>
@@ -189,7 +190,6 @@ int MCSReceiveBuffer::parse()
 		if (!r)
 			break;
 
-		
 		mClient->log(3) << "<<<  Tag " << (int) tag << " size " << msgSize << "  >>>" << std::endl;
 
 		google::protobuf::io::CodedInputStream::Limit limit = codedInput.PushLimit(msgSize);
@@ -323,12 +323,6 @@ int MCSReceiveBuffer::parse()
 						if (r->app_data(a).key() == "subtype")
 							subtype = r->app_data(a).value();
 					}
-					if (r->has_persistent_id())
-					{
-						persistent_id = r->persistent_id();
-						mClient->log(3) << " persistent_id: " << r->persistent_id();
-						
-					}
 					if (r->has_id())
 						mClient->log(3) << " id: " << r->id();
 					if (r->has_category())
@@ -339,6 +333,11 @@ int MCSReceiveBuffer::parse()
 					{
 						from = r->from();
 						mClient->log(3) << " from: " << r->from();
+					}
+					if (r->has_persistent_id())
+					{
+						persistent_id = r->persistent_id();
+						mClient->log(3) << " persistent_id: " << r->persistent_id();
 					}
 					if (r->has_from_trusted_server())
 						mClient->log(3) << " from_trusted_server: " << r->from_trusted_server();
@@ -375,6 +374,7 @@ int MCSReceiveBuffer::parse()
 								NotifyMessage notification;
 								if (mClient->mkNotifyMessage(notification, d))
 								{
+									mClient->getConfig()->setPersistentId(notification.authorizedEntity, persistent_id);
 									mClient->notifyAll(persistent_id, from, appName, appId, sent, notification);
 								}
 							}
@@ -509,6 +509,7 @@ static MessageLite *mkLoginRequest
 	*s->mutable_value() = "1";
 	for (std::vector<std::string>::const_iterator it(persistentIds.begin()); it != persistentIds.end(); ++it)
 	{
+		std::cerr << "===========pessis " << *it << std::endl;
 		*req->add_received_persistent_id() = *it;
 	}
 	return req;
@@ -646,21 +647,21 @@ MCSClient::MCSClient()
 }
 
 MCSClient::MCSClient(
-	const WpnConfig *config
+	WpnConfig *config
 )
 	: mConfig(config)
 {
 	init();
 }
 
-const WpnConfig * MCSClient::getConfig() const
+WpnConfig * MCSClient::getConfig()
 {
 	return mConfig;
 }
 
 void MCSClient::setConfig
 (
-	const WpnConfig *config
+	WpnConfig *config
 )
 {
 	mConfig = config;
@@ -760,6 +761,13 @@ bool MCSClient::hasIdNToken()
 	if (!mConfig->androidCredentials)
 		return false;
 	return (mConfig->androidCredentials->getAndroidId() && mConfig->androidCredentials->getSecurityToken());
+}
+
+int MCSClient::write()
+{
+	if (!mConfig)
+		return 0;
+	return mConfig->write();
 }
 
 int MCSClient::checkIn()
@@ -979,7 +987,9 @@ int MCSClient::logIn()
 		log(3) << "Login to " << MCS_HOST << std::endl;
 	}
 
-	MessageLite *l =  mkLoginRequest(androidId, securityToken, mPersistentIds);
+	std::vector<std::string> persistentIds;
+	mConfig->getPersistentIds(persistentIds);
+	MessageLite *l =  mkLoginRequest(androidId, securityToken, persistentIds);
 	if (!l)
 		return ERR_MEM;
 
