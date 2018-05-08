@@ -3,6 +3,7 @@
 #include <argtable2.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <pwd.h>
 #include <fstream>
 #include <dlfcn.h>
@@ -15,6 +16,12 @@
 #define DEF_FCM_ENDPOINT_PREFIX	"https://fcm.googleapis.com/fcm/send/"
 #define DEF_OUTPUT_SO_FN		"libwpn-stdout.so"
 #define DEF_FUNC_NOTIFY			"desktopNotify"
+
+#ifdef _MSC_VER
+#define DEF_PLUGIN_FILE_EXT		".dll"
+#else
+#define DEF_PLUGIN_FILE_EXT		".so"
+#endif
 
 using json = nlohmann::json;
 
@@ -126,7 +133,7 @@ int WpnConfig::parseCmd
 	struct arg_str *a_output = arg_str0("o", "format", "<text|json>", "Output format. Default text.");
 
 	// output options
-	struct arg_str *a_output_lib_filenames = arg_strn("O", "output", "<file name>", 0, 100, "Output shared library file name");
+	struct arg_str *a_output_lib_filenames = arg_strn("O", "output", "<file name>", 0, 100, "Output shared library file name or directory");
 	struct arg_str *a_notify_function_name = arg_str0("F", "output-func", "<name>", "Output function name. Default " DEF_FUNC_NOTIFY);
 	
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
@@ -360,31 +367,44 @@ size_t WpnConfig::loadDesktopNotifyFuncs()
 		std::string rp;
 		str_realpath(rp, (*it));
 		
-		void *so = dlopen(rp.c_str(), RTLD_LAZY);
-		if (!so)
+		std::vector<std::string > files;
+		if (isDir(rp))
 		{
-			if (verbosity > 1)
+			filesInPath(rp, DEF_PLUGIN_FILE_EXT, 1, &files);
+		}
+		else
+		{
+			files.push_back(rp);
+		}
+
+		for (std::vector<std::string>::const_iterator it(files.begin()); it != files.end(); ++it)
+		{
+			void *so = dlopen(it->c_str(), RTLD_LAZY);
+			if (!so)
 			{
-				std::cerr << "Can not open shared library file: " << rp << std::endl;
+				if (verbosity > 1)
+				{
+					std::cerr << "Can not open shared library file: " << *it << std::endl;
+				}
+				continue;
 			}
-			continue;
-		}
-		notifyLibs.push_back(so);
-		desktopNotifyFunc desktopNotify = (desktopNotifyFunc) dlsym(so, notifyFunctionName.c_str());
-		if (!desktopNotify)
-		{
-			if (verbosity > 1)
+			notifyLibs.push_back(so);
+			desktopNotifyFunc desktopNotify = (desktopNotifyFunc) dlsym(so, notifyFunctionName.c_str());
+			if (!desktopNotify)
 			{
-				std::cerr << "Can not bind " << notifyFunctionName << "() from shared library file: " << rp << std::endl;
+				if (verbosity > 1)
+				{
+					std::cerr << "Can not bind " << notifyFunctionName << "() from shared library file: " << *it << std::endl;
+				}
+				continue;
 			}
-			continue;
+			if (verbosity > 2)
+			{
+				std::cerr << "Shared library " << *it << " loaded successfully." << std::endl;
+			}
+			desktopNotifyFuncs.push_back(desktopNotify);
+			r++;
 		}
-		if (verbosity > 2)
-		{
-			std::cerr << "Shared library " << rp << " loaded successfully." << std::endl;
-		}
-		desktopNotifyFuncs.push_back(desktopNotify);
-		r++;
 	}
 	if (verbosity > 1)
 	{

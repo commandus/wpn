@@ -19,7 +19,11 @@ Sleep(seconds *1000);
 #define str_realpath(retval, path) \
 { \
 	char full_path[PATH_MAX]; \
-	retval = std::string(realpath(path.c_str(), full_path)); \
+	char *p = realpath(path.c_str(), full_path); \
+	if (p) \
+		retval = std::string(p); \
+	else \
+		retval = std::string(path); \
 }
 
 #endif

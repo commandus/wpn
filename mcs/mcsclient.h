@@ -137,21 +137,23 @@ public:
 		const std::string &encryptionHeader
 	);
 
-	size_t notifyAll
+	static void mkNotifyMessage
 	(
-		const std::string &persistent_id,
-		const std::string &from,
-		const std::string &appName,
-		const std::string &appId,
-		int64_t sent,
-
+		NotifyMessage &retval,
 		const std::string &authorizedEntity,	///< e.g. 246829423295
 		const std::string &title,
 		const std::string &body,
 		const std::string &icon,
 		const std::string &click_action,
 		const std::string &data
-	) const;
+	);
+
+	static bool mkNotifyMessage
+	(
+		NotifyMessage &retval,
+		const std::string &json
+	);
+
 	size_t notifyAll
 	(
 		const std::string &persistent_id,
@@ -159,8 +161,7 @@ public:
 		const std::string &appName,
 		const std::string &appId,
 		int64_t sent,
-
-		const std::string &json
+		const NotifyMessage &notification
 	) const;
 };
 
