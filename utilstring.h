@@ -6,7 +6,11 @@
 #include <sstream>
 #include <vector>
 #include <stdint.h>
+
+#ifdef _MSC_VER
+#else
 #include <sys/socket.h>
+#endif
 
 // trim from start
 std::string &ltrim(std::string &s);

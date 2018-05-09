@@ -18,7 +18,6 @@
 
 #include <functional>
 #include <stdint.h>
-#include <unistd.h>
 #include <fstream>
 #include <sstream>
 #include <curl/curl.h>
@@ -37,6 +36,11 @@
 #include "android_checkin.pb.h"
 #include "checkin.pb.h"
 #include "mcs.pb.h"
+
+#ifdef _MSC_VER
+#include <unistd.h>
+#else
+#endif
 
 using json = nlohmann::json;
 

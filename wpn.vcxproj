@@ -136,6 +136,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
+    <CustomBuild Include="mcs\gen\mcs.pb.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">protoc -I mcs --cpp_out=mcs/gen mcs/mcs.proto mcs/android_checkin.proto mcs/checkin.proto</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">protoc -I mcs --cpp_out=mcs/gen mcs/mcs.proto mcs/android_checkin.proto mcs/checkin.proto</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">protoc -I mcs --cpp_out=mcs/gen mcs/mcs.proto mcs/android_checkin.proto mcs/checkin.proto</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">protoc -I mcs --cpp_out=mcs/gen mcs/mcs.proto mcs/android_checkin.proto mcs/checkin.proto</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">mcs/gen/mcs.pb.h;mcs/gen/android_checkin.pb.h;mcs/gen/checkin.pb.h;mcs/gen/mcs.pb.cc;mcs/gen/android_checkin.pb.cc;mcs/gen/checkin.pb.cc;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">mcs/gen/mcs.pb.h;mcs/gen/android_checkin.pb.h;mcs/gen/checkin.pb.h;mcs/gen/mcs.pb.cc;mcs/gen/android_checkin.pb.cc;mcs/gen/checkin.pb.cc;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mcs/gen/mcs.pb.h;mcs/gen/android_checkin.pb.h;mcs/gen/checkin.pb.h;mcs/gen/mcs.pb.cc;mcs/gen/android_checkin.pb.cc;mcs/gen/checkin.pb.cc;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mcs/gen/mcs.pb.h;mcs/gen/android_checkin.pb.h;mcs/gen/checkin.pb.h;mcs/gen/mcs.pb.cc;mcs/gen/android_checkin.pb.cc;mcs/gen/checkin.pb.cc;%(Outputs)</Outputs>
+    </CustomBuild>
     <ClInclude Include="mcs\mcsclient.h" />
     <ClInclude Include="sslfactory.h" />
     <ClInclude Include="third_party\nlohmann\json.hpp" />
