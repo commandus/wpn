@@ -15,6 +15,7 @@ Sleep(seconds *1000);
 
 #include <limits.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #define str_realpath(retval, path) \
 { \

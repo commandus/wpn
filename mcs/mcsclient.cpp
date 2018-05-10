@@ -28,6 +28,7 @@
 
 #include <ece.h>
 
+#include "platform.h"
 #include "nlohmann/json.hpp"
 
 #include "mcsclient.h"
