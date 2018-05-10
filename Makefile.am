@@ -30,7 +30,7 @@ nobase_dist_include_HEADERS = \
 	wpn-config.h wpn.h wpn-notify.h \
 	wp-storage-file.h wp-subscribe.h wp-connection.h wp-push.h \
 	sslfactory.h \
-	utilstring.h \
+	utilstring.h commandoutput.h \
 	mcs/mcsclient.h \
 	onullstream.hpp \
 	third_party/nlohmann/json.hpp \
@@ -48,7 +48,7 @@ wpn_SOURCES= \
 	wp-push.cpp wp-subscribe.cpp wp-connection.cpp \
 	sslfactory.cpp \
 	mcs/mcsclient.cpp \
-	utilstring.cpp params.cpp \
+	utilstring.cpp params.cpp commandoutput.cpp \
 	$(common_src)
 
 wpn_LDADD = $(commonlibs) -ldl

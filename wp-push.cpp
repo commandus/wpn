@@ -21,38 +21,21 @@ static size_t write_string(void *contents, size_t size, size_t nmemb, void *user
 }
 
 /**
-* Push notification to device
+* Push raw JSON to device
 * @return 200-299- success, <0- error
 */
-int push2ClientFCMToken
+int push2ClientJSON
 (
 	std::string *retval,
 	const std::string &server_key,
 	const std::string &client_token,
-	const std::string &title,
-	const std::string &body,
-	const std::string &icon,
-	const std::string &click_action
+	const std::string &value
 )
 {
 	if (server_key.empty())
 		return ERR_PARAM_SERVER_KEY;
 	if (client_token.empty())
 		return ERR_PARAM_CLIENT_TOKEN;
-	json requestBody;
-	requestBody = {
-		{"to", client_token},
-		{"notification", 
-			{
-				{"title", title},
-				{"body", body},
-				{"icon", icon},
-				{"click_action", click_action}
-			}
-		}
-	};
-	std::string data = requestBody.dump();
-
 	CURL *curl = curl_easy_init();
 	if (!curl)
 		return CURLE_FAILED_INIT; 
@@ -68,12 +51,12 @@ int push2ClientFCMToken
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.size());
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, value.c_str());
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, value.size());
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_string);
 	std::string r;
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &r);
-std::cerr << "Send to " << FCM_SEND << ": " << data << std::endl;		
+// std::cerr << "Send to " << FCM_SEND << ": " << value<< std::endl;		
 	res = curl_easy_perform(curl);
 	int http_code;
 
@@ -88,13 +71,15 @@ std::cerr << "Send to " << FCM_SEND << ": " << data << std::endl;
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 		if ((http_code >= 200) && (http_code < 300))
 		{
-// std::cerr << "Parse result: " << r << std::endl;	
-			try {
+			try 
+			{
 				json response = json::parse(r);
 				if (retval)
 					*retval = r;
-			} catch(...) {
-std::cerr << "Parse error" << std::endl;
+			}
+			catch(...) 
+			{
+// std::cerr << "Parse error" << std::endl;
 				if (client_token.empty())
 					return ERR_PARSE_RESPONSE;	
 			}
@@ -102,9 +87,68 @@ std::cerr << "Parse error" << std::endl;
 		else
 		{
 			// Error
-std::cerr << "Error " << http_code << ": " << r << std::endl;				
+// std::cerr << "Error " << http_code << ": " << r << std::endl;				
 		}
 	}
 	curl_easy_cleanup(curl);
 	return http_code;
+}
+
+/**
+* Push notification to device
+* @return 200-299- success, <0- error
+*/
+int push2ClientNotification
+(
+	std::string *retval,
+	const std::string &server_key,
+	const std::string &client_token,
+	const std::string &title,
+	const std::string &body,
+	const std::string &icon,
+	const std::string &click_action
+)
+{
+	json requestBody = {
+		{"to", client_token},
+		{"notification", 
+			{
+				{"title", title},
+				{"body", body},
+				{"icon", icon},
+				{"click_action", click_action}
+			}
+		}
+	};
+	return push2ClientJSON(retval, server_key, client_token, requestBody);
+}
+
+/**
+* Push "command output" to device
+* @return 200-299- success, <0- error
+*/
+int push2ClientData
+(
+	std::string *retval,
+	const std::string &server_key,
+	const std::string &client_token,
+	const std::string &persistent_id,
+	const std::string &command,
+	int code,
+	const std::string &output
+)
+{
+	json requestBody = {
+		{"to", client_token},
+		{"data", 
+			{
+				{"command", command},
+				{"persistent_id", persistent_id},
+				{"code", code},
+				{"output", output}
+			}
+		}
+	};
+	std::string data = requestBody.dump();
+	return push2ClientJSON(retval, server_key, client_token, requestBody);
 }

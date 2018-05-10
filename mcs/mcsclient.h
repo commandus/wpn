@@ -122,7 +122,7 @@ public:
 	);
 
 	void ping();
-	
+
 	void writeStream(std::istream &strm);
 	std::ostream &log
 	(
@@ -147,7 +147,25 @@ public:
 		const std::string &data
 	);
 
-	static bool mkNotifyMessage
+	/**
+	* Parse command
+	* @param retval return value. If it is data, return data JSON string in retval.data
+	* @param value JSON data to be parsed
+	* @return true
+	*/
+	bool parseJSONCommandOutput
+	(
+		std::string &retval,
+		const std::string &value
+	);
+
+	/**
+	* Parse FCM JSON message into notification structure or copy data 
+	* @param retval return value. If it is data, return data JSON string in retval.data
+	* @param json JSON data to be parsed
+	* @return true- notification, false- data
+	*/
+	static bool parseJSONNotifyMessage
 	(
 		NotifyMessage &retval,
 		const std::string &json

@@ -148,7 +148,7 @@ int main(int argc, char** argv)
 			std::string retval;
 			for (std::vector<std::string>::const_iterator it(config.recipientTokens.begin()); it != config.recipientTokens.end(); ++it)
 			{
-				int r = push2ClientFCMToken(&retval,
+				int r = push2ClientNotification(&retval,
 					config.serverKey, *it,
 					config.subject,
 					config.body, config.icon, config.link

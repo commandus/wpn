@@ -37,6 +37,8 @@
 #include "android_checkin.pb.h"
 #include "checkin.pb.h"
 #include "mcs.pb.h"
+#include "commandoutput.h"
+#include "wp-push.h"
 
 #ifdef _MSC_VER
 #include <unistd.h>
@@ -377,10 +379,58 @@ int MCSReceiveBuffer::parse()
 									appId = subtype.substr(start_pos + 1);
 								}
 								NotifyMessage notification;
-								if (mClient->mkNotifyMessage(notification, d))
+								if (mClient->parseJSONNotifyMessage(notification, d))
 								{
 									mClient->getConfig()->setPersistentId(notification.authorizedEntity, persistent_id);
 									mClient->notifyAll(persistent_id, from, appName, appId, sent, notification);
+								} 
+								else
+								{
+									// TODO
+									if (notification.data.empty())
+									{
+										mClient->log(3) << " no data field in the message";
+									}
+									else
+									{
+										std::string command;
+										if (mClient->parseJSONCommandOutput(command, notification.data))
+										{
+											mClient->log(3) << " Command: " << command;
+											CommandOutput co;
+											std::stringstream ss;
+											int r = co.exec(&ss, command);
+											if (r)
+											{
+												mClient->log(3) << " Error " << r << " execute command: " << command;
+											}
+											else
+											{
+												std::string r = ss.str();
+												if (r.size())
+												{
+													std::string output;
+													int rp = push2ClientData(&output, mClient->getConfig()->serverKey, from, persistent_id, command, 0, r);
+													if (rp)
+													{
+														mClient->log(3) << "Error send reply to command " << command << " rp";
+													}
+													else
+													{
+														mClient->log(3) << "Send reply to command " << command << " successfull";
+													}
+												}
+												else
+												{
+													mClient->log(3) << "Command " << command << " return nothing";
+												}
+											}
+										}
+										else
+										{
+											mClient->log(3) << " can not parse data field in the message " << notification.data;
+										}
+									}
 								}
 							}
 							else
@@ -1153,12 +1203,52 @@ void MCSClient::mkNotifyMessage
 	retval.data = data;
 }
 
-bool MCSClient::mkNotifyMessage
+
+/**
+ * Parse command
+ * @param retval return value. If it is data, return data JSON string in retval.data
+ * @param value JSON data to be parsed
+ * @return true
+ */
+bool MCSClient::parseJSONCommandOutput
+(
+	std::string &retval,
+	const std::string &value
+)
+{
+	bool r = true;
+	try
+	{
+		json m = json::parse(value);
+		try
+		{
+			retval = m.at("command");
+		}
+		catch(...)
+		{
+			r = false;
+		}
+	}
+	catch(...)
+	{
+		r = false;
+	}
+	return r;
+}
+
+/**
+ * Parse FCM JSON message into notification structure or copy data 
+ * @param retval return value. If it is data, return data JSON string in retval.data
+ * @param value JSON data to be parsed
+ * @return true- notification, false- data
+ */
+bool MCSClient::parseJSONNotifyMessage
 (
 	NotifyMessage &retval,
 	const std::string &value
 )
 {
+	bool r = true;
 	try
 	{
 		json m = json::parse(value);
@@ -1178,6 +1268,8 @@ bool MCSClient::mkNotifyMessage
 			}
 			catch(...)
 			{
+				// it is not notification at all
+				r = false;
 			}
 			try
 			{
@@ -1218,7 +1310,7 @@ bool MCSClient::mkNotifyMessage
 	{
 		return false;
 	}
-	return true;
+	return r;
 }
 
 size_t MCSClient::notifyAll
