@@ -113,13 +113,13 @@ int WpnConfig::parseCmd
 	struct arg_lit *a_list = arg_lit0("l", "list", "List subscriptions");
 	struct arg_lit *a_keys = arg_lit0("y", "keys", "Print keys");
 	struct arg_lit *a_credentials = arg_lit0("c", "credentials", "Print credentials");
-	struct arg_lit *a_subscribe = arg_lit0("s", "subscribe", "Subscribe with -e)");
+	struct arg_lit *a_subscribe = arg_lit0("s", "subscribe", "Subscribe with mandatory -e, optional -r, -k");
 	struct arg_lit *a_unsubscribe = arg_lit0("d", "unsubscribe", "Unsubscribe with -e");
 	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -k, -e, -t, -b, -i, -a");
 	struct arg_str *a_file_name = arg_str0("f", "file", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
 	
 	struct arg_str *a_subscribe_url = arg_str0("r", "registrar", "<URL>", "Subscription registrar URL, like https://fcm.googleapis.com/fcm/connect/subscribe or 1. Default 1");
-	struct arg_str *a_endpoint = arg_str0("u", "endpoint", "<URL>", "Push service endpoint URL prefix.");
+	struct arg_str *a_endpoint = arg_str0("u", "endpoint", "<URL>", "Optional, push service endpoint URL prefix.");
 	struct arg_str *a_authorized_entity = arg_str0("e", "entity", "<entity-id>", "Push message sender identifier, usually decimal number");
 
 	// send options
@@ -256,15 +256,12 @@ int WpnConfig::parseCmd
 		}
 	}
 
-	if ((cmd == CMD_SUBSCRIBE) || (cmd == CMD_UNSUBSCRIBE))
+	if (cmd == CMD_SUBSCRIBE)
 	{
-		if (cmd == CMD_SUBSCRIBE)
+		if (subscribeUrl.empty()) 
 		{
-			if (subscribeUrl.empty()) 
-			{
-				std::cerr << "Missing -a option." << std::endl;
-				nerrors++;
-			}
+			std::cerr << "Unknown registar. Set valid -r option." << std::endl;
+			nerrors++;
 		}
 		if (authorizedEntity.empty()) 
 		{

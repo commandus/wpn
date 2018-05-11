@@ -22,6 +22,7 @@
  * @param wpnKeys reserved
  * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/connect/subscribe
  * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
+ * @param serverKey optional key used to send messages
  * @param authorizedEntity usual decimal number string
  * @param retVal can be NULL
  * @param retHeaders can be NULL
@@ -36,6 +37,7 @@ int subscribe
 	const std::string &subscribeUrl,
 	const std::string &endPoint,
 	const std::string &authorizedEntity,
+	const std::string &serverKey,
 	std::string *retVal,
 	std::string *retHeaders,
 	int verbosity

@@ -116,7 +116,7 @@ int main(int argc, char** argv)
 				
 				int r = subscribe(subscription, SUBSCRIBE_FIREBASE, *config.wpnKeys, 
 					config.subscribeUrl, config.getDefaultEndPoint(), config.authorizedEntity,
-					&d, &headers, config.verbosity);
+					config.serverKey, &d, &headers, config.verbosity);
 				if ((r < 200) || (r >= 300))
 				{
 					std::cerr << "Error " << r << ": " << d << std::endl;
@@ -133,7 +133,17 @@ int main(int argc, char** argv)
 			break;
 		case CMD_UNSUBSCRIBE:
 			{
-				if (true)
+				if (config.authorizedEntity.empty())
+				{
+					// delete all
+					Subscription f(config.endpoint, config.authorizedEntity);
+					for (std::vector<Subscription>::iterator it(config.subscriptions->list.begin()); it != config.subscriptions->list.end(); ++it)
+					{
+						// TODO
+					}
+					config.subscriptions->list.clear();
+				}
+				else
 				{
 					Subscription f(config.endpoint, config.authorizedEntity);
 					std::vector<Subscription>::iterator it = std::find(config.subscriptions->list.begin(),

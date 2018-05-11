@@ -149,6 +149,7 @@ private:
 	std::string subscribeUrl;
 	int subscribeMode;
 	std::string endpoint;
+	std::string serverKey;
 	std::string authorizedEntity;
 	std::string token;
 	std::string pushSet;
@@ -157,6 +158,7 @@ private:
 		std::string subscribeUrl,
 		int subscribeMode,
 		const std::string &endpoint,
+		const std::string &serverKey,
 		const std::string &authorizedEntity,
 		const std::string &token,
 		const std::string &pushSet,
@@ -177,6 +179,7 @@ public:
 		std::string subscribeUrl,
 		int subscribeMode,
 		const std::string &endpoint,
+		const std::string &serverKey,
 		const std::string &authorizedEntity,
 		const std::string &token,
 		const std::string &pushSet,
@@ -198,6 +201,7 @@ public:
 	std::string getSubscribeUrl() const;
 	int getSubscribeMode() const;
 	std::string getEndpoint() const;
+	std::string getServerKey() const;
 	std::string getAuthorizedEntity() const;
 	std::string getToken() const;
 	std::string getPushSet() const;
@@ -205,6 +209,7 @@ public:
 	void setSubscribeUrl(const std::string &value);
 	void setSubscribeMode(int value);
 	void setEndpoint(const std::string &value);
+	void setServerKey(const std::string &value);
 	void setAuthorizedEntity(const std::string &value);
 	void setToken(const std::string &value);
 	void setPushSet(const std::string &value);

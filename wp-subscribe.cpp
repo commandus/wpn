@@ -90,6 +90,7 @@ static int curlPost
  * @param wpnKeys reserved
  * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/connect/subscribe
  * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
+ * @param serverKey optional key used to send messages
  * @param authorizedEntity usual decimal number string
  * @param token OAuth 2.0 oth other kind token 
  * @param retVal can be NULL
@@ -105,6 +106,7 @@ int subscribe2
 	const std::string &subscribeUrl,
 	const std::string &endPoint,
 	const std::string &authorizedEntity,
+	const std::string &serverKey,
 	const std::string &token, 
 	std::string *retVal,
 	std::string *retHeaders,
@@ -129,6 +131,7 @@ int subscribe2
 	subscription.setSubscribeUrl(subscribeUrl);
 	subscription.setSubscribeMode(subscribeMode);
 	subscription.setEndpoint(endPoint);
+	subscription.setServerKey(serverKey);
 	subscription.setAuthorizedEntity(authorizedEntity);
 
 	switch (subscribeMode) {
@@ -200,6 +203,7 @@ int subscribe
 	const std::string &subscribeUrl,
 	const std::string &endPoint,
 	const std::string &authorizedEntity,
+	const std::string &serverKey,
 	std::string *retVal,
 	std::string *retHeaders,
 	int verbosity
@@ -223,6 +227,7 @@ int subscribe
 	subscription.setSubscribeUrl(subscribeUrl);
 	subscription.setSubscribeMode(subscribeMode);
 	subscription.setEndpoint(endPoint);
+	subscription.setServerKey(serverKey);
 	subscription.setAuthorizedEntity(authorizedEntity);
 
 	switch (subscribeMode) {

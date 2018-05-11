@@ -373,12 +373,13 @@ Subscription::Subscription(
 	std::string aSubscribeUrl,
 	int aSubscribeMode,
 	const std::string &a_endpoint,
+	const std::string &a_serverKey,
 	const std::string &a_authorizedEntity,
 	const std::string &a_token,
 	const std::string &a_pushSet,
 	const std::string &aPersistentId
 )
-	: subscribeUrl(aSubscribeUrl), subscribeMode(aSubscribeMode), endpoint(a_endpoint), 
+	: subscribeUrl(aSubscribeUrl), subscribeMode(aSubscribeMode), endpoint(a_endpoint), serverKey(a_serverKey),
 	authorizedEntity(a_authorizedEntity), token(a_token), pushSet(a_pushSet),
 	mPersistentId(aPersistentId)
 {
@@ -415,6 +416,11 @@ std::string Subscription::getEndpoint() const
 	return endpoint;
 }
 
+std::string Subscription::getServerKey() const
+{
+	return serverKey;
+}
+
 std::string Subscription::getAuthorizedEntity() const
 {
 	return authorizedEntity;
@@ -443,6 +449,11 @@ void Subscription::setSubscribeMode(int value)
 void Subscription::setEndpoint(const std::string &value)
 {
 	endpoint = value;
+}
+
+void Subscription::setServerKey(const std::string &value)
+{
+	serverKey = value;
 }
 
 void Subscription::setAuthorizedEntity(const std::string &value)
@@ -498,7 +509,8 @@ int Subscription::write
 					{"authorizedEntity", getAuthorizedEntity()},
 					{"token", getToken()},
 					{"pushSet", getPushSet()},
-					{"persistentId", getPersistentId()}
+					{"persistentId", getPersistentId()},
+					{"serverKey", getServerKey()}
 				};
 				strm << j.dump();
 			}
@@ -506,7 +518,8 @@ int Subscription::write
 		default:
 			strm << getSubscribeUrl() << delimiter << getSubscribeMode() << delimiter 
 				<< getEndpoint() << delimiter << getAuthorizedEntity() << delimiter 
-				<< getToken() << delimiter << getPushSet() << delimiter << getPersistentId() << std::endl;
+				<< getToken() << delimiter << getPushSet() << delimiter << getPersistentId() 
+				<< delimiter << getServerKey() << std::endl;
 			break;
 	}
 	return strm.tellp() - r;
@@ -531,12 +544,14 @@ void Subscription::init
 	const std::string &a_authorizedEntity,
 	const std::string &a_token,
 	const std::string &a_pushSet,
-	const std::string &persistentId
+	const std::string &persistentId,
+	const std::string &a_serverKey
 )
 {
 	subscribeUrl = a_subscribeUrl;
 	subscribeMode = a_subscribeMode;
 	endpoint = a_endpoint;
+	serverKey = a_serverKey;
 	authorizedEntity = a_authorizedEntity;
 	token = a_token;
 	pushSet = a_pushSet;
@@ -549,7 +564,7 @@ void Subscription::parse
 	const std::string &delimiter
 )
 {
-	std::string k[7];
+	std::string k[8];
 
 	size_t p0 = 0, p1;
 	int i = 0;
@@ -558,11 +573,11 @@ void Subscription::parse
 		k[i] = keys.substr(p0, p1 - p0);
 		p0 = p1 + delimiter.length();
 		i++;
-		if (i >= 7)
+		if (i >= 8)
 			break;
 	}
 	if (!k[2].empty())
-		init(k[0], strtol(k[1].c_str(), NULL, 10), k[2], k[3], k[4], k[5], k[6]); 
+		init(k[0], strtol(k[1].c_str(), NULL, 10), k[2], k[3], k[4], k[5], k[6], k[7]); 
 }
 
 void Subscription::read

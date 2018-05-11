@@ -120,7 +120,7 @@ int push2ClientNotification
 			}
 		}
 	};
-	return push2ClientJSON(retval, server_key, client_token, requestBody);
+	return push2ClientJSON(retval, server_key, client_token, requestBody.dump());
 }
 
 /**

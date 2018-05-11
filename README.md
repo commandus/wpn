@@ -36,24 +36,33 @@ https://fcm.googleapis.com	246829423295	    drq...
 Set -e (authorized-entity) and -u (push service URL):
 
 ```
-./wpn -s -e 246829423295 -u https://ikfia.wpn.commandus.com
+./wpn -s -e 246829423295 -k server_key
 {
 	"token": "c9UC0WcwvyM:APA91bFlAcs7RbWVDPLW42nfL8RN8YYpe0zFnXcT0pMAJihu0WAOqGuoPujHYVJUHC0eRy5DTFepXvlaIyClHEpy6J6itEdT-QzD5SMCLt3HfBH_20LrWIuAXRrGLOWW8g9Y8aF1ikBc",
 	"pushSet": "eJpriwkjrcU:APA91bHS4Ohb5In3ssqr3nPWI_EtFbAHEYvxN3SX1Omct5hjy48CeyTCZw5bzxyST1Bhj4m0WynXoq7pmw3IM0JuAQ8poeJe99vFJSeYGKgXtut_2Cmyxwu_V6xrDUqp-k8HDaeN_5fy"
 }
 ```
+
+Optional server key (API key for web application) (-k) is used to send reply. Server key looks like "AI....1I" (~40 characters).
 
 Value of authorized-entity is decimal number identifies subscription if FCM.
 
 ## Unsubscribe
 
-```
+Specify subscription endpoint (-e):
 
+```
 ./wpn -d -e 246829423295
 {
 	"token": "c9UC0WcwvyM:APA91bFlAcs7RbWVDPLW42nfL8RN8YYpe0zFnXcT0pMAJihu0WAOqGuoPujHYVJUHC0eRy5DTFepXvlaIyClHEpy6J6itEdT-QzD5SMCLt3HfBH_20LrWIuAXRrGLOWW8g9Y8aF1ikBc",
 	"pushSet": "eJpriwkjrcU:APA91bHS4Ohb5In3ssqr3nPWI_EtFbAHEYvxN3SX1Omct5hjy48CeyTCZw5bzxyST1Bhj4m0WynXoq7pmw3IM0JuAQ8poeJe99vFJSeYGKgXtut_2Cmyxwu_V6xrDUqp-k8HDaeN_5fy"
 }
+```
+
+## Unsubscribe all
+
+```
+./wpn -d
 ```
 
 ## Client push message
@@ -150,6 +159,7 @@ Subscription consists of
 - authorizedEntity
 - token
 - pushSet
+- server key (can be empty)
 
 ## Dependencies
 
