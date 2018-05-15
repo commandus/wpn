@@ -1,11 +1,16 @@
 #include "sslfactory.h"
 
+#ifdef _MSC_VER
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
 #include <unistd.h>
 #include <resolv.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 #include <string.h>
 
 #define ERROR_COUNT 6
@@ -142,7 +147,11 @@ void doneSSLsocket
 	int socket
 ) 
 {
+#ifdef _MSC_VER
+	closesocket(socket);
+#else
 	close(socket);
+#endif
 	SSL_free(ssl);
 }
 

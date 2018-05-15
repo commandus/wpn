@@ -1,12 +1,17 @@
 #include "wpn-config.h"
 #include <iostream>
 #include <argtable2.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <pwd.h>
 #include <fstream>
+
+#ifdef _MSC_VER
+#include "Userenv.h"
+#else
+#include <unistd.h>
+#include <pwd.h>
 #include <dlfcn.h>
+#endif
 
 #include "platform.h"
 #include "utilstring.h"
@@ -31,9 +36,29 @@ static const char* SUBSCRIBE_URLS[SUBSCRIBE_URL_COUNT] = {
 	SUBSCRIBE_URL_1
 };
 
+#ifdef _MSC_VER
+static std::string getDefaultConfigFileName()
+{
+	std::string r = DEF_FILE_NAME;
+	HANDLE hToken = 0;
+	// Need a process with query permission set
+	if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken))
+	{
+		// Returns a path like C:/Documents and Settings/nibu if my user name is nibu
+		char homedir[MAX_PATH];
+		DWORD size = sizeof(homedir);
+		if (GetUserProfileDirectoryA(hToken, homedir, &size))
+		{
+			r = std::string(homedir, size) + "\\" + DEF_FILE_NAME;
+		}
+		CloseHandle(hToken);
+	}
+	return r;
+}
+#else
 /**
- * https://stackoverflow.com/questions/2910377/get-home-directory-in-linux-c
- */
+* https://stackoverflow.com/questions/2910377/get-home-directory-in-linux-c
+*/
 static std::string getDefaultConfigFileName()
 {
 	struct passwd *pw = getpwuid(getuid());
@@ -41,6 +66,7 @@ static std::string getDefaultConfigFileName()
 	std::string r(homedir);
 	return r + "/" + DEF_FILE_NAME;
 }
+#endif
 
 static int parseJsonRecipientTokens
 (
@@ -362,6 +388,37 @@ int WpnConfig::write() const
 	return r;
 }
 
+SO_INSTANCE loadPlugin(const std::string &fileName)
+{
+#ifdef _MSC_VER
+	return LoadLibrary(fileName.c_str());
+#else
+	return dlopen(fileName.c_str(), RTLD_LAZY);
+#endif
+}
+
+void unloadPlugin(SO_INSTANCE so)
+{
+#ifdef _MSC_VER
+	FreeLibrary(so);
+#else
+	dlclose(so);
+#endif
+}
+
+desktopNotifyFunc loadDesktopNotifyFunc
+(
+	SO_INSTANCE so,
+	const std::string &functionName
+)
+{
+#ifdef _MSC_VER
+	return (desktopNotifyFunc) GetProcAddress(so, functionName.c_str());
+#else
+	return (desktopNotifyFunc) dlsym(so, functionName.c_str());
+#endif
+}
+
 size_t WpnConfig::loadDesktopNotifyFuncs()
 {
 	notifyLibs.clear();
@@ -384,7 +441,7 @@ size_t WpnConfig::loadDesktopNotifyFuncs()
 
 		for (std::vector<std::string>::const_iterator it(files.begin()); it != files.end(); ++it)
 		{
-			void *so = dlopen(it->c_str(), RTLD_LAZY);
+			SO_INSTANCE so = loadPlugin(*it);
 			if (!so)
 			{
 				if (verbosity > 1)
@@ -394,7 +451,7 @@ size_t WpnConfig::loadDesktopNotifyFuncs()
 				continue;
 			}
 			notifyLibs.push_back(so);
-			desktopNotifyFunc desktopNotify = (desktopNotifyFunc) dlsym(so, notifyFunctionName.c_str());
+			desktopNotifyFunc desktopNotify = loadDesktopNotifyFunc(so, notifyFunctionName);
 			if (!desktopNotify)
 			{
 				if (verbosity > 1)
@@ -420,9 +477,9 @@ size_t WpnConfig::loadDesktopNotifyFuncs()
 
 void WpnConfig::unloadDesktopNotifyFuncs()
 {
-	for (std::vector <void *>::const_iterator it(notifyLibs.begin()); it != notifyLibs.end(); ++it)
+	for (std::vector <SO_INSTANCE>::const_iterator it(notifyLibs.begin()); it != notifyLibs.end(); ++it)
 	{
-		dlclose(*it);
+		unloadPlugin(*it);
 	}
 	notifyLibs.clear();
 }

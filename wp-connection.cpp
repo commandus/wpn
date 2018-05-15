@@ -1,7 +1,6 @@
 #include <inttypes.h>
 #include <fstream>
 #include <sstream>
-#include <nghttp2/nghttp2.h>
 #include "wp-connection.h"
 
 /**

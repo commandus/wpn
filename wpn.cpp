@@ -42,7 +42,9 @@
 #include "sslfactory.h"
 #include "mcs/mcsclient.h"
 
-#ifdef _WIN32
+#define ERR_WSA		-1
+
+#ifdef _MSC_VER
 
 void setSignalHandler(int signal)
 {
@@ -70,11 +72,27 @@ void setSignalHandler(int signal)
 }
 #endif
 
+#ifdef _MSC_VER
+void initWindows()
+{
+	// Initialize Winsock
+	WSADATA wsaData;
+	int r = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	if (r)
+	{
+		std::cerr << "WSAStartup error %d" << r << std::endl;
+		exit(ERR_WSA);
+	}
+}
+#endif
+
 int main(int argc, char** argv)
 {
 	// Signal handler
 	setSignalHandler(SIGINT);
-
+#ifdef _MSC_VER
+	initWindows();
+#endif
 	// In windows, this will init the winsock stuff
 	curl_global_init(CURL_GLOBAL_ALL);
 	initSSL();

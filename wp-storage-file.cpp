@@ -159,7 +159,7 @@ int AndroidCredentials::write
 	const int writeFormat
 ) const
 {
-	long r = strm.tellp();
+	std::ostream::pos_type r = strm.tellp();
 	switch (writeFormat)
 	{
 		case 1:
@@ -332,7 +332,7 @@ int WpnKeys::write
 	const int writeFormat
 ) const
 {
-	long r = strm.tellp();
+	std::ostream::pos_type r = strm.tellp();
 	switch (writeFormat)
 	{
 		case 1:
@@ -497,7 +497,7 @@ int Subscription::write
 	const int writeFormat
 ) const
 {
-	long r = strm.tellp();
+	std::ostream::pos_type r = strm.tellp();
 	switch (writeFormat)
 	{
 		case 1:

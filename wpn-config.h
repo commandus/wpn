@@ -22,6 +22,14 @@
 #define SUBSCRIBE_URL_COUNT		1
 #define SUBSCRIBE_URL_1	 		"https://fcm.googleapis.com/fcm/connect/subscribe"
 
+#ifdef _MSC_VER
+#include "Windows.h"
+typedef HMODULE  SO_INSTANCE;
+#else
+typedef void * SO_INSTANCE;
+#endif
+
+
 /**
  * Command line interface (CLI) tool configuration structure
  */
@@ -79,7 +87,7 @@ public:
 	size_t loadDesktopNotifyFuncs();
 	void unloadDesktopNotifyFuncs();
 	std::vector <std::string> notifyLibFileNames;
-	std::vector <void *> notifyLibs;
+	std::vector <SO_INSTANCE> notifyLibs;
 	std::vector <desktopNotifyFunc> desktopNotifyFuncs;
 	bool setPersistentId(const std::string &authorizedEntity, const std::string &persistent_id);
 	void getPersistentIds(std::vector<std::string> &retval);

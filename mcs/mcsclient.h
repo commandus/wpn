@@ -55,7 +55,7 @@ class MCSReceiveBuffer
 {
 private:
 	MCSClient *mClient;
-	u_int8_t mVersion;	// last known is 38
+	uint8_t mVersion;	// last known is 38
 	enum PROTO_STATE state;
 	int parse();
 	MessageLite *createMessage(uint8_t tag);

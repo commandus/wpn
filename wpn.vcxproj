@@ -65,20 +65,20 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\git\ecec\include;D:\git\grpc\third_party\protobuf\src;third_party;C:\Program Files (x86)\OpenSSL\include;D:\l\curl\include;C:\lib\argtable2-13\src;$(IncludePath)</IncludePath>
+    <IncludePath>.;mcs\gen;D:\git\ecec\include;D:\git\grpc\third_party\protobuf\src;third_party;C:\Program Files (x86)\OpenSSL\include;D:\l\curl\include;C:\lib\argtable2-13\src;$(IncludePath)</IncludePath>
     <LibraryPath>D:\git\ecec\build\Release;D:\git\grpc\.build\third_party\protobuf\Release;C:\Program Files (x86)\OpenSSL\lib;D:\l\curl\lib\Release;C:\lib\argtable2-13\lib;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\git\ecec\include;D:\git\grpc\third_party\protobuf\src;third_party;C:\Program Files (x86)\OpenSSL\include;D:\l\curl\include;C:\lib\argtable2-13\src;$(IncludePath)</IncludePath>
+    <IncludePath>.;mcs\gen;D:\git\ecec\include;D:\git\grpc\third_party\protobuf\src;third_party;C:\Program Files (x86)\OpenSSL\include;D:\l\curl\include;C:\lib\argtable2-13\src;$(IncludePath)</IncludePath>
     <LibraryPath>D:\git\ecec\build\Release;D:\git\grpc\.build\third_party\protobuf\Release;C:\Program Files (x86)\OpenSSL\lib;D:\l\curl\lib\Release;C:\lib\argtable2-13\lib;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>D:\git\ecec\include;D:\git\grpc\third_party\protobuf\src;third_party;C:\Program Files (x86)\OpenSSL\include;D:\l\curl\include;C:\lib\argtable2-13\src;$(IncludePath)</IncludePath>
+    <IncludePath>.;mcs\gen;D:\git\ecec\include;D:\git\grpc\third_party\protobuf\src;third_party;C:\Program Files (x86)\OpenSSL\include;D:\l\curl\include;C:\lib\argtable2-13\src;$(IncludePath)</IncludePath>
     <LibraryPath>D:\git\ecec\build\Release;D:\git\grpc\.build\third_party\protobuf\Release;C:\Program Files (x86)\OpenSSL\lib;D:\l\curl\lib\Release;C:\lib\argtable2-13\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>D:\git\ecec\include;D:\git\grpc\third_party\protobuf\src;third_party;C:\Program Files (x86)\OpenSSL\include;D:\l\curl\include;C:\lib\argtable2-13\src;$(IncludePath)</IncludePath>
+    <IncludePath>.;mcs\gen;D:\git\ecec\include;D:\git\grpc\third_party\protobuf\src;third_party;C:\Program Files (x86)\OpenSSL\include;D:\l\curl\include;C:\lib\argtable2-13\src;$(IncludePath)</IncludePath>
     <LibraryPath>D:\git\ecec\build\Release;D:\git\grpc\.build\third_party\protobuf\Release;C:\Program Files (x86)\OpenSSL\lib;D:\l\curl\lib\Release;C:\lib\argtable2-13\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -93,7 +93,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>ece.lib;libssl.lib;libcrypto.lib;libprotobuf-lite.lib;libeay32.lib;ssleay32.lib;libcurl_imp.lib;argtable2.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Userenv.lib;ece.lib;libssl.lib;libcrypto.lib;libprotobuf.lib;libcurl_imp.lib;argtable2.lib;Ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -109,20 +109,24 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>ece.lib;libssl.lib;libcrypto.lib;libprotobuf-lite.lib;libeay32.lib;ssleay32.lib;libcurl_imp.lib;argtable2.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Userenv.lib;ece.lib;libssl.lib;libcrypto.lib;libprotobuf.lib;libcurl_imp.lib;argtable2.lib;Ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
-      <AdditionalDependencies>ece.lib;libssl.lib;libcrypto.lib;libprotobuf-lite.lib;libeay32.lib;ssleay32.lib;libcurl_imp.lib;argtable2.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Userenv.lib;ece.lib;libssl.lib;libcrypto.lib;libprotobuf.lib;libcurl_imp.lib;argtable2.lib;Ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
-      <AdditionalDependencies>ece.lib;libssl.lib;libcrypto.lib;libprotobuf-lite.lib;libeay32.lib;ssleay32.lib;libcurl_imp.lib;argtable2.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Userenv.lib;ece.lib;libssl.lib;libcrypto.lib;libprotobuf.lib;libcurl_imp.lib;argtable2.lib;Ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="commandoutput.cpp" />
+    <ClCompile Include="mcs\gen\android_checkin.pb.cc" />
+    <ClCompile Include="mcs\gen\checkin.pb.cc" />
+    <ClCompile Include="mcs\gen\mcs.pb.cc" />
     <ClCompile Include="mcs\mcsclient.cpp" />
     <ClCompile Include="params.cpp" />
     <ClCompile Include="sslfactory.cpp" />
@@ -135,6 +139,7 @@
     <ClCompile Include="wpn.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="commandoutput.h" />
     <ClInclude Include="config.h" />
     <CustomBuild Include="mcs\gen\mcs.pb.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">protoc -I mcs --cpp_out=mcs/gen mcs/mcs.proto mcs/android_checkin.proto mcs/checkin.proto</Command>
@@ -146,6 +151,8 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mcs/gen/mcs.pb.h;mcs/gen/android_checkin.pb.h;mcs/gen/checkin.pb.h;mcs/gen/mcs.pb.cc;mcs/gen/android_checkin.pb.cc;mcs/gen/checkin.pb.cc;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mcs/gen/mcs.pb.h;mcs/gen/android_checkin.pb.h;mcs/gen/checkin.pb.h;mcs/gen/mcs.pb.cc;mcs/gen/android_checkin.pb.cc;mcs/gen/checkin.pb.cc;%(Outputs)</Outputs>
     </CustomBuild>
+    <ClInclude Include="mcs\gen\android_checkin.pb.h" />
+    <ClInclude Include="mcs\gen\checkin.pb.h" />
     <ClInclude Include="mcs\mcsclient.h" />
     <ClInclude Include="sslfactory.h" />
     <ClInclude Include="third_party\nlohmann\json.hpp" />

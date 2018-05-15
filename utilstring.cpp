@@ -13,7 +13,10 @@
 #include <streambuf>
 #include <iomanip>
 
+#ifdef _MSC_VER
+#else
 #include <arpa/inet.h>
+#endif
 #include <curl/curl.h>
 
 #ifdef _MSC_VER
@@ -351,19 +354,38 @@ std::string escapeURLString
 #ifdef _MSC_VER
 /**
  * Return list of files in specified path
- * @param path
+ * @param path path
+ * @param suffix file extension
+ * @param flags 0- as is, 1- full path, 2- relative (remove parent path)
  * @param retval can be NULL
  * @return count files
+ * FreeBSD fts.h fts_*()
  */
 size_t filesInPath
 (
 	const std::string &path,
 	const std::string &suffix,
+	int flags,
 	std::vector<std::string> *retval
 )
 {
-	// TODO Implement Windows
-	return 0;
+	HANDLE hFind;
+	WIN32_FIND_DATA data;
+	hFind = FindFirstFile(path.c_str(), &data);
+	if (hFind == INVALID_HANDLE_VALUE)
+		return 0;
+	size_t c = 0;
+	do 
+	{
+		std::string s(data.cFileName);
+		if (s.find(suffix) != std::string::npos)
+		{
+			retval->push_back(std::string());
+			c++;
+		}
+	} while (FindNextFile(hFind, &data));
+	FindClose(hFind);
+	return c;
 }
 
 bool isDir
@@ -371,8 +393,8 @@ bool isDir
 	const std::string &path
 )
 {
-	// TODO Implement Windows
-	return false;
+	DWORD ftyp = GetFileAttributesA(path.c_str());
+	return ((ftyp != INVALID_FILE_ATTRIBUTES) && (ftyp & FILE_ATTRIBUTE_DIRECTORY));
 }
 
 #else
@@ -422,7 +444,7 @@ size_t filesInPath
     	return 0;
     size_t count = 0;
     FTSENT* parent;
-	while((parent = fts_read(file_system)))
+	while ((parent = fts_read(file_system)))
 	{
 		FTSENT* child = fts_children(file_system, 0);
 		if (errno != 0)

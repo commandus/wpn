@@ -9,7 +9,7 @@
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU General Public License for more $$details.
  * 
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -41,7 +41,6 @@
 #include "wp-push.h"
 
 #ifdef _MSC_VER
-#include <unistd.h>
 #else
 #endif
 
@@ -80,7 +79,7 @@ static const std::string CHECKIN_URL("https://android.clients.google.com/checkin
 static const std::string MCS_HOST("mtalk.google.com");
 static const std::string DEF_CHROME_VER("63.0.3234.0");
 
-static const u_int8_t kMCSVersion = 41;
+static const uint8_t kMCSVersion = 41;
 
 static const std::string HDR_CONTENT_TYPE("Content-Type: ");
 static const std::string HDR_AUTHORIZATION("Authorization : ");
