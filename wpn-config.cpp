@@ -138,9 +138,9 @@ int WpnConfig::parseCmd
 )
 {
 	struct arg_lit *a_list = arg_lit0("l", "list", "List subscriptions");
+	struct arg_lit *a_list_qrcode = arg_lit0("q", "qrcode", "QRCode list subscriptions");
 	struct arg_lit *a_keys = arg_lit0("y", "keys", "Print keys");
 	struct arg_lit *a_credentials = arg_lit0("c", "credentials", "Print credentials");
-	struct arg_lit *a_credentials_qrcode = arg_lit0("q", "qrcode", "QRCode credentials");
 	struct arg_lit *a_subscribe = arg_lit0("s", "subscribe", "Subscribe with mandatory -e, optional -r, -k");
 	struct arg_lit *a_unsubscribe = arg_lit0("d", "unsubscribe", "Unsubscribe with -e");
 	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -k, -e, -t, -b, -i, -a");
@@ -170,7 +170,7 @@ int WpnConfig::parseCmd
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
-		a_list, a_credentials, a_credentials_qrcode, a_keys, a_subscribe, a_unsubscribe, a_send,
+		a_list, a_list_qrcode, a_credentials, a_keys, a_subscribe, a_unsubscribe, a_send,
 		a_subscribe_url, a_endpoint, a_authorized_entity,
 		a_file_name,
 		a_server_key, a_subject, a_body, a_icon, a_link, a_recipient_tokens, a_recipient_token_file,
@@ -225,14 +225,14 @@ int WpnConfig::parseCmd
 	if (a_list->count)
 		cmd = CMD_LIST;
 	else
-		if (a_keys->count)
-			cmd = CMD_KEYS;
+		if (a_list_qrcode->count)
+			cmd = CMD_LIST_QRCODE;
 		else
-			if (a_credentials->count)
-				cmd = CMD_CREDENTIALS;
+			if (a_keys->count)
+				cmd = CMD_KEYS;
 			else
-				if (a_credentials_qrcode->count)
-					cmd = CMD_CREDENTIALS_QRCODE;
+				if (a_credentials->count)
+					cmd = CMD_CREDENTIALS;
 				else
 					if (a_subscribe->count)
 						cmd = CMD_SUBSCRIBE;

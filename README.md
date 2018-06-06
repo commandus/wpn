@@ -92,6 +92,24 @@ r1...       BP...       bd..
 
 ## Subscription list
 
+without -v options returns
+
+- authorizedEntity		
+- serverKey	server key to send message
+- token		FCM token
+
+with -v options returns
+
+- authorizedEntity
+- endpoint
+- persistentId
+- pushSet
+- serverKey
+- subscribeMode
+- subscribeUrl
+- token
+
+
 ```
 ./wpn -l -vv
 subscribeUrl                authorizedEntity	token
@@ -101,7 +119,7 @@ https://fcm.googleapis.com	246829423295	    drq...
 
 ## Subscribe
 
-Set -e (authorized-entity) and -u (push service URL):
+Set -e (authorized-entity) and -k (server key):
 
 ```
 ./wpn -s -e 246829423295 -k server_key
@@ -137,7 +155,7 @@ Specify subscription endpoint (-e):
 
 After push wpn exits immediately.
 
-Using list of recipient tokens (up to 100, but limited by system environment):
+Using list of recipient's FCM subscription tokens (up to 100, but limited by system environment):
 
 ```
 ./wpn -m -k "AIzaSyBfUt1N5aabh8pubYiBPKOq9OcIoHv_41I" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com"  dl_liGwFeeA:APA91bEn8GjmoPxbi5xgYYffhrsb6WZjiLZA8Sogb7jBXrsJzoCzplV5SISS9mPd8IN-yFMLTIhCYGsRb925CCqGIZ2TPuoA2kj56hOECvsI-Fou1OdE1j1_FunMoWtkDtSyNx-djcQM
@@ -153,7 +171,7 @@ Sending by the list of recipient tokens in a file or a web resource (-J option):
 ./wpn -m -k "AIzaSyAyz-oVjsfRNK53XA6o9DVHN9ZNAaHOfxw" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" -J "https://ikfia.wpn.commandus.com/app/token?accesskey=2117177"
 ```
 
-If the -J option is specified, the list is padded, that is, you can specify the recipient tokens in both the command line and the file (web resource).
+If the -J option is specified, the list is padded, that is, you can specify the recipient's FCM tokens in both the command line and the file (web resource).
 
 If you specify the -J option wpn 'll open the file. If it can not be opened for reading, or if it is empty, wpn tries to download web resource from the network.
 
@@ -177,6 +195,12 @@ Output plugins are shared libraries See declaration in wpn-notify.h
 
 ```
 ./wpn -vv -O ../wpn-lnotify/.libs/libwpn-lnotify.so -O ../wpn-lnotify/.libs/libwpn-stdout.so
+```
+
+## Listen messages
+
+```
+./wpn -O ../wpn-lnotify/.libs
 ```
 
 ## Files

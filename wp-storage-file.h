@@ -220,7 +220,8 @@ public:
 	int write(
 		std::ostream &strm,
 		const std::string &delimiter,
-		const int writeFormat = 0
+		const int writeFormat = 0,
+		const bool shortFormat = false
 	) const;
 	int write(
 		const std::string &fileName
@@ -251,7 +252,8 @@ public:
 	int write(
 		std::ostream &strm,
 		const std::string &delimiter = DEF_DELIMITER,
-		const int writeFormat = 0
+		const int writeFormat = 0,
+		const bool shortFormat = false
 	)  const;
 	int write(
 		const std::string &fileName

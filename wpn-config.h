@@ -14,8 +14,8 @@
 #define CMD_LISTEN				0
 #define CMD_KEYS				1
 #define CMD_CREDENTIALS			2
-#define CMD_CREDENTIALS_QRCODE	3
-#define CMD_LIST 				4
+#define CMD_LIST 				3
+#define CMD_LIST_QRCODE			4
 #define CMD_SUBSCRIBE 			5
 #define CMD_UNSUBSCRIBE			6
 #define CMD_PUSH				7

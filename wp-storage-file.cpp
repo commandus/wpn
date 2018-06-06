@@ -494,7 +494,8 @@ int Subscription::write
 (
 	std::ostream &strm,
 	const std::string &delimiter,
-	const int writeFormat
+	const int writeFormat,
+	const bool shortFormat
 ) const
 {
 	std::ostream::pos_type r = strm.tellp();
@@ -502,24 +503,36 @@ int Subscription::write
 	{
 		case 1:
 			{
-				json j = {
-					{"subscribeUrl", getSubscribeUrl()},
-					{"subscribeMode", getSubscribeMode()},
-					{"endpoint", getEndpoint()},
-					{"authorizedEntity", getAuthorizedEntity()},
-					{"token", getToken()},
-					{"pushSet", getPushSet()},
-					{"persistentId", getPersistentId()},
-					{"serverKey", getServerKey()}
-				};
+				json j;
+				if (shortFormat)
+					j = {
+						{"authorizedEntity", getAuthorizedEntity()},
+						{"token", getToken()},
+						{"serverKey", getServerKey()}
+					};
+				else
+					j = {
+						{"subscribeUrl", getSubscribeUrl()},
+						{"subscribeMode", getSubscribeMode()},
+						{"endpoint", getEndpoint()},
+						{"authorizedEntity", getAuthorizedEntity()},
+						{"token", getToken()},
+						{"pushSet", getPushSet()},
+						{"persistentId", getPersistentId()},
+						{"serverKey", getServerKey()}
+					};
 				strm << j.dump();
 			}
 			break;
 		default:
-			strm << getSubscribeUrl() << delimiter << getSubscribeMode() << delimiter 
-				<< getEndpoint() << delimiter << getAuthorizedEntity() << delimiter 
-				<< getToken() << delimiter << getPushSet() << delimiter << getPersistentId() 
-				<< delimiter << getServerKey() << std::endl;
+			if (shortFormat)
+				strm << getAuthorizedEntity() << delimiter << getServerKey() 
+					<< delimiter << getToken() << std::endl;
+			else
+				strm << getSubscribeUrl() << delimiter << getSubscribeMode() << delimiter 
+					<< getEndpoint() << delimiter << getAuthorizedEntity() << delimiter 
+					<< getToken() << delimiter << getPushSet() << delimiter << getPersistentId() 
+					<< delimiter << getServerKey() << std::endl;
 			break;
 	}
 	return strm.tellp() - r;
@@ -531,7 +544,7 @@ int Subscription::write
 ) const
 {
 	std::ofstream strm(fileName);
-	int r = write(strm, DEF_DELIMITER, 0);
+	int r = write(strm, DEF_DELIMITER, 0, false);
 	strm.close();
 	return r;
 }
@@ -645,13 +658,14 @@ int Subscriptions::write
 (
 	std::ostream &strm,
 	const std::string &delimiter,
-	const int writeFormat
+	const int writeFormat,
+	const bool shortFormat
 ) const
 {
 	long r = 0;
 	for (std::vector<Subscription>::const_iterator it(list.begin()); it != list.end(); ++it)
 	{
-		r += it->write(strm, delimiter, writeFormat);
+		r += it->write(strm, delimiter, writeFormat, shortFormat);
 	}
 	return r;
 }

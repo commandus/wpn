@@ -108,7 +108,23 @@ int main(int argc, char** argv)
 			{
 				if ((config.outputFormat == 0) && (config.verbosity > 0))
 					std::cout << "subscribeUrl\tsubscribe mode\tendpoint\tauthorized entity\tFCM token\tpushSet" << std::endl;
-				config.subscriptions->write(std::cout, "\t", config.outputFormat);
+				config.subscriptions->write(std::cout, "\t", config.outputFormat, config.verbosity == 0);
+			}
+			break;
+		case CMD_LIST_QRCODE:
+			{
+				if ((config.outputFormat == 0) && (config.verbosity > 0))
+					std::cout << "FCM QRCodes:" << std::endl;
+				
+				long r = 0;
+				for (std::vector<Subscription>::const_iterator it(config.subscriptions->list.begin()); it != config.subscriptions->list.end(); ++it)
+				{
+					std::stringstream ss;
+					ss << it->getAuthorizedEntity() << ","
+						<< it->getServerKey() << ","
+						<< it->getToken();
+					std::cout << qr2string(ss.str(), config.invert_qrcode) << std::endl;
+				}
 			}
 			break;
 		case CMD_CREDENTIALS:
@@ -117,13 +133,6 @@ int main(int argc, char** argv)
 					std::cout << "application identifer\tandroid identifer\tsecurity token\tGCM token" << std::endl;
 				config.androidCredentials->write(std::cout, "\t", config.outputFormat);
 				std::cout << std::endl;
-			}
-			break;
-		case CMD_CREDENTIALS_QRCODE:
-			{
-				if ((config.outputFormat == 0) && (config.verbosity > 0))
-					std::cout << "GCM QR code" << std::endl;
-				std::cout << qr2string(config.androidCredentials->getGCMToken(), config.invert_qrcode) << std::endl;
 			}
 			break;
 		case CMD_KEYS:
@@ -191,6 +200,8 @@ int main(int argc, char** argv)
 				);
 				if (r >= 200 && r < 300)
 					std::cout << retval << std::endl;
+				else
+					std::cerr << "Error " << r << ": " << retval << std::endl;
 			}
 		}
 			break;

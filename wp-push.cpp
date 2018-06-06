@@ -79,7 +79,8 @@ int push2ClientJSON
 			}
 			catch(...) 
 			{
-// std::cerr << "Parse error" << std::endl;
+				if (retval)
+					*retval = "Parse error of: "  + r;
 				if (client_token.empty())
 					return ERR_PARSE_RESPONSE;	
 			}
@@ -87,7 +88,8 @@ int push2ClientJSON
 		else
 		{
 			// Error
-// std::cerr << "Error " << http_code << ": " << r << std::endl;				
+			if (retval)
+				*retval = r;
 		}
 	}
 	curl_easy_cleanup(curl);
