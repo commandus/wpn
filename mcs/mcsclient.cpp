@@ -563,7 +563,6 @@ static MessageLite *mkLoginRequest
 	*s->mutable_value() = "1";
 	for (std::vector<std::string>::const_iterator it(persistentIds.begin()); it != persistentIds.end(); ++it)
 	{
-		std::cerr << "===========pessis " << *it << std::endl;
 		*req->add_received_persistent_id() = *it;
 	}
 	return req;
