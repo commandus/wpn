@@ -41,6 +41,7 @@
 #include "wp-push.h"
 #include "sslfactory.h"
 #include "mcs/mcsclient.h"
+#include "utilqr.h"
 
 #define ERR_WSA		-1
 
@@ -116,6 +117,13 @@ int main(int argc, char** argv)
 					std::cout << "application identifer\tandroid identifer\tsecurity token\tGCM token" << std::endl;
 				config.androidCredentials->write(std::cout, "\t", config.outputFormat);
 				std::cout << std::endl;
+			}
+			break;
+		case CMD_CREDENTIALS_QRCODE:
+			{
+				if ((config.outputFormat == 0) && (config.verbosity > 0))
+					std::cout << "GCM QR code" << std::endl;
+				std::cout << qr2string(config.androidCredentials->getGCMToken(), config.invert_qrcode) << std::endl;
 			}
 			break;
 		case CMD_KEYS:

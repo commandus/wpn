@@ -14,10 +14,11 @@
 #define CMD_LISTEN				0
 #define CMD_KEYS				1
 #define CMD_CREDENTIALS			2
-#define CMD_LIST 				3
-#define CMD_SUBSCRIBE 			4
-#define CMD_UNSUBSCRIBE			5
-#define CMD_PUSH				6
+#define CMD_CREDENTIALS_QRCODE	3
+#define CMD_LIST 				4
+#define CMD_SUBSCRIBE 			5
+#define CMD_UNSUBSCRIBE			6
+#define CMD_PUSH				7
 
 #define SUBSCRIBE_URL_COUNT		1
 #define SUBSCRIBE_URL_1	 		"https://fcm.googleapis.com/fcm/connect/subscribe"
@@ -67,6 +68,7 @@ public:
 	std::string link;
 	// output external function name
 	std::string notifyFunctionName;
+	bool invert_qrcode;
 
 	WpnConfig();
 	WpnConfig

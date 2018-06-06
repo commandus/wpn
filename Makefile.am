@@ -25,6 +25,9 @@ CLEANFILES = $(gengrpcs)
 #
 bin_PROGRAMS = wpn
 
+QRHEADERS = third_party/nayuki/QR-Code-generator/BitBuffer.hpp third_party/nayuki/QR-Code-generator/QrCode.hpp third_party/nayuki/QR-Code-generator/QrSegment.hpp
+QRSOURCES = third_party/nayuki/QR-Code-generator/BitBuffer.cpp third_party/nayuki/QR-Code-generator/QrCode.cpp third_party/nayuki/QR-Code-generator/QrSegment.cpp
+
 nobase_dist_include_HEADERS = \
 	platform.h \
 	wpn-config.h wpn.h wpn-notify.h \
@@ -35,6 +38,7 @@ nobase_dist_include_HEADERS = \
 	onullstream.hpp \
 	third_party/nlohmann/json.hpp \
 	third_party/sole/sole.hpp \
+	utilqr.h $(QRHEADERS) \
 	$(gengrpcs_h)
 common_src = 
 
@@ -49,6 +53,7 @@ wpn_SOURCES= \
 	sslfactory.cpp \
 	mcs/mcsclient.cpp \
 	utilstring.cpp params.cpp commandoutput.cpp \
+	utilqr.cpp $(QRSOURCES) \
 	$(common_src)
 
 wpn_LDADD = $(commonlibs) -ldl

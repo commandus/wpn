@@ -101,7 +101,8 @@ std::string WpnConfig::getDefaultEndPoint()
 }
 
 WpnConfig::WpnConfig()
-	: cmd(CMD_LISTEN), verbosity(0), file_name(getDefaultConfigFileName()), endpoint(""), authorizedEntity(""), notifyFunctionName(DEF_FUNC_NOTIFY)
+	: cmd(CMD_LISTEN), verbosity(0), file_name(getDefaultConfigFileName()), endpoint(""), 
+	authorizedEntity(""), notifyFunctionName(DEF_FUNC_NOTIFY), invert_qrcode(false)
 {
 }
 
@@ -139,6 +140,7 @@ int WpnConfig::parseCmd
 	struct arg_lit *a_list = arg_lit0("l", "list", "List subscriptions");
 	struct arg_lit *a_keys = arg_lit0("y", "keys", "Print keys");
 	struct arg_lit *a_credentials = arg_lit0("c", "credentials", "Print credentials");
+	struct arg_lit *a_credentials_qrcode = arg_lit0("q", "qrcode", "QRCode credentials");
 	struct arg_lit *a_subscribe = arg_lit0("s", "subscribe", "Subscribe with mandatory -e, optional -r, -k");
 	struct arg_lit *a_unsubscribe = arg_lit0("d", "unsubscribe", "Unsubscribe with -e");
 	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -k, -e, -t, -b, -i, -a");
@@ -163,17 +165,18 @@ int WpnConfig::parseCmd
 	struct arg_str *a_notify_function_name = arg_str0("F", "output-func", "<name>", "Output function name. Default " DEF_FUNC_NOTIFY);
 	
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
+	struct arg_lit *a_invert_qrcode = arg_lit0("Q", "invert", "invert QR code on white console");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
-		a_list, a_credentials, a_keys, a_subscribe, a_unsubscribe, a_send,
+		a_list, a_credentials, a_credentials_qrcode, a_keys, a_subscribe, a_unsubscribe, a_send,
 		a_subscribe_url, a_endpoint, a_authorized_entity,
 		a_file_name,
 		a_server_key, a_subject, a_body, a_icon, a_link, a_recipient_tokens, a_recipient_token_file,
 		a_output,
 		a_output_lib_filenames, a_notify_function_name,
-		a_verbosity, a_help, a_end 
+		a_verbosity, a_invert_qrcode, a_help, a_end 
 	};
 
 	int nerrors;
@@ -228,14 +231,17 @@ int WpnConfig::parseCmd
 			if (a_credentials->count)
 				cmd = CMD_CREDENTIALS;
 			else
-				if (a_subscribe->count)
-					cmd = CMD_SUBSCRIBE;
+				if (a_credentials_qrcode->count)
+					cmd = CMD_CREDENTIALS_QRCODE;
 				else
-					if (a_unsubscribe->count)
-						cmd = CMD_UNSUBSCRIBE;
+					if (a_subscribe->count)
+						cmd = CMD_SUBSCRIBE;
 					else
-						if (a_send->count)
-							cmd = CMD_PUSH;
+						if (a_unsubscribe->count)
+							cmd = CMD_UNSUBSCRIBE;
+						else
+							if (a_send->count)
+								cmd = CMD_PUSH;
 
 	if (a_notify_function_name->count)
 		notifyFunctionName = *a_notify_function_name->sval;
@@ -344,6 +350,8 @@ int WpnConfig::parseCmd
 	}
 
 	verbosity = a_verbosity->count;
+	
+	invert_qrcode = a_invert_qrcode->count > 0;
 	
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)
