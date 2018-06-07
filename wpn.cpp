@@ -216,7 +216,7 @@ int main(int argc, char** argv)
 					if (config.verbosity > 1)
 						std::cout << "Execute command " << config.command << " on " << *it 
 							<< ", server key " << serverKey << std::endl;
-						r = 0; // push2ClientData(&retval, serverKey, *it, config.command);
+						r = push2ClientData(&retval, serverKey, *it, "", config.command, 0, "");
 				}
 				if (r >= 200 && r < 300)
 					std::cout << retval << std::endl;
