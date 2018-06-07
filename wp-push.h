@@ -34,6 +34,12 @@ int push2ClientNotification
 
 /**
 * Push "command output" to device
+* @param server_key FCM subscription server key
+* @param client_token FCM token
+* @param persistent_id reference to request. If empty, it is request, otherwise response
+* @param command command line
+* @param code execution return code, usually 0
+* @param output result from stdout
 * @return 200-299- success, <0- error
 */
 int push2ClientData

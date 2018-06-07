@@ -393,37 +393,44 @@ int MCSReceiveBuffer::parse()
 									}
 									else
 									{
+										std::string serverKey;
+										std::string persistent_id;
 										std::string command;
-										if (mClient->parseJSONCommandOutput(command, notification.data))
+										int code;
+										std::string output;
+
+										if (mClient->parseJSONCommandOutput(serverKey, persistent_id, command, &code, output, notification.data))
 										{
-											mClient->log(3) << " Command: " << command;
-											CommandOutput co;
-											std::stringstream ss;
-											int r = co.exec(&ss, command);
-											if (r)
+											if (persistent_id.empty())
 											{
-												mClient->log(3) << " Error " << r << " execute command: " << command;
-											}
-											else
-											{
-												std::string r = ss.str();
-												if (r.size())
+												mClient->log(3) << " Command: " << command;
+												CommandOutput co;
+												std::stringstream ss;
+												int retcode = co.exec(&ss, command);
+												if (retcode)
 												{
-													std::string output;
-													int rp = push2ClientData(&output, mClient->getConfig()->serverKey, from, persistent_id, command, 0, r);
-													if (rp)
-													{
-														mClient->log(3) << "Error send reply to command " << command << " rp";
-													}
-													else
-													{
-														mClient->log(3) << "Send reply to command " << command << " successfull";
-													}
+													mClient->log(3) << " Error " << retcode << " execute command: " << command;
 												}
-												else
+												std::string r = ss.str();
+												if (r.size() == 0)
 												{
 													mClient->log(3) << "Command " << command << " return nothing";
 												}
+												// send response
+												std::string output;
+												int rp = push2ClientData(&output, serverKey, from, persistent_id, command, retcode, r);
+												if (rp)
+												{
+													mClient->log(3) << "Error send reply to command " << command << " rp" << ": " << output;
+												}
+												else
+												{
+													mClient->log(3) << "Send reply to command " << command << " successfull";
+												}
+											}
+											else
+											{
+												mClient->log(3) << "Command already responded ";
 											}
 										}
 										else
@@ -1220,7 +1227,11 @@ void MCSClient::mkNotifyMessage
  */
 bool MCSClient::parseJSONCommandOutput
 (
-	std::string &retval,
+	std::string &serverKey,
+	std::string &persistent_id,
+	std::string &command,
+	int *code,
+	std::string &output,
 	const std::string &value
 )
 {
@@ -1230,11 +1241,46 @@ bool MCSClient::parseJSONCommandOutput
 		json m = json::parse(value);
 		try
 		{
-			retval = m.at("command");
+			command = m.at("command");
 		}
 		catch(...)
 		{
 			r = false;
+		}
+		try
+		{
+			serverKey = m.at("serverKey");
+		}
+		catch(...)
+		{
+			serverKey = "";
+		}
+		try
+		{
+			persistent_id = m.at("persistent_id");
+		}
+		catch(...)
+		{
+			persistent_id = "";
+		}
+		try
+		{
+			output = m.at("output");
+		}
+		catch(...)
+		{
+			output = "";
+		}
+		if (code)
+		{
+			try
+			{
+				*code = m.at("code");
+			}
+			catch(...)
+			{
+				*code = 0;
+			}
 		}
 	}
 	catch(...)

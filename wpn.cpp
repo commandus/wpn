@@ -199,14 +199,25 @@ int main(int argc, char** argv)
 			}
 			for (std::vector<std::string>::const_iterator it(config.recipientTokens.begin()); it != config.recipientTokens.end(); ++it)
 			{
-				if (config.verbosity > 1)
-					std::cout << "Sending to " << *it 
-						<< ", server key " << serverKey << std::endl;
-						int r = push2ClientNotification(&retval,
-					serverKey, *it,
-					config.subject,
-					config.body, config.icon, config.link
-				);
+				int r;
+				if (config.command.empty())
+				{
+					if (config.verbosity > 1)
+						std::cout << "Sending notification to " << *it 
+							<< ", server key " << serverKey << std::endl;
+						r = push2ClientNotification(&retval,
+						serverKey, *it,
+						config.subject,
+						config.body, config.icon, config.link
+					);
+				}
+				else
+				{
+					if (config.verbosity > 1)
+						std::cout << "Execute command " << config.command << " on " << *it 
+							<< ", server key " << serverKey << std::endl;
+						r = 0; // push2ClientData(&retval, serverKey, *it, config.command);
+				}
 				if (r >= 200 && r < 300)
 					std::cout << retval << std::endl;
 				else

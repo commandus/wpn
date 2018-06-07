@@ -155,7 +155,11 @@ public:
 	*/
 	bool parseJSONCommandOutput
 	(
-		std::string &retval,
+		std::string &serverKey,
+		std::string &persistent_id,
+		std::string &command,
+		int *code,
+		std::string &output,
 		const std::string &value
 	);
 

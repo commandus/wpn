@@ -59,14 +59,16 @@ public:
 	std::string endpoint;							///<subscription entity
 	std::string authorizedEntity;					///<subscription entity, sender Id
 
-	// send options
+	// send options: key, recipient's FCM tokens
 	std::string serverKey;							///< FCM server key
 	std::vector<std::string> recipientTokens;		///< recipient's FCM tokens
 	std::string recipientTokenFile;					///< file name or http[s] link, e.g. https://ikfia.wpn.commandus.com/app/token?accesskey=2117177
+	// send options
 	std::string subject;							///< subject
 	std::string body;								///< message body
 	std::string icon;
 	std::string link;
+	std::string command;							///< command to be executed, van be empty(nothing to do)
 	// output external function name
 	std::string notifyFunctionName;
 	bool invert_qrcode;

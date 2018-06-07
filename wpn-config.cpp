@@ -102,7 +102,7 @@ std::string WpnConfig::getDefaultEndPoint()
 
 WpnConfig::WpnConfig()
 	: cmd(CMD_LISTEN), verbosity(0), file_name(getDefaultConfigFileName()), endpoint(""), name(""),
-	authorizedEntity(""), notifyFunctionName(DEF_FUNC_NOTIFY), invert_qrcode(false)
+	authorizedEntity(""), notifyFunctionName(DEF_FUNC_NOTIFY), invert_qrcode(false), command("")
 {
 }
 
@@ -143,7 +143,7 @@ int WpnConfig::parseCmd
 	struct arg_lit *a_credentials = arg_lit0("p", "credentials", "Print credentials");
 	struct arg_lit *a_subscribe = arg_lit0("s", "subscribe", "Subscribe with mandatory -e, optional -r, -k");
 	struct arg_lit *a_unsubscribe = arg_lit0("d", "unsubscribe", "Unsubscribe with -e");
-	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -k (or -n), -t, -b, -i, -a");
+	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -k (or -n), -x (or -t, -b, -i, -a)");
 	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
 	
 	struct arg_str *a_name = arg_str0("n", "name", "<name>", "Subscription name");
@@ -153,14 +153,16 @@ int WpnConfig::parseCmd
 
 	// send options
 	struct arg_str *a_server_key = arg_str0("k", "key", "<server key>", "Server key to send");
+	struct arg_str *a_recipient_tokens = arg_strn(NULL, NULL, "<account#>", 0, 100, "Recipient token.");
+	struct arg_str *a_recipient_token_file = arg_str0("j", "json", "<file name or URL>", "Recipient token JSON file e.g. [[1,\"token\",..");
+	// notification options
 	struct arg_str *a_subject = arg_str0("t", "subject", "<Text>", "Subject (topic)");
 	struct arg_str *a_body = arg_str0("b", "body", "<Text>", "Body");
 	struct arg_str *a_icon = arg_str0("i", "icon", "<URI>", "http[s]:// icon address.");
 	struct arg_str *a_link = arg_str0("a", "link", "<URI>", "https:// action address.");
-	struct arg_str *a_recipient_tokens = arg_strn(NULL, NULL, "<account#>", 0, 100, "Recipient token.");
-	struct arg_str *a_recipient_token_file = arg_str0("j", "json", "<file name or URL>", "Recipient token JSON file e.g. [[1,\"token\",..");
+	struct arg_str *a_command = arg_str0("x", "execute", "<command line>", "e.g. ls");
+	// other options
 	struct arg_str *a_output = arg_str0("f", "format", "<text|json>", "Output format. Default text.");
-
 	// output options
 	struct arg_str *a_output_lib_filenames = arg_strn(NULL, "plugin", "<file name>", 0, 100, "Output shared library file name or directory");
 	struct arg_str *a_notify_function_name = arg_str0(NULL, "plugin-func", "<name>", "Output function name. Default " DEF_FUNC_NOTIFY);
@@ -174,7 +176,8 @@ int WpnConfig::parseCmd
 		a_list, a_list_qrcode, a_credentials, a_keys, a_subscribe, a_unsubscribe, a_send,
 		a_name, a_subscribe_url, a_endpoint, a_authorized_entity,
 		a_file_name,
-		a_server_key, a_subject, a_body, a_icon, a_link, a_recipient_tokens, a_recipient_token_file,
+		a_server_key, a_subject, a_body, a_icon, a_link, a_command,
+		a_recipient_tokens, a_recipient_token_file,
 		a_output,
 		a_output_lib_filenames, a_notify_function_name,
 		a_verbosity, a_invert_qrcode, a_help, a_end 
@@ -274,25 +277,28 @@ int WpnConfig::parseCmd
 				nerrors++;
 			}
 		}
-		if (a_subject->count == 0)
+		if (a_command->count == 0)
 		{
-			std::cerr << "-s missed." << std::endl;
-			nerrors++;
-		}
-		if (a_body->count == 0)
-		{
-			std::cerr << "-b missed." << std::endl;
-			nerrors++;
-		}
-		if (a_icon->count == 0)
-		{
-			std::cerr << "-i missed." << std::endl;
-			nerrors++;
-		}
-		if (a_link->count == 0)
-		{
-			std::cerr << "-l missed." << std::endl;
-			nerrors++;
+			if (a_subject->count == 0)
+			{
+				std::cerr << "-s missed." << std::endl;
+				nerrors++;
+			}
+			if (a_body->count == 0)
+			{
+				std::cerr << "-b missed." << std::endl;
+				nerrors++;
+			}
+			if (a_icon->count == 0)
+			{
+				std::cerr << "-i missed." << std::endl;
+				nerrors++;
+			}
+			if (a_link->count == 0)
+			{
+				std::cerr << "-l missed." << std::endl;
+				nerrors++;
+			}
 		}
 	}
 
@@ -319,21 +325,54 @@ int WpnConfig::parseCmd
 	{
 		serverKey = *a_server_key->sval;
 	}
+	else
+	{
+		serverKey = "";
+	}
+
 	if (a_subject->count)
 	{
 		subject = *a_subject->sval;
 	}
+	else
+	{
+		subject = "";
+	}
+
 	if (a_body->count)
 	{
 		body = *a_body->sval;
 	}
+	else
+	{
+		body = "";
+	}
+
 	if (a_icon->count)
 	{
 		icon = *a_icon->sval;
 	}
+	else
+	{
+		icon = "";
+	}
+
 	if (a_link->count)
 	{
 		link = *a_link->sval;
+	} 
+	else 
+	{
+		link = "";
+	}
+	
+	if (a_command->count)
+	{
+		command = *a_command->sval;
+	} 
+	else 
+	{
+		command = "";
 	}
 
 	for (int i = 0; i < a_recipient_tokens->count; i++)
