@@ -54,6 +54,7 @@ public:
 	int outputFormat;								///< 0- text, 1- json
 	int verbosity;									///< 0-quiet, 3- debug
 	std::string file_name;							///< config file, e.g. https://sure-phone.firebaseio.com"
+	std::string name;								///< subscription name
 	std::string subscribeUrl;						///< default https://fcm.googleapis.com/fcm/connect/subscribe
 	std::string endpoint;							///<subscription entity
 	std::string authorizedEntity;					///<subscription entity, sender Id
@@ -93,6 +94,12 @@ public:
 	std::vector <desktopNotifyFunc> desktopNotifyFuncs;
 	bool setPersistentId(const std::string &authorizedEntity, const std::string &persistent_id);
 	void getPersistentIds(std::vector<std::string> &retval);
+	/**
+	* Get server key
+	* @param subscriptionName subscription name
+	* @return server key from subscription by the name of subscription
+	*/
+	std::string getSubscriptionServerKey(const std::string &subscriptionName) const;
 };
 
 #endif

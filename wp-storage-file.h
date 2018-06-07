@@ -146,6 +146,7 @@ public:
 class Subscription
 {
 private:
+	std::string name;
 	std::string subscribeUrl;
 	int subscribeMode;
 	std::string endpoint;
@@ -155,7 +156,8 @@ private:
 	std::string pushSet;
 	std::string mPersistentId;	///< last received message id
 	void init(
-		std::string subscribeUrl,
+		const std::string &name,
+		const std::string &subscribeUrl,
 		int subscribeMode,
 		const std::string &endpoint,
 		const std::string &serverKey,
@@ -176,7 +178,8 @@ private:
 public:
 	Subscription();
 	Subscription(
-		std::string subscribeUrl,
+		const std::string &name,
+		const std::string &subscribeUrl,
 		int subscribeMode,
 		const std::string &endpoint,
 		const std::string &serverKey,
@@ -198,6 +201,7 @@ public:
 		const std::string &authorizedEntity
 	);
 
+	std::string getName() const;
 	std::string getSubscribeUrl() const;
 	int getSubscribeMode() const;
 	std::string getEndpoint() const;
@@ -206,6 +210,7 @@ public:
 	std::string getToken() const;
 	std::string getPushSet() const;
 
+	void setName(const std::string &value);
 	void setSubscribeUrl(const std::string &value);
 	void setSubscribeMode(int value);
 	void setEndpoint(const std::string &value);

@@ -101,7 +101,7 @@ std::string WpnConfig::getDefaultEndPoint()
 }
 
 WpnConfig::WpnConfig()
-	: cmd(CMD_LISTEN), verbosity(0), file_name(getDefaultConfigFileName()), endpoint(""), 
+	: cmd(CMD_LISTEN), verbosity(0), file_name(getDefaultConfigFileName()), endpoint(""), name(""),
 	authorizedEntity(""), notifyFunctionName(DEF_FUNC_NOTIFY), invert_qrcode(false)
 {
 }
@@ -140,12 +140,13 @@ int WpnConfig::parseCmd
 	struct arg_lit *a_list = arg_lit0("l", "list", "List subscriptions");
 	struct arg_lit *a_list_qrcode = arg_lit0("q", "qrcode", "QRCode list subscriptions");
 	struct arg_lit *a_keys = arg_lit0("y", "keys", "Print keys");
-	struct arg_lit *a_credentials = arg_lit0("c", "credentials", "Print credentials");
+	struct arg_lit *a_credentials = arg_lit0("p", "credentials", "Print credentials");
 	struct arg_lit *a_subscribe = arg_lit0("s", "subscribe", "Subscribe with mandatory -e, optional -r, -k");
 	struct arg_lit *a_unsubscribe = arg_lit0("d", "unsubscribe", "Unsubscribe with -e");
-	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -k, -e, -t, -b, -i, -a");
-	struct arg_str *a_file_name = arg_str0("f", "file", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
+	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -k (or -n), -t, -b, -i, -a");
+	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
 	
+	struct arg_str *a_name = arg_str0("n", "name", "<name>", "Subscription name");
 	struct arg_str *a_subscribe_url = arg_str0("r", "registrar", "<URL>", "Subscription registrar URL, like https://fcm.googleapis.com/fcm/connect/subscribe or 1. Default 1");
 	struct arg_str *a_endpoint = arg_str0("u", "endpoint", "<URL>", "Optional, push service endpoint URL prefix.");
 	struct arg_str *a_authorized_entity = arg_str0("e", "entity", "<entity-id>", "Push message sender identifier, usually decimal number");
@@ -157,12 +158,12 @@ int WpnConfig::parseCmd
 	struct arg_str *a_icon = arg_str0("i", "icon", "<URI>", "http[s]:// icon address.");
 	struct arg_str *a_link = arg_str0("a", "link", "<URI>", "https:// action address.");
 	struct arg_str *a_recipient_tokens = arg_strn(NULL, NULL, "<account#>", 0, 100, "Recipient token.");
-	struct arg_str *a_recipient_token_file = arg_str0("J", "json", "<file name or URL>", "JSON file e.g. [[1,\"token\",..");
-	struct arg_str *a_output = arg_str0("o", "format", "<text|json>", "Output format. Default text.");
+	struct arg_str *a_recipient_token_file = arg_str0("j", "json", "<file name or URL>", "Recipient token JSON file e.g. [[1,\"token\",..");
+	struct arg_str *a_output = arg_str0("f", "format", "<text|json>", "Output format. Default text.");
 
 	// output options
-	struct arg_str *a_output_lib_filenames = arg_strn("O", "output", "<file name>", 0, 100, "Output shared library file name or directory");
-	struct arg_str *a_notify_function_name = arg_str0("F", "output-func", "<name>", "Output function name. Default " DEF_FUNC_NOTIFY);
+	struct arg_str *a_output_lib_filenames = arg_strn(NULL, "plugin", "<file name>", 0, 100, "Output shared library file name or directory");
+	struct arg_str *a_notify_function_name = arg_str0(NULL, "plugin-func", "<name>", "Output function name. Default " DEF_FUNC_NOTIFY);
 	
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
 	struct arg_lit *a_invert_qrcode = arg_lit0("Q", "invert", "invert QR code on white console");
@@ -171,7 +172,7 @@ int WpnConfig::parseCmd
 
 	void* argtable[] = { 
 		a_list, a_list_qrcode, a_credentials, a_keys, a_subscribe, a_unsubscribe, a_send,
-		a_subscribe_url, a_endpoint, a_authorized_entity,
+		a_name, a_subscribe_url, a_endpoint, a_authorized_entity,
 		a_file_name,
 		a_server_key, a_subject, a_body, a_icon, a_link, a_recipient_tokens, a_recipient_token_file,
 		a_output,
@@ -202,6 +203,10 @@ int WpnConfig::parseCmd
 		subscribeUrl = *a_subscribe_url->sval;
 	else
 		subscribeUrl = "";
+	if (a_name->count)
+		name = *a_name->sval;
+	else
+		name = "";
 	int m = strtol(subscribeUrl.c_str(), NULL, 10);
 	if ((m > 0) && (m <= SUBSCRIBE_URL_COUNT))
 	{
@@ -263,8 +268,11 @@ int WpnConfig::parseCmd
 	{
 		if (a_server_key->count == 0)
 		{
-			std::cerr << "-k missed." << std::endl;
-			nerrors++;
+			if (a_name->count == 0)
+			{
+				std::cerr << "-k=server_key or -n=subscription_name missed. " << std::endl;
+				nerrors++;
+			}
 		}
 		if (a_subject->count == 0)
 		{
@@ -290,6 +298,11 @@ int WpnConfig::parseCmd
 
 	if (cmd == CMD_SUBSCRIBE)
 	{
+		if (name.empty()) 
+		{
+			std::cerr << "No subscription name. Set valid -n option." << std::endl;
+			nerrors++;
+		}
 		if (subscribeUrl.empty()) 
 		{
 			std::cerr << "Unknown registar. Set valid -r option." << std::endl;
@@ -503,6 +516,27 @@ void WpnConfig::getPersistentIds(std::vector<std::string> &retval)
 			retval.push_back(v);
 		}
 	}
+}
+
+/**
+ * Get server key
+ * @param subscriptionName subscription name
+ * @return server key from subscription by the name of subscription
+ */
+std::string WpnConfig::getSubscriptionServerKey
+(
+	const std::string &subscriptionName
+) const
+{
+	for (std::vector<Subscription>::iterator it(subscriptions->list.begin()); it != subscriptions->list.end(); ++it)
+	{
+		std::string n = it->getName();
+		if (n == subscriptionName)
+		{
+			return it->getServerKey();
+		}
+	}
+	return "";
 }
 
 bool WpnConfig::setPersistentId

@@ -380,6 +380,7 @@ int MCSReceiveBuffer::parse()
 								NotifyMessage notification;
 								if (mClient->parseJSONNotifyMessage(notification, d))
 								{
+									mClient->log(3) << "Subscription authorized entity " << notification.authorizedEntity << " set persistent id to " << persistent_id << std::endl;
 									mClient->getConfig()->setPersistentId(notification.authorizedEntity, persistent_id);
 									mClient->notifyAll(persistent_id, from, appName, appId, sent, notification);
 								} 
@@ -1042,6 +1043,15 @@ int MCSClient::logIn()
 
 	std::vector<std::string> persistentIds;
 	mConfig->getPersistentIds(persistentIds);
+	
+	if (mConfig->verbosity >= 3)
+	{
+		log(3) << "Saved persistent ids:" << std::endl;
+		for (std::vector<std::string>::const_iterator it(persistentIds.begin()); it != persistentIds.end(); ++it)
+		{
+			log(3) << *it << std::endl;
+		}
+	}
 	MessageLite *l =  mkLoginRequest(androidId, securityToken, persistentIds);
 	if (!l)
 		return ERR_MEM;

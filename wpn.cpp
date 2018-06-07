@@ -191,10 +191,20 @@ int main(int argc, char** argv)
 		case CMD_PUSH:
 		{
 			std::string retval;
+			std::string serverKey = config.serverKey;
+			if (serverKey.empty())
+			{
+				// Load server key from the subscription, by the name
+				serverKey = config.getSubscriptionServerKey(config.name);
+			}
 			for (std::vector<std::string>::const_iterator it(config.recipientTokens.begin()); it != config.recipientTokens.end(); ++it)
 			{
+				if (config.verbosity > 1)
+					std::cout << "Sending to " << *it << std::endl;
+				
+				
 				int r = push2ClientNotification(&retval,
-					config.serverKey, *it,
+					serverKey, *it,
 					config.subject,
 					config.body, config.icon, config.link
 				);

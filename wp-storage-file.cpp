@@ -4,6 +4,7 @@
 #include "sole/sole.hpp"
 #include "nlohmann/json.hpp"
 #include "wp-storage-file.h"
+#include "utilstring.h"
 
 using json = nlohmann::json;
 
@@ -364,13 +365,14 @@ int WpnKeys::write(
 // --------------- Subscription ---------------
 
 Subscription::Subscription()
-	: subscribeUrl(""), subscribeMode(0), endpoint(""), authorizedEntity(""),
+	: name(""), subscribeUrl(""), subscribeMode(0), endpoint(""), authorizedEntity(""),
 	token(""), pushSet(""), mPersistentId("")
 {
 }
 
 Subscription::Subscription(
-	std::string aSubscribeUrl,
+	const std::string &aName,
+	const std::string &aSubscribeUrl,
 	int aSubscribeMode,
 	const std::string &a_endpoint,
 	const std::string &a_serverKey,
@@ -383,6 +385,7 @@ Subscription::Subscription(
 	authorizedEntity(a_authorizedEntity), token(a_token), pushSet(a_pushSet),
 	mPersistentId(aPersistentId)
 {
+	name = escapeURLString(aName);
 }
 
 Subscription::Subscription(
@@ -399,6 +402,11 @@ Subscription::Subscription(
 {
 	std::ifstream strm(fileName);
 	read(strm, DEF_DELIMITER);
+}
+
+std::string Subscription::getName() const
+{
+	return name;
 }
 
 std::string Subscription::getSubscribeUrl() const
@@ -434,6 +442,11 @@ std::string Subscription::getToken() const
 std::string Subscription::getPushSet() const
 {
 	return pushSet;
+}
+
+void Subscription::setName(const std::string &value)
+{
+	name = escapeURLString(value);
 }
 
 void Subscription::setSubscribeUrl(const std::string &value)\
@@ -506,12 +519,14 @@ int Subscription::write
 				json j;
 				if (shortFormat)
 					j = {
+						{"name", getName()},
 						{"authorizedEntity", getAuthorizedEntity()},
 						{"token", getToken()},
 						{"serverKey", getServerKey()}
 					};
 				else
 					j = {
+						{"name", getName()},
 						{"subscribeUrl", getSubscribeUrl()},
 						{"subscribeMode", getSubscribeMode()},
 						{"endpoint", getEndpoint()},
@@ -526,10 +541,10 @@ int Subscription::write
 			break;
 		default:
 			if (shortFormat)
-				strm << getAuthorizedEntity() << delimiter << getServerKey() 
+				strm << getName() << delimiter << getAuthorizedEntity() << delimiter << getServerKey() 
 					<< delimiter << getToken() << std::endl;
 			else
-				strm << getSubscribeUrl() << delimiter << getSubscribeMode() << delimiter 
+				strm << getName() << delimiter << getSubscribeUrl() << delimiter << getSubscribeMode() << delimiter 
 					<< getEndpoint() << delimiter << getAuthorizedEntity() << delimiter 
 					<< getToken() << delimiter << getPushSet() << delimiter << getPersistentId() 
 					<< delimiter << getServerKey() << std::endl;
@@ -551,7 +566,8 @@ int Subscription::write
 
 void Subscription::init
 (
-	std::string a_subscribeUrl,
+	const std::string &a_name,
+	const std::string &a_subscribeUrl,
 	int a_subscribeMode,
 	const std::string &a_endpoint,
 	const std::string &a_authorizedEntity,
@@ -561,6 +577,7 @@ void Subscription::init
 	const std::string &a_serverKey
 )
 {
+	name = a_name;
 	subscribeUrl = a_subscribeUrl;
 	subscribeMode = a_subscribeMode;
 	endpoint = a_endpoint;
@@ -577,7 +594,7 @@ void Subscription::parse
 	const std::string &delimiter
 )
 {
-	std::string k[8];
+	std::string k[9];
 
 	size_t p0 = 0, p1;
 	int i = 0;
@@ -586,11 +603,11 @@ void Subscription::parse
 		k[i] = keys.substr(p0, p1 - p0);
 		p0 = p1 + delimiter.length();
 		i++;
-		if (i >= 8)
+		if (i >= 9)
 			break;
 	}
 	if (!k[2].empty())
-		init(k[0], strtol(k[1].c_str(), NULL, 10), k[2], k[3], k[4], k[5], k[6], k[7]); 
+		init(k[0], k[1], strtol(k[2].c_str(), NULL, 10), k[3], k[4], k[5], k[6], k[7], k[8]); 
 }
 
 void Subscription::read

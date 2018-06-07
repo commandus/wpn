@@ -8,7 +8,7 @@ wpn
 
 Check credentials:
 ```
-./wpn -c -vvv
+./wpn -p -vvv
 app id      android id  security token	GCM token
 2ea0892f-.. 57468817..  2325..   d5DROBGRLmk:A..
 ```
@@ -94,12 +94,14 @@ r1...       BP...       bd..
 
 without -v options returns
 
+- name
 - authorizedEntity		
 - serverKey	server key to send message
 - token		FCM token
 
-with -v options returns
+with -v, -vv, -vvv, -vvvv options returns
 
+- name
 - authorizedEntity
 - endpoint
 - persistentId
@@ -153,22 +155,37 @@ Specify subscription endpoint (-e):
 
 ## Client push message
 
+Send notification with -m option.
+
+You need provide one or more recipient FCM token(s) up to 100 (limited by system actually) in command line or from JSON file (with -j option).
+
+Also you need provide:
+
+- server key (-k) to authorize send operation
+
+Otherwise, you can provide -n option with name of subscripton (if you also subscribed). In this case subscripton entity and server key are obtained from this subscription:
+
+- subscription name (-n)
+
+Message composed of:
+
+- Subject (-t option)
+- Body (-b option)
+- Icon (-i option)
+- Action URL (-a option)
+
 After push wpn exits immediately.
 
-Using list of recipient's FCM subscription tokens (up to 100, but limited by system environment):
+Sending to one recipient:
 
 ```
-./wpn -m -k "AIzaSyBfUt1N5aabh8pubYiBPKOq9OcIoHv_41I" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com"  dl_liGwFeeA:APA91bEn8GjmoPxbi5xgYYffhrsb6WZjiLZA8Sogb7jBXrsJzoCzplV5SISS9mPd8IN-yFMLTIhCYGsRb925CCqGIZ2TPuoA2kj56hOECvsI-Fou1OdE1j1_FunMoWtkDtSyNx-djcQM
+./wpn -m -k "AIzaSyBfUt1N5aabh8pubYiBPKOq9OcIoHv_41I" -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" f22BfuvjjCc:APA91bHc4xzOyN5318sBkspPG9n2zBkP-jHl2EdJVKRHHv0njkplgPVe8s9MVkApTaWHkK9s9137gsPiWnmb_S9IF9h5LX3k8eg9jitNqs0xb7NK9BbPeC-nDw1SuCptZKTuEcKOvKpC
 ```
 
-```
-./wpn -m -k "AIzaSyBfUt1N5aabh8pubYiBPKOq9OcIoHv_41I" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" f22BfuvjjCc:APA91bHc4xzOyN5318sBkspPG9n2zBkP-jHl2EdJVKRHHv0njkplgPVe8s9MVkApTaWHkK9s9137gsPiWnmb_S9IF9h5LX3k8eg9jitNqs0xb7NK9BbPeC-nDw1SuCptZKTuEcKOvKpC
-```
-
-Sending by the list of recipient tokens in a file or a web resource (-J option):
+Sending by the list of recipient tokens in a file or a web resource (-j option):
 
 ```
-./wpn -m -k "AIzaSyAyz-oVjsfRNK53XA6o9DVHN9ZNAaHOfxw" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" -J "https://ikfia.wpn.commandus.com/app/token?accesskey=2117177"
+./wpn -m -k "AIzaSyAyz-oVjsfRNK53XA6o9DVHN9ZNAaHOfxw" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" -j "https://ikfia.wpn.commandus.com/app/token?accesskey=2117177"
 ```
 
 If the -J option is specified, the list is padded, that is, you can specify the recipient's FCM tokens in both the command line and the file (web resource).
@@ -194,14 +211,26 @@ https://ikfia.wpn.commandus.com/app/push?accesskey=2117177&title=%D0%9C%D1%80%D0
 Output plugins are shared libraries See declaration in wpn-notify.h
 
 ```
-./wpn -vv -O ../wpn-lnotify/.libs/libwpn-lnotify.so -O ../wpn-lnotify/.libs/libwpn-stdout.so
+./wpn -vv --plugin ../wpn-lnotify/.libs/libwpn-lnotify.so --plugin ../wpn-lnotify/.libs/libwpn-stdout.so
 ```
 
 ## Listen messages
 
 ```
-./wpn -O ../wpn-lnotify/.libs
+./wpn --plugin ../wpn-lnotify/.libs
 ```
+
+## Other options
+
+### Different configuration file name
+
+Set up different configuration file name with -c option:
+
+```
+./wpn -c config.cfg
+```
+
+Default configuration file name is ~/.wpn
 
 ## Files
 
