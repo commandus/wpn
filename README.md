@@ -188,6 +188,11 @@ Sending by the list of recipient tokens in a file or a web resource (-j option):
 ./wpn -m -k "AIzaSyAyz-oVjsfRNK53XA6o9DVHN9ZNAaHOfxw" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" -j "https://ikfia.wpn.commandus.com/app/token?accesskey=2117177"
 ```
 
+Sending using subcription name (-n option) instead of server key (option -k):
+```
+./wpn -m -n "ubuntu16" -t "Subject kkkk--111" -b "Body 2" -i "https://commandus.com/favicon.ico" -a "https://commandus.com" "d4rd_JZJ940:APA91bEGqtzfqZaohjke2dCqY8z5xJOMmkKud1SU646l2QlwBiZpzb9hTgTefvCrdhQ6-oR82SgjyYpF3kkcgGdMqmhZArMAb4G-D8N_ZYg0BDmgnx92AXKUUqFzCJwqwzTvOmqkjfFy" -vvv
+```
+
 If the -J option is specified, the list is padded, that is, you can specify the recipient's FCM tokens in both the command line and the file (web resource).
 
 If you specify the -J option wpn 'll open the file. If it can not be opened for reading, or if it is empty, wpn tries to download web resource from the network.

@@ -200,10 +200,9 @@ int main(int argc, char** argv)
 			for (std::vector<std::string>::const_iterator it(config.recipientTokens.begin()); it != config.recipientTokens.end(); ++it)
 			{
 				if (config.verbosity > 1)
-					std::cout << "Sending to " << *it << std::endl;
-				
-				
-				int r = push2ClientNotification(&retval,
+					std::cout << "Sending to " << *it 
+						<< ", server key " << serverKey << std::endl;
+						int r = push2ClientNotification(&retval,
 					serverKey, *it,
 					config.subject,
 					config.body, config.icon, config.link
