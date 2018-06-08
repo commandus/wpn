@@ -102,6 +102,15 @@ public:
 	* @return server key from subscription by the name of subscription
 	*/
 	std::string getSubscriptionServerKey(const std::string &subscriptionName) const;
+	/**
+	* Get FCM token
+	* @param subscriptionName subscription name
+	* @return FCM token from subscription by the name of subscription
+	*/
+	std::string getSubscriptionToken
+	(
+		const std::string &subscriptionName
+	) const;
 };
 
 #endif

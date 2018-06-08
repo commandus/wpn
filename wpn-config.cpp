@@ -578,6 +578,28 @@ std::string WpnConfig::getSubscriptionServerKey
 	return "";
 }
 
+
+/**
+ * Get FCM token
+ * @param subscriptionName subscription name
+ * @return FCM token from subscription by the name of subscription
+ */
+std::string WpnConfig::getSubscriptionToken
+(
+	const std::string &subscriptionName
+) const
+{
+	for (std::vector<Subscription>::iterator it(subscriptions->list.begin()); it != subscriptions->list.end(); ++it)
+	{
+		std::string n = it->getName();
+		if (n == subscriptionName)
+		{
+			return it->getToken();
+		}
+	}
+	return "";
+}
+
 bool WpnConfig::setPersistentId
 (
 	const std::string &authorizedEntity, 

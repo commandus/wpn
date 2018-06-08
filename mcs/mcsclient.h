@@ -156,6 +156,7 @@ public:
 	bool parseJSONCommandOutput
 	(
 		std::string &serverKey,
+		std::string &token,
 		std::string &persistent_id,
 		std::string &command,
 		int *code,
@@ -167,9 +168,9 @@ public:
 	* Parse FCM JSON message into notification structure or copy data 
 	* @param retval return value. If it is data, return data JSON string in retval.data
 	* @param json JSON data to be parsed
-	* @return true- notification, false- data
+	* @return 0- notification, 1- data, less 0 error
 	*/
-	static bool parseJSONNotifyMessage
+	static int parseJSONNotifyMessage
 	(
 		NotifyMessage &retval,
 		const std::string &json

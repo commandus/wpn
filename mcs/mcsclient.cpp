@@ -378,66 +378,67 @@ int MCSReceiveBuffer::parse()
 									appId = subtype.substr(start_pos + 1);
 								}
 								NotifyMessage notification;
-								if (mClient->parseJSONNotifyMessage(notification, d))
-								{
-									mClient->log(3) << "Subscription authorized entity " << notification.authorizedEntity << " set persistent id to " << persistent_id << std::endl;
-									mClient->getConfig()->setPersistentId(notification.authorizedEntity, persistent_id);
-									mClient->notifyAll(persistent_id, from, appName, appId, sent, notification);
-								} 
-								else
-								{
-									// TODO
-									if (notification.data.empty())
-									{
-										mClient->log(3) << " no data field in the message";
-									}
-									else
-									{
-										std::string serverKey;
-										std::string persistent_id;
-										std::string command;
-										int code;
-										std::string output;
-
-										if (mClient->parseJSONCommandOutput(serverKey, persistent_id, command, &code, output, notification.data))
+								int mt = mClient->parseJSONNotifyMessage(notification, d);
+								switch (mt) {
+									case 0:
+										mClient->log(3) << "Subscription authorized entity " << notification.authorizedEntity << " set persistent id to " << persistent_id << std::endl;
+										mClient->getConfig()->setPersistentId(notification.authorizedEntity, persistent_id);
+										mClient->notifyAll(persistent_id, from, appName, appId, sent, notification);
+										break;
+									case 1:
 										{
-											if (persistent_id.empty())
+											std::string serverKey;
+											std::string token;
+											std::string persistent_id;
+											std::string command;
+											int code;
+											std::string output;
+
+											if (mClient->parseJSONCommandOutput(serverKey, token, persistent_id, command, &code, output, notification.data))
 											{
-												mClient->log(3) << " Command: " << command;
-												CommandOutput co;
-												std::stringstream ss;
-												int retcode = co.exec(&ss, command);
-												if (retcode)
+												if (persistent_id.empty())
 												{
-													mClient->log(3) << " Error " << retcode << " execute command: " << command;
-												}
-												std::string r = ss.str();
-												if (r.size() == 0)
-												{
-													mClient->log(3) << "Command " << command << " return nothing";
-												}
-												// send response
-												std::string output;
-												int rp = push2ClientData(&output, serverKey, from, persistent_id, command, retcode, r);
-												if (rp)
-												{
-													mClient->log(3) << "Error send reply to command " << command << " rp" << ": " << output;
+													mClient->log(3) << " Command: " << command << std::endl;
+													CommandOutput co;
+													std::stringstream ss;
+													int retcode = co.exec(&ss, command);
+													if (retcode)
+													{
+														mClient->log(3) << " Error " << retcode << " execute command: " << command;
+													}
+													std::string r = ss.str();
+													if (r.size() == 0)
+													{
+														mClient->log(3) << "Command " << command << " return nothing";
+													}
+													// send response
+													std::string output;
+													int rp = push2ClientData(&output, serverKey, token, from, persistent_id, command, retcode, r);
+													if ((rp >= 200) && (rp <= 399))
+													{
+														mClient->log(3) << "Send reply: " << std::endl 
+														<< r << std::endl <<
+														" to command " << command << " successfull";
+													}
+													else
+													{
+														mClient->log(3) << "Error send reply: " << std::endl
+														<< r << std::endl << " to command " << command << " rp" << ": " << output;
+													}
 												}
 												else
 												{
-													mClient->log(3) << "Send reply to command " << command << " successfull";
+													mClient->log(3) << "Command already responded ";
 												}
 											}
 											else
 											{
-												mClient->log(3) << "Command already responded ";
+												mClient->log(3) << " can not parse data field in the message " << notification.data;
 											}
 										}
-										else
-										{
-											mClient->log(3) << " can not parse data field in the message " << notification.data;
-										}
-									}
+										break;
+									default:
+										mClient->log(3) << " Unknown message received " << dr;
 								}
 							}
 							else
@@ -1178,10 +1179,10 @@ int MCSClient::decode
 	size_t outSize = ece_aes128gcm_plaintext_max_length((const uint8_t*) source.c_str(), source.size());
 	if (outSize == 0)
 	{
-		log(3) << "Decode error: zero size" << std::endl;
+		log(3) << "Decode error: calculated size is zero. Coded data size: " << source.size() << " bytes." << std::endl;
 		return ERR_MEM;
 	}
-	if (outSize > 0)
+	else
 	{
 		if (outSize < 4096)
 			outSize = 4096;
@@ -1228,6 +1229,7 @@ void MCSClient::mkNotifyMessage
 bool MCSClient::parseJSONCommandOutput
 (
 	std::string &serverKey,
+	std::string &token,
 	std::string &persistent_id,
 	std::string &command,
 	int *code,
@@ -1254,6 +1256,14 @@ bool MCSClient::parseJSONCommandOutput
 		catch(...)
 		{
 			serverKey = "";
+		}
+		try
+		{
+			token = m.at("token");
+		}
+		catch(...)
+		{
+			token = "";
 		}
 		try
 		{
@@ -1294,15 +1304,15 @@ bool MCSClient::parseJSONCommandOutput
  * Parse FCM JSON message into notification structure or copy data 
  * @param retval return value. If it is data, return data JSON string in retval.data
  * @param value JSON data to be parsed
- * @return true- notification, false- data
+ * @return 0- notification, 1- data, less 0 error: -1 not notification or data found
  */
-bool MCSClient::parseJSONNotifyMessage
+int MCSClient::parseJSONNotifyMessage
 (
 	NotifyMessage &retval,
 	const std::string &value
 )
 {
-	bool r = true;
+	int r = -1;
 	try
 	{
 		json m = json::parse(value);
@@ -1316,14 +1326,14 @@ bool MCSClient::parseJSONNotifyMessage
 		try
 		{
 			json notification  = m.at("notification");
+			r = 0;
 			try
 			{
 				retval.title = notification.at("title");
 			}
 			catch(...)
 			{
-				// it is not notification at all
-				r = false;
+				retval.title = "";
 			}
 			try
 			{
@@ -1331,6 +1341,7 @@ bool MCSClient::parseJSONNotifyMessage
 			}
 			catch(...)
 			{
+				retval.body = "";
 			}
 			try
 			{
@@ -1338,6 +1349,7 @@ bool MCSClient::parseJSONNotifyMessage
 			}
 			catch(...)
 			{
+				retval.icon = "";
 			}
 			try
 			{
@@ -1345,6 +1357,7 @@ bool MCSClient::parseJSONNotifyMessage
 			}
 			catch(...)
 			{
+				retval.link = "";
 			}
 		}
 		catch(...)
@@ -1354,6 +1367,7 @@ bool MCSClient::parseJSONNotifyMessage
 		try
 		{
 			json d = m.at("data");
+			r = 1;
 			retval.data = d.dump();
 		}
 		catch(...)
@@ -1362,7 +1376,6 @@ bool MCSClient::parseJSONNotifyMessage
 	}
 	catch(...)
 	{
-		return false;
 	}
 	return r;
 }

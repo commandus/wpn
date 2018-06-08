@@ -191,11 +191,13 @@ int main(int argc, char** argv)
 		case CMD_PUSH:
 		{
 			std::string retval;
+			std::string token = "";
 			std::string serverKey = config.serverKey;
 			if (serverKey.empty())
 			{
 				// Load server key from the subscription, by the name
 				serverKey = config.getSubscriptionServerKey(config.name);
+				token = config.getSubscriptionToken(config.name);
 			}
 			for (std::vector<std::string>::const_iterator it(config.recipientTokens.begin()); it != config.recipientTokens.end(); ++it)
 			{
@@ -216,7 +218,7 @@ int main(int argc, char** argv)
 					if (config.verbosity > 1)
 						std::cout << "Execute command " << config.command << " on " << *it 
 							<< ", server key " << serverKey << std::endl;
-						r = push2ClientData(&retval, serverKey, *it, "", config.command, 0, "");
+						r = push2ClientData(&retval, serverKey, token, *it, "", config.command, 0, "");
 				}
 				if (r >= 200 && r < 300)
 					std::cout << retval << std::endl;

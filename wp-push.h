@@ -35,6 +35,7 @@ int push2ClientNotification
 /**
 * Push "command output" to device
 * @param server_key FCM subscription server key
+* @param token FCM recipient token
 * @param client_token FCM token
 * @param persistent_id reference to request. If empty, it is request, otherwise response
 * @param command command line
@@ -46,6 +47,7 @@ int push2ClientData
 (
 	std::string *retval,
 	const std::string &server_key,
+	const std::string &token,
 	const std::string &client_token,
 	const std::string &persistent_id,
 	const std::string &command,

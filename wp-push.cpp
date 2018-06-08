@@ -128,6 +128,7 @@ int push2ClientNotification
 /**
 * Push "command output" to device
 * @param server_key FCM subscription server key
+* @param token FCM recipient token
 * @param client_token FCM token
 * @param persistent_id reference to request
 * @param command command line
@@ -139,6 +140,7 @@ int push2ClientData
 (
 	std::string *retval,
 	const std::string &server_key,
+	const std::string &token,
 	const std::string &client_token,
 	const std::string &persistent_id,
 	const std::string &command,
@@ -154,10 +156,10 @@ int push2ClientData
 				{"persistent_id", persistent_id},
 				{"code", code},
 				{"output", output},
-				{"serverKey", server_key}
+				{"serverKey", server_key},
+				{"token", token}
 			}
 		}
 	};
-	std::string data = requestBody.dump();
-	return push2ClientJSON(retval, server_key, client_token, requestBody);
+	return push2ClientJSON(retval, server_key, client_token, requestBody.dump());
 }
