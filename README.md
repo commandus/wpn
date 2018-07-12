@@ -78,8 +78,22 @@ on black screen (white characters, black background:
 on white screen (black characters, white background:
 
 ```
- ./wpn -q -Q
+./wpn -Q
 ``` 
+
+## e-mail
+
+### Ubuntu
+
+First install mail program. Please refer to Appendix A how to install Postfix.
+
+```
+./wpn -e "Alice Bobson" | mail -s "$(echo -e "Click link in your phone\nContent-Type: text/html;charset=utf-8")" andrei.i.ivanov@gmail.com
+```
+
+```
+./wpn -e "Alice Bobson" --template-file email-template.html | mail -s "$(echo -e "Connect device to wpn\nContent-Type: text/html;charset=utf-8")" andrei.i.ivanov@gmail.com
+```
 
 ## Print keys
 
@@ -444,3 +458,43 @@ Solution:
 
 Line 182  added: || c == '=';
 
+## Appendix 1. Configuring Postfix to relay e-mail to gmail smarthost using SMTP relay over SSL(not TLS)
+
+TLS port can be blocked by firewall, in this case use instructions above.
+No more than 500 messages per day you can send using SMTP.
+
+Please note if your Google account is two-factor authoriziation is enabled application password for mail service required.
+
+```
+sudo apt install mailutils
+    Select Internet
+sudo vi /etc/postfix/master.cf
+Uncomment line
+    smtps     inet  n       -       y       -       -       smtpd
+sudo vi /etc/postfix/main.cf
+    Add lines
+    relayhost = [smtp.gmail.com]:465
+    smtpd_use_tls=no
+    smtp_use_tls = no
+    smtp_sasl_auth_enable = yes
+    smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+    smtp_sasl_security_options = noanonymous
+    smtp_tls_CAfile = /etc/postfix/cacert.pem
+    smtp_tls_wrappermode = yes
+	smtp_tls_security_level = encrypt
+
+sudo vi /etc/postfix/sasl_passwd
+
+  [smtp.gmail.com]:465    andrei.i.ivanov@gmail.com:PASSWORD_OR_APP_PASSWORD_IF_TWO_FACTOR_AUTH_ENABLED
+
+sudo postmap /etc/postfix/sasl_passwd
+sudo /etc/init.d/postfix reload
+
+sudo service rsyslog restart
+echo "Test mail from postfix" | mail -s "Test Postfix" andrei.i.ivanov@gmail.com
+cat /var/log/mail.log
+# remove all not sent messages
+mailq
+sudo postsuper -d ALL
+
+```

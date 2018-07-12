@@ -45,6 +45,11 @@
 
 #define ERR_WSA		-1
 
+#define DEF_EMAIL_TEMPLATE	"<html><body>$subject<br/>Hi, $name<br/>Click the link below on the phone, tablet or other device on which surephone is installed.\
+If the program is not already installed, \
+<a href=\"https://play.google.com/store/apps/details?id=com.commandus.surephone\">install it</a>.\
+<br/>$body</body></html>"
+
 #ifdef _MSC_VER
 
 void setSignalHandler(int signal)
@@ -120,11 +125,63 @@ int main(int argc, char** argv)
 				for (std::vector<Subscription>::const_iterator it(config.subscriptions->list.begin()); it != config.subscriptions->list.end(); ++it)
 				{
 					std::stringstream ss;
-					ss << it->getAuthorizedEntity() << ","
+					ss 
+						<< it->getName() << ","
+						<< it->getAuthorizedEntity() << ","
 						<< it->getServerKey() << ","
 						<< it->getToken();
 					std::cout << qr2string(ss.str(), config.invert_qrcode) << std::endl;
 				}
+			}
+			break;
+		case CMD_LIST_EMAIL:
+			{
+				if ((config.outputFormat == 0) && (config.verbosity > 0))
+					std::cout << "FCM QRCodes:" << std::endl;
+				if (config.subject.empty()) {
+					config.subject = "Connect device to wpn";
+				}
+
+				if (config.email_template.empty()) {
+					config.email_template = DEF_EMAIL_TEMPLATE;
+				}
+				std::string m = config.email_template;
+				size_t p = m.find("$name");
+				if (p != std::string::npos)
+				{
+					m.replace(p, 5, config.cn);
+				}
+				p = m.find("$subject");
+				if (p != std::string::npos)
+				{
+					m.replace(p, 8, config.subject);
+				}
+
+				std::stringstream ssBody;
+				for (std::vector<Subscription>::const_iterator it(config.subscriptions->list.begin()); it != config.subscriptions->list.end(); ++it)
+				{
+					std::stringstream ss;
+					ss 
+						<< it->getName() << ","
+						<< it->getAuthorizedEntity() << ","
+						<< it->getServerKey() << ","
+						<< it->getToken();
+
+					std::string p = ss.str();						
+					ssBody 
+						<< "<p>" 
+						<< "<a href=\"https://mail.surephone.commanus.com/?d=" << p << "\">Connect to "
+						<< it->getName()
+						<< "</a>" 
+						<< "</p>"
+						<< std::endl;
+				}
+				p = m.find("$body");
+				if (p != std::string::npos)
+				{
+					m.replace(p, 5, ssBody.str());
+				}
+				std::cout << m << std::endl;
 			}
 			break;
 		case CMD_CREDENTIALS:
@@ -148,7 +205,7 @@ int main(int argc, char** argv)
 				Subscription subscription;
 				std::string d;
 				std::string headers;
-				
+
 				int r = subscribe(subscription, SUBSCRIBE_FIREBASE, *config.wpnKeys, 
 					config.subscribeUrl, config.getDefaultEndPoint(), config.authorizedEntity,
 					config.serverKey, &d, &headers, config.verbosity);

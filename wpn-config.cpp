@@ -21,6 +21,7 @@
 #define DEF_FCM_ENDPOINT_PREFIX	"https://fcm.googleapis.com/fcm/send/"
 #define DEF_OUTPUT_SO_FN		"libwpn-stdout.so"
 #define DEF_FUNC_NOTIFY			"desktopNotify"
+#define DEF_COMMON_NAME			"everyone"
 
 #ifdef _MSC_VER
 #define DEF_PLUGIN_FILE_EXT		".dll"
@@ -102,7 +103,7 @@ std::string WpnConfig::getDefaultEndPoint()
 
 WpnConfig::WpnConfig()
 	: cmd(CMD_LISTEN), verbosity(0), file_name(getDefaultConfigFileName()), endpoint(""), name(""),
-	authorizedEntity(""), notifyFunctionName(DEF_FUNC_NOTIFY), invert_qrcode(false), command("")
+	authorizedEntity(""), notifyFunctionName(DEF_FUNC_NOTIFY), invert_qrcode(false), command(""), cn("")
 {
 }
 
@@ -139,6 +140,8 @@ int WpnConfig::parseCmd
 {
 	struct arg_lit *a_list = arg_lit0("l", "list", "List subscriptions");
 	struct arg_lit *a_list_qrcode = arg_lit0("q", "qrcode", "QRCode list subscriptions");
+	struct arg_lit *a_invert_qrcode = arg_lit0("Q", "qrcode-inverted", "inverted QR code (white console)");
+	struct arg_str *a_list_email = arg_str0("e", "mailto", "<common name>", "e-mail list subscriptions to the person. Use with optional --subject --template-file ");
 	struct arg_lit *a_keys = arg_lit0("y", "keys", "Print keys");
 	struct arg_lit *a_credentials = arg_lit0("p", "credentials", "Print credentials");
 	struct arg_lit *a_subscribe = arg_lit0("s", "subscribe", "Subscribe with mandatory -e, optional -r, -k");
@@ -163,24 +166,24 @@ int WpnConfig::parseCmd
 	struct arg_str *a_command = arg_str0("x", "execute", "<command line>", "e.g. ls");
 	// other options
 	struct arg_str *a_output = arg_str0("f", "format", "<text|json>", "Output format. Default text.");
+	struct arg_str *a_template_file = arg_str0(NULL, "template-file", "<file>", "e-mail HTML template file with $name $subject $body");
 	// output options
 	struct arg_str *a_output_lib_filenames = arg_strn(NULL, "plugin", "<file name>", 0, 100, "Output shared library file name or directory");
 	struct arg_str *a_notify_function_name = arg_str0(NULL, "plugin-func", "<name>", "Output function name. Default " DEF_FUNC_NOTIFY);
 	
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
-	struct arg_lit *a_invert_qrcode = arg_lit0("Q", "invert", "invert QR code on white console");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
-		a_list, a_list_qrcode, a_credentials, a_keys, a_subscribe, a_unsubscribe, a_send,
+		a_list, a_list_qrcode, a_invert_qrcode, a_list_email, a_credentials, a_keys, a_subscribe, a_unsubscribe, a_send,
 		a_name, a_subscribe_url, a_endpoint, a_authorized_entity,
 		a_file_name,
 		a_server_key, a_subject, a_body, a_icon, a_link, a_command,
 		a_recipient_tokens, a_recipient_token_file,
-		a_output,
+		a_output, a_template_file,
 		a_output_lib_filenames, a_notify_function_name,
-		a_verbosity, a_invert_qrcode, a_help, a_end 
+		a_verbosity,  a_help, a_end 
 	};
 
 	int nerrors;
@@ -233,28 +236,50 @@ int WpnConfig::parseCmd
 	if (a_list->count)
 		cmd = CMD_LIST;
 	else
-		if (a_list_qrcode->count)
+		if ((a_list_qrcode->count) || (a_invert_qrcode->count))
 			cmd = CMD_LIST_QRCODE;
 		else
-			if (a_keys->count)
-				cmd = CMD_KEYS;
+			if (a_list_email->count) 
+			{
+				cmd = CMD_LIST_EMAIL;
+				cn = std::string(*a_list_email->sval);
+			}
 			else
-				if (a_credentials->count)
-					cmd = CMD_CREDENTIALS;
+				if (a_keys->count)
+					cmd = CMD_KEYS;
 				else
-					if (a_subscribe->count)
-						cmd = CMD_SUBSCRIBE;
+					if (a_credentials->count)
+						cmd = CMD_CREDENTIALS;
 					else
-						if (a_unsubscribe->count)
-							cmd = CMD_UNSUBSCRIBE;
+						if (a_subscribe->count)
+							cmd = CMD_SUBSCRIBE;
 						else
-							if (a_send->count)
-								cmd = CMD_PUSH;
+							if (a_unsubscribe->count)
+								cmd = CMD_UNSUBSCRIBE;
+							else
+								if (a_send->count)
+									cmd = CMD_PUSH;
 
 	if (a_notify_function_name->count)
 		notifyFunctionName = *a_notify_function_name->sval;
 	else
 		notifyFunctionName = DEF_FUNC_NOTIFY;
+	
+	if (a_template_file->count)
+	{
+		std::string fn = std::string(*a_template_file->sval);
+		email_template = file2string(fn);
+		if (email_template.empty())
+		{
+			// try load from the Internet;
+			email_template = url2string(fn);
+		}
+	}
+	if (cn.empty())
+	{
+		cn = DEF_COMMON_NAME;
+	}
+
 	if (a_output_lib_filenames->count)
 	{
 		for (int i = 0; i < a_output_lib_filenames->count; i++)
