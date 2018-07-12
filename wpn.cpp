@@ -46,6 +46,7 @@
 
 #define ERR_WSA		-1
 
+#define LINK_SUREPHONE_D	"https://mail.surephone.commandus.com/?d="
 #define DEF_EMAIL_TEMPLATE	"<html><body>$subject<br/>Hi, $name<br/>Click the link below on the phone, tablet or other device on which surephone is installed.\
 If the program is not already installed, \
 <a href=\"https://play.google.com/store/apps/details?id=com.commandus.surephone\">install it</a>.\
@@ -141,12 +142,12 @@ int main(int argc, char** argv)
 				for (std::vector<Subscription>::const_iterator it(config.subscriptions->list.begin()); it != config.subscriptions->list.end(); ++it)
 				{
 					std::stringstream ss;
-					ss 
+					ss
 						<< it->getName() << ","
 						<< it->getAuthorizedEntity() << ","
 						<< it->getServerKey() << ","
 						<< it->getToken();
-					ssBody << escapeURLString(ss.str()) << std::endl;
+					ssBody << LINK_SUREPHONE_D << escapeURLString(ss.str()) << std::endl;
 				}
 				std::cout << ssBody.str();
 			}
@@ -185,7 +186,7 @@ int main(int argc, char** argv)
 					std::string u = escapeURLString(ss.str());
 					ssBody 
 						<< "<p>" 
-						<< "<a href=\"https://mail.surephone.commandus.com/?d=" << u << "\">Connect to "
+						<< "<a href=\"" << LINK_SUREPHONE_D << u << "\">Connect to "
 						<< it->getName()
 						<< "</a>" 
 						<< "</p>"
