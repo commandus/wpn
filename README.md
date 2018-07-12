@@ -83,17 +83,28 @@ on white screen (black characters, white background:
 
 ## e-mail
 
+Print e-mail message body to be send by external program, for instance, mail from mailutils package.
+
 ### Ubuntu
 
 First install mail program. Please refer to Appendix A how to install Postfix.
 
 ```
-./wpn -e "Alice Bobson" | mail -s "$(echo -e "Click link in your phone\nContent-Type: text/html;charset=utf-8")" andrei.i.ivanov@gmail.com
+./wpn -e "Alice" | mail -s "$(echo -e "Click link in your phone\nContent-Type: text/html;charset=utf-8")" bob@acme.com
 ```
 
+Use custom emale template with --template-file option:
 ```
-./wpn -e "Alice Bobson" --template-file email-template.html | mail -s "$(echo -e "Connect device to wpn\nContent-Type: text/html;charset=utf-8")" andrei.i.ivanov@gmail.com
+./wpn -e "Alice" --template-file email-template.html | mail -s "$(echo -e "Connect device to wpn\nContent-Type: text/html;charset=utf-8")" bob@acme.com
 ```
+
+In the email-template.html file use placeholders:
+
+- $body Mark action link placement
+- $name placeholder for -e parameter (name)
+- $subject placeholder for --subject parameter, usully header or other custom information
+
+Please check HTML template file character set is compatible with mail program expected. In example above charset is utf-8.
 
 ## Print keys
 

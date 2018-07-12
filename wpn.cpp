@@ -42,6 +42,7 @@
 #include "sslfactory.h"
 #include "mcs/mcsclient.h"
 #include "utilqr.h"
+#include "utilstring.h"
 
 #define ERR_WSA		-1
 
@@ -167,10 +168,10 @@ int main(int argc, char** argv)
 						<< it->getServerKey() << ","
 						<< it->getToken();
 
-					std::string p = ss.str();						
+					std::string u = escapeURLString(ss.str());
 					ssBody 
 						<< "<p>" 
-						<< "<a href=\"https://mail.surephone.commanus.com/?d=" << p << "\">Connect to "
+						<< "<a href=\"https://mail.surephone.commandus.com/?d=" << u << "\">Connect to "
 						<< it->getName()
 						<< "</a>" 
 						<< "</p>"
