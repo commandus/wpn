@@ -83,12 +83,46 @@ on white screen (black characters, white background:
 
 ## e-mail
 
-Print e-mail message body to be send by external program, for instance, mail from mailutils package.
+In case of mobile device havent builtin camera, or it is impossible to scan QR code in some other reason, you can send email from
+the desktop where wpn is installed to the mobile device.
 
-### Ubuntu
+Open this e-mail in the device and click on link to connect mobile phone to the wpn.
 
-First install mail program. Please refer to Appendix A how to install Postfix.
+You also need install Surephone mobile app in the mobile device.
 
+E-mail contains link to the Google Play where you can install Surephone mobile app.
+
+wpn just produce text for e-mail to be send and do not send e-mail directly therefore you need use pre-installed mail software.
+
+I used mail from mailutils package for instance.
+
+If you havent pre-installed mail software, you can copy produced text and paste in other mail program or web mail in the browser.
+
+Just get link:
+
+```
+./wpn -E
+```
+
+and somehow send produced link to the mobile device.
+
+### Using SMTP in Ubuntu
+
+It is hard way, use it if you have a lot of mobile clients.
+
+First install mail program. Please refer to Appendix A how to install mailutils and set postfix.
+
+Option -e (--mailto) outputs e-mail body in HTML with link to connect mobile phone to the wpn:
+
+```
+./wpn -e "name"
+```
+
+This link contains information how to establish connection to wpn.
+
+If Surephone mobile application, this link open this application and connect it to wpn.
+
+Then pipe output
 ```
 ./wpn -e "Alice" | mail -s "$(echo -e "Click link in your phone\nContent-Type: text/html;charset=utf-8")" bob@acme.com
 ```

@@ -16,10 +16,11 @@
 #define CMD_CREDENTIALS			2
 #define CMD_LIST 				3
 #define CMD_LIST_QRCODE			4
-#define CMD_LIST_EMAIL			5
-#define CMD_SUBSCRIBE 			6
-#define CMD_UNSUBSCRIBE			7
-#define CMD_PUSH				8
+#define CMD_LIST_LINK			5
+#define CMD_LIST_EMAIL			6
+#define CMD_SUBSCRIBE 			7
+#define CMD_UNSUBSCRIBE			8
+#define CMD_PUSH				9
 
 #define SUBSCRIBE_URL_COUNT		1
 #define SUBSCRIBE_URL_1	 		"https://fcm.googleapis.com/fcm/connect/subscribe"

@@ -135,10 +135,24 @@ int main(int argc, char** argv)
 				}
 			}
 			break;
+		case CMD_LIST_LINK:
+			{
+				std::stringstream ssBody;
+				for (std::vector<Subscription>::const_iterator it(config.subscriptions->list.begin()); it != config.subscriptions->list.end(); ++it)
+				{
+					std::stringstream ss;
+					ss 
+						<< it->getName() << ","
+						<< it->getAuthorizedEntity() << ","
+						<< it->getServerKey() << ","
+						<< it->getToken();
+					ssBody << escapeURLString(ss.str()) << std::endl;
+				}
+				std::cout << ssBody.str();
+			}
+			break;
 		case CMD_LIST_EMAIL:
 			{
-				if ((config.outputFormat == 0) && (config.verbosity > 0))
-					std::cout << "FCM QRCodes:" << std::endl;
 				if (config.subject.empty()) {
 					config.subject = "Connect device to wpn";
 				}
