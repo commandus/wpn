@@ -378,11 +378,14 @@ int MCSReceiveBuffer::parse()
 									appId = subtype.substr(start_pos + 1);
 								}
 								NotifyMessage notification;
+								if (!persistent_id.empty())
+								{
+									mClient->getConfig()->setPersistentId(notification.authorizedEntity, persistent_id);
+								}
 								int mt = mClient->parseJSONNotifyMessage(notification, d);
 								switch (mt) {
 									case 0:
 										mClient->log(3) << "Subscription authorized entity " << notification.authorizedEntity << " set persistent id to " << persistent_id << std::endl;
-										mClient->getConfig()->setPersistentId(notification.authorizedEntity, persistent_id);
 										mClient->notifyAll(persistent_id, from, appName, appId, sent, notification);
 										break;
 									case 1:
