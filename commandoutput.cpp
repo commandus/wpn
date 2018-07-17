@@ -1,3 +1,6 @@
+#include <string.h>
+#include <iostream> 
+
 #ifdef _MSC_VER
 #include <windows.h> 
 #else
@@ -5,9 +8,35 @@
 #endif
 #include "commandoutput.h"
 
+bool add2Env
+(
+	const std::string &n,
+	const std::string &delimiter,
+	const std::string &v
+) 
+{
+	char *value = getenv(n.c_str());
+    //---------------------------------------
+	size_t sz = strlen(value) + v.size() + n.size() + delimiter.size() + 2;
+	char *newval = (char *) malloc(sz + 2);
+	if(!newval)
+		return false;
+	strncpy(newval, n.c_str(), sz);
+	strncat(newval, "=", sz);
+	strncat(newval, value, sz);
+	strncat(newval, delimiter.c_str(), sz);
+	strncat(newval, v.c_str(), sz);
+	std::cout << "=============" << std::endl;
+	std::cout << newval << std::endl;
+	std::cout << "=============" << std::endl;
+	bool r = putenv(newval) == 0;
+	free(newval);
+	return r;
+}
+
 CommandOutput::CommandOutput()
 {
-
+	add2Env("PATH", ":", ".");
 }
 
 CommandOutput::~CommandOutput()
