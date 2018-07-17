@@ -639,6 +639,7 @@ bool Subscription::operator==(const Subscription &val) const
 // --------------- Subscriptions ---------------
 
 Subscriptions::Subscriptions()
+	: receivedPersistentId("")
 {
 }
 
@@ -671,6 +672,16 @@ Subscription::Subscription
 {
 }
 
+void Subscriptions::setReceivedPersistentId(const std::string &value)
+{
+	receivedPersistentId = value;
+}
+
+const std::string & Subscriptions::getReceivedPersistentId() const
+{
+	return receivedPersistentId;
+}
+
 int Subscriptions::write
 (
 	std::ostream &strm,
@@ -680,6 +691,7 @@ int Subscriptions::write
 ) const
 {
 	long r = 0;
+	strm << receivedPersistentId << std::endl;
 	for (std::vector<Subscription>::const_iterator it(list.begin()); it != list.end(); ++it)
 	{
 		r += it->write(strm, delimiter, writeFormat, shortFormat);
@@ -703,6 +715,10 @@ void Subscriptions::read(
 	const std::string &delimiter
 )
 {
+	if (!strm.fail()) {
+		std::getline(strm, receivedPersistentId);
+	}
+
 	while (!strm.fail()) 
 	{
 		Subscription s(strm, delimiter);

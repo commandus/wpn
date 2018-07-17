@@ -102,7 +102,7 @@ std::string WpnConfig::getDefaultEndPoint()
 }
 
 WpnConfig::WpnConfig()
-	: cmd(CMD_LISTEN), verbosity(0), file_name(getDefaultConfigFileName()), endpoint(""), name(""),
+	: errorcode(0), cmd(CMD_LISTEN), verbosity(0), file_name(getDefaultConfigFileName()), endpoint(""), name(""),
 	authorizedEntity(""), notifyFunctionName(DEF_FUNC_NOTIFY), invert_qrcode(false), command(""), cn("")
 {
 }
@@ -461,7 +461,7 @@ int WpnConfig::read(const std::string &fileName)
 	std::ifstream configRead(fileName.c_str());
 	androidCredentials = new AndroidCredentials(configRead);
 	wpnKeys = new WpnKeys(configRead);
-	subscriptions = new Subscriptions (configRead);
+	subscriptions = new Subscriptions(configRead);
 	long r = configRead.tellg();
 	configRead.close();
 	return r;
@@ -576,6 +576,7 @@ void WpnConfig::unloadDesktopNotifyFuncs()
 void WpnConfig::getPersistentIds(std::vector<std::string> &retval)
 {
 	retval.clear();
+	retval.push_back(subscriptions->getReceivedPersistentId());
 	for (std::vector<Subscription>::iterator it(subscriptions->list.begin()); it != subscriptions->list.end(); ++it)
 	{
 		std::string v = it->getPersistentId();
@@ -645,5 +646,6 @@ bool WpnConfig::setPersistentId
 			return true;
 		}
 	}
-	return false;
+	subscriptions->setReceivedPersistentId(persistentId);
+	return true;
 }

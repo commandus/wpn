@@ -30,7 +30,7 @@
 
 #include "platform.h"
 #include "nlohmann/json.hpp"
-
+#include "mcs.pb.h"
 #include "mcsclient.h"
 #include "utilstring.h"
 #include "sslfactory.h"
@@ -66,6 +66,11 @@ enum MCSProtoTag
 	kBindAccountResponseTag = 14,
 	kTalkMetadataTag        = 15,
 	kNumProtoTypes          = 16
+};
+
+enum MCSIqStanzaExtension {
+  kSelectiveAck = 12,
+  kStreamAck = 13,
 };
 
 using namespace checkin_proto;
@@ -340,10 +345,21 @@ int MCSReceiveBuffer::parse()
 						from = r->from();
 						mClient->log(3) << " from: " << r->from();
 					}
+					else
+					{
+						from = "";
+					}
 					if (r->has_persistent_id())
 					{
 						persistent_id = r->persistent_id();
 						mClient->log(3) << " persistent_id: " << r->persistent_id();
+					}
+					else 
+					{
+						persistent_id = "";
+					}
+					if (r->has_token()) {
+						mClient->log(3) << " token: " << r->token();
 					}
 					if (r->has_from_trusted_server())
 						mClient->log(3) << " from_trusted_server: " << r->from_trusted_server();
@@ -353,6 +369,8 @@ int MCSReceiveBuffer::parse()
 						mClient->log(3) << " last_stream_id_received: " << r->last_stream_id_received();
 					if (r->has_queued())
 						mClient->log(3) << " queued: " << r->queued();
+					mClient->log(3) << std::endl;
+					mClient->sendDataAck(from, persistent_id);
 					if (r->has_raw_data())
 					{
 						mClient->log(3) << " raw_data: " << hexString(r->raw_data());
@@ -380,7 +398,15 @@ int MCSReceiveBuffer::parse()
 								NotifyMessage notification;
 								if (!persistent_id.empty())
 								{
-									mClient->getConfig()->setPersistentId(notification.authorizedEntity, persistent_id);
+									if (mClient->getConfig()->setPersistentId(notification.authorizedEntity, persistent_id)) 
+									{
+										mClient->log(3) << " set persistent id " << persistent_id;
+									}
+									else
+									{
+										mClient->log(0) << " Error save persistent id " << persistent_id << ", entity: " << notification.authorizedEntity;
+									}
+									
 								}
 								int mt = mClient->parseJSONNotifyMessage(notification, d);
 								switch (mt) {
@@ -533,6 +559,37 @@ static MessageLite * mkPing()
 {
 	HeartbeatPing *req = new HeartbeatPing();
 	// req->set_status(0);
+	return req;
+}
+
+static MessageLite * mkAck
+(
+	const std::string &persistent_id
+)
+{
+	IqStanza *req = new IqStanza();
+	req->set_type(mcs_proto::IqStanza::SET);
+	req->set_id("");
+	req->mutable_extension()->set_id(kSelectiveAck);
+	
+	mcs_proto::SelectiveAck selective_ack;
+	selective_ack.add_id(persistent_id);
+	req->mutable_extension()->set_data(selective_ack.SerializeAsString());
+	return req;
+}
+
+static MessageLite * mkAck2
+(
+	const std::string &persistent_id
+)
+{
+	IqStanza *req = new IqStanza();
+	req->set_type(mcs_proto::IqStanza::SET);
+	req->set_id("");
+	req->set_persistent_id(persistent_id);
+	req->mutable_extension()->set_id(kStreamAck);
+	req->mutable_extension()->set_data("");
+	// req->set_last_stream_id_received(2);
 	return req;
 }
 
@@ -1105,14 +1162,31 @@ int MCSClient::sendTag
 	return SSL_write(mSsl, s.c_str(), s.size());
 }
 
-void MCSClient::ping()
+int MCSClient::sendDataAck
+(
+	const std::string &from,
+	const std::string &persistent_id
+)
+{
+	log(3) << "ACK persistent_id: " << persistent_id << std::endl;
+	MessageLite *l =  mkAck2(persistent_id);
+	if (!l)
+		return -1;
+	// int r  = 0;
+	int r = sendTag(kIqStanzaTag, l);
+	delete l;
+	return r;
+}
+
+int MCSClient::ping()
 {
 	log(3) << "ping.." << std::endl;
 	MessageLite *l =  mkPing();
 	if (!l)
-		return;
-	sendTag(kHeartbeatPingTag, l);
+		return -1;
+	int r = sendTag(kHeartbeatPingTag, l);
 	delete l;
+	return r;
 }
 
 void MCSClient::writeStream
@@ -1124,9 +1198,9 @@ void MCSClient::writeStream
 	while (!strm.eof())
 	{
 		strm >> s;
-		if (s == "q")
+		if ((s == "q") || (s == "quit"))
 			break;
-		if (s == "p")
+		if ((s == "p") || (s == "ping"))
 		{
 			ping();
 		}

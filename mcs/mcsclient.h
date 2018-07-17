@@ -120,8 +120,13 @@ public:
 		uint8_t tag,
 		const MessageLite *msg
 	);
+	int sendDataAck
+	(
+		const std::string &from,
+		const std::string &persistent_id
+	);
 
-	void ping();
+	int ping();
 
 	void writeStream(std::istream &strm);
 	std::ostream &log

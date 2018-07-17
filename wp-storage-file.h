@@ -238,6 +238,7 @@ public:
 class Subscriptions
 {
 private:
+	std::string receivedPersistentId;
 	void read(
 		std::istream &strm,
 		const std::string &delimiter
@@ -251,7 +252,8 @@ public:
 	Subscriptions(
 		const std::string &fileName
 	);
-	
+	const std::string & getReceivedPersistentId() const;
+	void setReceivedPersistentId(const std::string &value);
 	std::vector<Subscription> list;
 
 	int write(
