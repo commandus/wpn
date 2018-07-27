@@ -39,7 +39,6 @@ nobase_dist_include_HEADERS = \
 	third_party/nlohmann/json.hpp \
 	third_party/sole/sole.hpp \
 	utilqr.h $(QRHEADERS) \
-	utilvapid.h \
 	$(gengrpcs_h)
 common_src = 
 
@@ -55,7 +54,6 @@ wpn_SOURCES= \
 	mcs/mcsclient.cpp \
 	utilstring.cpp params.cpp commandoutput.cpp \
 	utilqr.cpp $(QRSOURCES) \
-	utilvapid.cpp \
 	$(common_src)
 
 wpn_LDADD = $(commonlibs) -ldl

@@ -5,8 +5,6 @@
 #ifndef WP_CONNECTION_H
 #define WP_CONNECTION_H
 
-#define SUBSCRIBE_FIREBASE			1
-
 #define ERR_MODE					-1
 #define ERR_PARAM_ENDPOINT			-2
 #define ERR_PARAM_AUTH_ENTITY		-3

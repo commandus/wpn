@@ -94,7 +94,6 @@ private:
 	// the auth secret via `pushSubscription.getKey("auth")`.
 	uint8_t authSecret[ECE_WEBPUSH_AUTH_SECRET_LENGTH];
 
-	int generate();
 	void init(
 		const std::string &private_key,
 		const std::string &public_key,
@@ -141,6 +140,8 @@ public:
 	int write(
 		const std::string &fileName
 	) const;
+	std::string asJSON() const;
+	int generate();
 };
 
 class Subscription
@@ -148,21 +149,22 @@ class Subscription
 private:
 	std::string name;
 	std::string subscribeUrl;
-	int subscribeMode;
+	int subscribeMode;				///<  1: FCM       - 2: VAPID
 	std::string endpoint;
-	std::string serverKey;
-	std::string authorizedEntity;
-	std::string token;
+	std::string serverKey;			///< FCM server key - VAPID private key
+	std::string authorizedEntity;	///< FCM entity     - VAPID public key
+	std::string token;				///< FCM token      - VAPID auth secret
 	std::string pushSet;
-	std::string mPersistentId;	///< last received message id
+	std::string mPersistentId;	///< last received message id for unknown reason
 	void init(
+		// FCM
 		const std::string &name,
 		const std::string &subscribeUrl,
 		int subscribeMode,
 		const std::string &endpoint,
-		const std::string &serverKey,
-		const std::string &authorizedEntity,
-		const std::string &token,
+		const std::string &serverKey,		// VAPID private key
+		const std::string &authorizedEntity,// VAPID public key
+		const std::string &token,			// VAPID auth secret
 		const std::string &pushSet,
 		const std::string &persistentId
 	);

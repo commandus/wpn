@@ -362,6 +362,13 @@ int WpnKeys::write(
 	return r;
 }
 
+std::string WpnKeys::asJSON() const
+{
+	std::stringstream ss;
+	write(ss, DEF_DELIMITER, 1);
+	return ss.str();
+}
+
 // --------------- Subscription ---------------
 
 Subscription::Subscription()

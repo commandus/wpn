@@ -6,6 +6,7 @@
 #define WP_SUBSCRIBE_H
 
 #define SUBSCRIBE_FIREBASE			1
+#define SUBSCRIBE_VAPID				2
 
 #define ERR_MODE					-1
 #define ERR_PARAM_ENDPOINT			-2

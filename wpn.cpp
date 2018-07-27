@@ -42,7 +42,6 @@
 #include "sslfactory.h"
 #include "mcs/mcsclient.h"
 #include "utilqr.h"
-#include "utilvapid.h"
 #include "utilstring.h"
 
 #define ERR_WSA		-1
@@ -303,7 +302,29 @@ int main(int argc, char** argv)
 			break;
 		case CMD_GENERATE_VAPID_KEYS:
 		{
-			std::cout << generateVAPIDKeysJSON() << std::endl;
+			Subscription subscription;
+			std::string d;
+			std::string headers;
+
+			config.wpnKeys->generate();
+			/*
+			int r = subscribe(subscription, SUBSCRIBE_VAPID, *config.wpnKeys, 
+				config.subscribeUrl, config.getDefaultEndPoint(), config.authorizedEntity,
+				config.serverKey, &d, &headers, config.verbosity);
+			if ((r < 200) || (r >= 300))
+			{
+				std::cerr << "Error " << r << ": " << d << std::endl;
+			}
+			else 
+			{
+				config.subscriptions->list.push_back(subscription);
+			}
+			if (config.verbosity > 0)
+			{
+				subscription.write(std::cout, "\t", config.outputFormat);
+			}
+			*/
+			std::cout << config.wpnKeys->asJSON() << std::endl;
 		}
 			break;
 		default:
