@@ -42,6 +42,7 @@
 #include "sslfactory.h"
 #include "mcs/mcsclient.h"
 #include "utilqr.h"
+#include "utilvapid.h"
 #include "utilstring.h"
 
 #define ERR_WSA		-1
@@ -298,6 +299,11 @@ int main(int argc, char** argv)
 				else
 					std::cerr << "Error " << r << ": " << retval << std::endl;
 			}
+		}
+			break;
+		case CMD_GENERATE_VAPID_KEYS:
+		{
+			std::cout << generateVAPIDKeysJSON() << std::endl;
 		}
 			break;
 		default:

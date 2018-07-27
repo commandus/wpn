@@ -172,6 +172,9 @@ int WpnConfig::parseCmd
 	struct arg_str *a_output_lib_filenames = arg_strn(NULL, "plugin", "<file name>", 0, 100, "Output shared library file name or directory");
 	struct arg_str *a_notify_function_name = arg_str0(NULL, "plugin-func", "<name>", "Output function name. Default " DEF_FUNC_NOTIFY);
 	
+	// output options
+	struct arg_lit *a_generatevapidkeys = arg_lit0(NULL, "generate-vapid-keys", "Generate VAPID keys pair");
+
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
@@ -184,6 +187,7 @@ int WpnConfig::parseCmd
 		a_recipient_tokens, a_recipient_token_file,
 		a_output, a_template_file,
 		a_output_lib_filenames, a_notify_function_name,
+		a_generatevapidkeys,
 		a_verbosity,  a_help, a_end 
 	};
 
@@ -263,6 +267,9 @@ int WpnConfig::parseCmd
 								else
 									if (a_send->count)
 										cmd = CMD_PUSH;
+									else
+										if (a_generatevapidkeys->count)
+											cmd = CMD_GENERATE_VAPID_KEYS;
 
 	if (a_notify_function_name->count)
 		notifyFunctionName = *a_notify_function_name->sval;

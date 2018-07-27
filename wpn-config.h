@@ -21,6 +21,7 @@
 #define CMD_SUBSCRIBE 			7
 #define CMD_UNSUBSCRIBE			8
 #define CMD_PUSH				9
+#define CMD_GENERATE_VAPID_KEYS	10
 
 #define SUBSCRIBE_URL_COUNT		1
 #define SUBSCRIBE_URL_1	 		"https://fcm.googleapis.com/fcm/connect/subscribe"

@@ -286,6 +286,26 @@ Output plugins are shared libraries See declaration in wpn-notify.h
 
 ## Other options
 
+Some helpful options for developers:
+
+### Generate VAPID keys
+
+[VAPID and FCM](https://developers.google.com/web/ilt/pwa/introduction-to-push-notifications#vapid)
+
+
+```
+./wpn --generate-vapid-keys
+```
+
+produce JSON output:
+```
+{
+  "privateKey":"rL9s2AQJnUoyGDjd-Vm251i_eFUgEK3kiQNJi9p1u3Q",
+  "publicKey":"BMF5kzOI4ZRKIaU2XF8koyhJNm7vGY2S9ZKe0OBUbK7rgFmR7D2uUppnIYhs_vVc-8z9CxGwzMLldZ8cYVm9mIc",
+  "authSecret":"xib7Leaop34KFdBpUVUJaQ"
+}
+```
+
 ### Different configuration file name
 
 Set up different configuration file name with -c option:
