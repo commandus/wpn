@@ -179,7 +179,7 @@ int AndroidCredentials::write
 			<< delimiter << mGCMToken << std::endl;
 	}
 	r = strm.tellp() - r;
-	return r;
+	return (int) r;
 }
 
 int AndroidCredentials::write
@@ -349,7 +349,7 @@ int WpnKeys::write
 		default:
 			strm << getPrivateKey() << delimiter << getPublicKey() << delimiter << getAuthSecret() << std::endl;
 	}
-	return strm.tellp() - r;
+	return (int) strm.tellp() - r;
 }
 
 int WpnKeys::write(
@@ -557,7 +557,7 @@ int Subscription::write
 					<< delimiter << getServerKey() << std::endl;
 			break;
 	}
-	return strm.tellp() - r;
+	return (int) strm.tellp() - r;
 }
 
 int Subscription::write

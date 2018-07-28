@@ -469,9 +469,9 @@ int WpnConfig::read(const std::string &fileName)
 	androidCredentials = new AndroidCredentials(configRead);
 	wpnKeys = new WpnKeys(configRead);
 	subscriptions = new Subscriptions(configRead);
-	long r = configRead.tellg();
+	std::istream::pos_type r = configRead.tellg();
 	configRead.close();
-	return r;
+	return (int) r;
 }
 
 int WpnConfig::write() const
