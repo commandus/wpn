@@ -241,6 +241,8 @@ int push2ClientNotificationVAPID
 	const std::string &endpoint,
 	const std::string &privateKey,
 	const std::string &publicKey,
+	const std::string &aud, 
+	const std::string &sub,
 	const std::string &title,
 	const std::string &body,
 	const std::string &icon,
@@ -258,7 +260,8 @@ int push2ClientNotificationVAPID
 			}
 		}
 	};
-	return push2ClientJSON_VAPID(retval, privateKey, publicKey, endpoint, requestBody.dump());
+	return push2ClientJSON_VAPID(retval, privateKey, publicKey, 
+		aud, sub, endpoint, requestBody.dump());
 }
 
 /**
