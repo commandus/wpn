@@ -1,10 +1,18 @@
+#include <openssl/ossl_typ.h>
+#include <openssl/ossl_typ.h>
+#include <openssl/ossl_typ.h>
+#include <openssl/ossl_typ.h>
 #include <iostream>
 #include <sstream>
 #include "wp-push.h"
 
+#include <ece.h>
+#include <ece/keys.h>
 #include <curl/curl.h>
 
 #include "nlohmann/json.hpp"
+
+#include "utilvapid.h"
 
 using json = nlohmann::json;
 
@@ -21,7 +29,7 @@ static size_t write_string(void *contents, size_t size, size_t nmemb, void *user
 }
 
 /**
-* Push raw JSON to device
+* Push raw JSON to device FCM
 * @return 200-299- success, <0- error
 */
 int push2ClientJSON
@@ -57,6 +65,104 @@ int push2ClientJSON
 	std::string r;
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &r);
 // std::cerr << "Send to " << FCM_SEND << ": " << value<< std::endl;		
+	res = curl_easy_perform(curl);
+	int http_code;
+
+    if (res != CURLE_OK)
+	{
+		if (retval)
+			*retval = curl_easy_strerror(res);
+		http_code = - res;
+	}
+	else
+	{
+		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+		if ((http_code >= 200) && (http_code < 300))
+		{
+			try 
+			{
+				json response = json::parse(r);
+				if (retval)
+					*retval = r;
+			}
+			catch(...) 
+			{
+				if (retval)
+					*retval = "Parse error of: "  + r;
+				if (client_token.empty())
+					return ERR_PARSE_RESPONSE;	
+			}
+		}
+		else
+		{
+			// Error
+			if (retval)
+				*retval = r;
+		}
+	}
+	curl_easy_cleanup(curl);
+	return http_code;
+}
+
+std::string mkJWTHeader
+(
+	const std::string &aud,
+	const std::string &sub,
+	const std::string &privateKey,
+	const std::string &publicKey
+)
+{
+	// Builds a signed Vapid token to include in the `Authorization` header. The token is null-terminated.
+	// EC_KEY keys;
+	time_t exp = time(NULL) + 60 * 60 * 12;
+	return std::string(vapid_build_token(NULL, aud.c_str(), aud.size(), exp, sub.c_str(), sub.size()));
+}
+
+/**
+* Push raw JSON to device VAPID
+* @param aud e.g. "http://acme.com" 
+* @param sub e.g. "mailto: wile@acme.com" 
+* @return 200-299- success, <0- error
+*/
+int push2ClientJSON_VAPID
+(
+	std::string *retval,
+	const std::string &privateKey,
+	const std::string &publicKey,
+	const std::string aud,
+    const std::string sub,
+	const std::string &client_token,
+	const std::string &value
+)
+{
+	if (privateKey.empty())
+		return ERR_PARAM_SERVER_KEY;
+	if (publicKey.empty())
+		return ERR_PARAM_SERVER_KEY;
+	if (client_token.empty())
+		return ERR_PARAM_CLIENT_TOKEN;
+	CURL *curl = curl_easy_init();
+	if (!curl)
+		return CURLE_FAILED_INIT; 
+	CURLcode res;
+	
+	struct curl_slist *chunk = NULL;
+	chunk = curl_slist_append(chunk, ("Content-Type: application/json"));
+	chunk = curl_slist_append(chunk, ("Authorization: WebPush " 
+		+ mkJWTHeader(aud, sub, privateKey, publicKey)).c_str());
+
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+
+	curl_easy_setopt(curl, CURLOPT_URL, FCM_SEND);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, value.c_str());
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, value.size());
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_string);
+	std::string r;
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &r);
+	// std::cerr << "Send to " << FCM_SEND << ": " << value<< std::endl;		
 	res = curl_easy_perform(curl);
 	int http_code;
 
@@ -135,7 +241,6 @@ int push2ClientNotificationVAPID
 	const std::string &endpoint,
 	const std::string &privateKey,
 	const std::string &publicKey,
-	const std::string &authSecret,
 	const std::string &title,
 	const std::string &body,
 	const std::string &icon,
@@ -153,7 +258,7 @@ int push2ClientNotificationVAPID
 			}
 		}
 	};
-	return push2ClientJSON(retval, privateKey, endpoint, requestBody.dump());
+	return push2ClientJSON_VAPID(retval, privateKey, publicKey, endpoint, requestBody.dump());
 }
 
 /**

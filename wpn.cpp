@@ -318,7 +318,7 @@ int main(int argc, char** argv)
 							break;
 						case SUBSCRIBE_VAPID:
 							r = push2ClientNotificationVAPID(&retval, *it,
-								wpnKeys.getPrivateKey(), wpnKeys.getPublicKey(), wpnKeys.getAuthSecret(), 
+								wpnKeys.getPrivateKey(), wpnKeys.getPublicKey(),
 									config.subject, config.body, config.icon, config.link);
 							break;
 					}
