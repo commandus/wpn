@@ -442,7 +442,11 @@ int MCSReceiveBuffer::parse()
 													}
 													// send response
 													std::string output;
-													int rp = push2ClientData(&output, serverKey, token, from, persistent_id, command, retcode, r);
+													int rp;
+													if (true)
+														rp = push2ClientDataFCM(&output, serverKey, token, from, persistent_id, command, retcode, r);
+													else
+														rp = push2ClientDataVAPID(&output, serverKey, serverKey, token, from, persistent_id, command, retcode, r);
 													if ((rp >= 200) && (rp <= 399))
 													{
 														mClient->log(3) << "Send reply: " << std::endl 
