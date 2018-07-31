@@ -16,6 +16,11 @@
 
 #define DEF_DELIMITER " "	// space character
 
+#define SUBSCRIBE_FIREBASE			1
+#define SUBSCRIBE_VAPID				2
+
+#define FORMAT_JSON					1
+
 class AndroidCredentials
 {
 private:
@@ -110,6 +115,9 @@ private:
 public:
 	WpnKeys();
 	WpnKeys(
+		const WpnKeys &wpnKeys
+	);
+	WpnKeys(
 		const std::string &private_key,
 		const std::string &public_key,
 		const std::string &auth_secret
@@ -156,17 +164,31 @@ private:
 	std::string token;				///< FCM token      - VAPID auth secret
 	std::string pushSet;
 	std::string mPersistentId;	///< last received message id for unknown reason
-	void init(
-		// FCM
+	WpnKeys wpnKeys;
+	/// Initialize FCM
+	void initFCM(
 		const std::string &name,
 		const std::string &subscribeUrl,
-		int subscribeMode,
 		const std::string &endpoint,
 		const std::string &serverKey,		// VAPID private key
 		const std::string &authorizedEntity,// VAPID public key
 		const std::string &token,			// VAPID auth secret
 		const std::string &pushSet,
 		const std::string &persistentId
+	);
+	/// Initialize VAPID
+	void initVAPID(
+		const std::string &name,
+		const std::string &persistentId,
+		const std::string &publicKey,
+		const std::string &privateKey,
+		const std::string &authSecret
+	);
+	/// Initialize VAPID 1
+	void initVAPID1(
+		const std::string &name,
+		const std::string &persistentId,
+		const WpnKeys *wpnKeys
 	);
 	void parse(
 		const std::string &keys,
@@ -211,6 +233,7 @@ public:
 	std::string getAuthorizedEntity() const;
 	std::string getToken() const;
 	std::string getPushSet() const;
+	const WpnKeys &getWpnKeys() const;
 
 	void setName(const std::string &value);
 	void setSubscribeUrl(const std::string &value);
@@ -220,6 +243,7 @@ public:
 	void setAuthorizedEntity(const std::string &value);
 	void setToken(const std::string &value);
 	void setPushSet(const std::string &value);
+	void setWpnKeys(const WpnKeys &value);
 
 	const std::string &getPersistentId() const;
 	void setPersistentId(const std::string &value);

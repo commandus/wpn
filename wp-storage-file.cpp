@@ -200,6 +200,12 @@ WpnKeys::WpnKeys()
 	generate();
 }
 
+WpnKeys::WpnKeys (
+	const WpnKeys &value
+) {
+	init(value.getPrivateKey(), value.getPublicKey(), value.getAuthSecret());
+}
+
 WpnKeys::WpnKeys
 (
 	const std::string &private_key,
@@ -336,7 +342,7 @@ int WpnKeys::write
 	std::ostream::pos_type r = strm.tellp();
 	switch (writeFormat)
 	{
-		case 1:
+		case FORMAT_JSON:
 			{
 				json j = {
 					{"privateKey", getPrivateKey()},
@@ -451,6 +457,16 @@ std::string Subscription::getPushSet() const
 	return pushSet;
 }
 
+const std::string &Subscription::getPersistentId() const
+{
+	return mPersistentId;
+}
+
+const WpnKeys& Subscription::getWpnKeys() const
+{
+	return wpnKeys;
+}
+
 void Subscription::setName(const std::string &value)
 {
 	name = escapeURLString(value);
@@ -491,9 +507,9 @@ void Subscription::setPushSet(const std::string &value)
 	pushSet = value;
 }
 
-const std::string &Subscription::getPersistentId() const
+void Subscription::setWpnKeys(const WpnKeys &value)
 {
-	return mPersistentId;
+	wpnKeys = value;
 }
 
 void setPersistentId
@@ -519,42 +535,102 @@ int Subscription::write
 ) const
 {
 	std::ostream::pos_type r = strm.tellp();
+	int subscriptionMode = getSubscribeMode();
 	switch (writeFormat)
 	{
-		case 1:
+		case FORMAT_JSON:
 			{
 				json j;
-				if (shortFormat)
-					j = {
-						{"name", getName()},
-						{"authorizedEntity", getAuthorizedEntity()},
-						{"token", getToken()},
-						{"serverKey", getServerKey()}
-					};
-				else
-					j = {
-						{"name", getName()},
-						{"subscribeUrl", getSubscribeUrl()},
-						{"subscribeMode", getSubscribeMode()},
-						{"endpoint", getEndpoint()},
-						{"authorizedEntity", getAuthorizedEntity()},
-						{"token", getToken()},
-						{"pushSet", getPushSet()},
-						{"persistentId", getPersistentId()},
-						{"serverKey", getServerKey()}
-					};
+				if (shortFormat) {
+					switch(subscriptionMode) {
+						case SUBSCRIBE_FIREBASE:
+							j = {
+								{"name", getName()},
+								{"authorizedEntity", getAuthorizedEntity()},
+								{"token", getToken()},
+								{"serverKey", getServerKey()}
+							};
+							break;
+						case SUBSCRIBE_VAPID:
+							{
+								const WpnKeys& wpnKeys = getWpnKeys();
+								j = {
+									{"name", getName()},
+									{"publicKey", wpnKeys.getPublicKey()},
+									{"privateKey", wpnKeys.getPrivateKey()},
+									{"authSecret", wpnKeys.getAuthSecret()},
+									{"persistentId", getPersistentId()}
+								};
+							}
+							break;
+						default:
+							break;
+					}
+
+				} else {
+					switch(subscriptionMode) {
+						case SUBSCRIBE_FIREBASE:
+							j = {
+								{"name", getName()},
+								{"subscribeUrl", getSubscribeUrl()},
+								{"subscribeMode", getSubscribeMode()},
+								{"endpoint", getEndpoint()},
+								{"authorizedEntity", getAuthorizedEntity()},
+								{"token", getToken()},
+								{"pushSet", getPushSet()},
+								{"persistentId", getPersistentId()},
+								{"serverKey", getServerKey()}
+							};
+							break;
+						case SUBSCRIBE_VAPID:
+							{
+								const WpnKeys& wpnKeys = getWpnKeys();
+								j = {
+									{"name", getName()},
+									{"publicKey", wpnKeys.getPublicKey()},
+									{"privateKey", wpnKeys.getPrivateKey()},
+									{"authSecret", wpnKeys.getAuthSecret()},
+									{"persistentId", getPersistentId()}
+								};
+							}
+							break;
+						default:
+							break;
+					}
+					
+				}
 				strm << j.dump();
 			}
 			break;
 		default:
-			if (shortFormat)
-				strm << getName() << delimiter << getAuthorizedEntity() << delimiter << getServerKey() 
-					<< delimiter << getToken() << std::endl;
-			else
-				strm << getName() << delimiter << getSubscribeUrl() << delimiter << getSubscribeMode() << delimiter 
-					<< getEndpoint() << delimiter << getAuthorizedEntity() << delimiter 
-					<< getToken() << delimiter << getPushSet() << delimiter << getPersistentId() 
-					<< delimiter << getServerKey() << std::endl;
+			if (shortFormat) {
+				switch(subscriptionMode) {
+					case SUBSCRIBE_FIREBASE:
+						strm << getName() << delimiter << getAuthorizedEntity() << delimiter << getServerKey() 
+							<< delimiter << getToken() << std::endl;
+						break;
+					case SUBSCRIBE_VAPID:
+						strm << getName() << delimiter << getPersistentId() << delimiter;
+						getWpnKeys().write(strm, delimiter, writeFormat);
+						break;
+					default:
+						break;
+				}
+			} else {
+				switch(subscriptionMode) {
+					case SUBSCRIBE_FIREBASE:
+						strm << getSubscribeMode() << delimiter << getName() << delimiter << getSubscribeUrl() << delimiter
+							<< getEndpoint() << delimiter << getServerKey() << delimiter 
+							<< getAuthorizedEntity() << delimiter << getToken() << getPushSet() << delimiter << getPersistentId() << std::endl;
+						break;
+					case SUBSCRIBE_VAPID:
+						strm << getSubscribeMode() << delimiter << getName() << delimiter << getPersistentId() << delimiter;
+						getWpnKeys().write(strm, delimiter, writeFormat);
+						break;
+					default:
+						break;
+				}
+			}
 			break;
 	}
 	return (int) strm.tellp() - r;
@@ -571,28 +647,54 @@ int Subscription::write
 	return r;
 }
 
-void Subscription::init
-(
+/// Initialize VAPID
+void Subscription::initVAPID1(
+	const std::string &a_name,
+	const std::string &a_persistentId,
+	const WpnKeys *a_wpn_keys
+	
+)
+{
+	subscribeMode = SUBSCRIBE_VAPID;
+	name = a_name;
+	wpnKeys = *a_wpn_keys;
+	mPersistentId = a_persistentId;
+}
+
+/// Initialize VAPID
+void Subscription::initVAPID(
+	const std::string &a_name,
+	const std::string &a_persistentId,
+	const std::string &a_public_key,	// VAPID public key
+	const std::string &a_private_key,	// VAPID private key
+	const std::string &a_auth_secret	// VAPID auth secret
+)
+{
+	WpnKeys wpnKeys(a_public_key, a_private_key, a_auth_secret);
+	initVAPID1(a_name, a_persistentId, &wpnKeys);
+}
+
+/// Initialize FCM
+void Subscription::initFCM(
 	const std::string &a_name,
 	const std::string &a_subscribeUrl,
-	int a_subscribeMode,
 	const std::string &a_endpoint,
+	const std::string &a_serverKey,
 	const std::string &a_authorizedEntity,
 	const std::string &a_token,
 	const std::string &a_pushSet,
-	const std::string &persistentId,
-	const std::string &a_serverKey
+	const std::string &a_persistentId
 )
 {
+	subscribeMode = SUBSCRIBE_FIREBASE;
 	name = a_name;
 	subscribeUrl = a_subscribeUrl;
-	subscribeMode = a_subscribeMode;
 	endpoint = a_endpoint;
 	serverKey = a_serverKey;
 	authorizedEntity = a_authorizedEntity;
 	token = a_token;
 	pushSet = a_pushSet;
-	mPersistentId = persistentId;
+	mPersistentId = a_persistentId;
 }
 
 void Subscription::parse
@@ -613,8 +715,19 @@ void Subscription::parse
 		if (i >= 9)
 			break;
 	}
-	if (!k[2].empty())
-		init(k[0], k[1], strtol(k[2].c_str(), NULL, 10), k[3], k[4], k[5], k[6], k[7], k[8]); 
+	if ((!k[2].empty()) && (!k[0].empty())) {
+		int subscriptionMode = strtol(k[0].c_str(), NULL, 10);
+		switch (subscriptionMode) {
+			case SUBSCRIBE_FIREBASE:
+				initFCM(k[1], k[2], k[3], k[4], k[5], k[6], k[7], k[8]); 
+				break;
+			case SUBSCRIBE_VAPID:
+				initVAPID(k[1], k[2], k[3], k[4], k[5]); 
+				break;
+			default:
+				break;
+		}
+	}
 }
 
 void Subscription::read
