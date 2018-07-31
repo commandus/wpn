@@ -170,15 +170,16 @@ private:
 		const std::string &name,
 		const std::string &subscribeUrl,
 		const std::string &endpoint,
-		const std::string &serverKey,		// VAPID private key
-		const std::string &authorizedEntity,// VAPID public key
-		const std::string &token,			// VAPID auth secret
+		const std::string &serverKey,
+		const std::string &authorizedEntity,
+		const std::string &token,
 		const std::string &pushSet,
 		const std::string &persistentId
 	);
 	/// Initialize VAPID
 	void initVAPID(
 		const std::string &name,
+		const std::string &endpoint,
 		const std::string &persistentId,
 		const std::string &publicKey,
 		const std::string &privateKey,
@@ -187,6 +188,7 @@ private:
 	/// Initialize VAPID 1
 	void initVAPID1(
 		const std::string &name,
+		const std::string &endpoint,
 		const std::string &persistentId,
 		const WpnKeys *wpnKeys
 	);

@@ -556,6 +556,7 @@ int Subscription::write
 								const WpnKeys& wpnKeys = getWpnKeys();
 								j = {
 									{"name", getName()},
+									{"endpoint", getEndpoint()},
 									{"publicKey", wpnKeys.getPublicKey()},
 									{"privateKey", wpnKeys.getPrivateKey()},
 									{"authSecret", wpnKeys.getAuthSecret()},
@@ -587,6 +588,7 @@ int Subscription::write
 								const WpnKeys& wpnKeys = getWpnKeys();
 								j = {
 									{"name", getName()},
+									{"endpoint", getEndpoint()},
 									{"publicKey", wpnKeys.getPublicKey()},
 									{"privateKey", wpnKeys.getPrivateKey()},
 									{"authSecret", wpnKeys.getAuthSecret()},
@@ -610,7 +612,7 @@ int Subscription::write
 							<< delimiter << getToken() << std::endl;
 						break;
 					case SUBSCRIBE_VAPID:
-						strm << getName() << delimiter << getPersistentId() << delimiter;
+						strm << getName() << delimiter << getEndpoint() << delimiter << getPersistentId() << delimiter;
 						getWpnKeys().write(strm, delimiter, writeFormat);
 						break;
 					default:
@@ -624,7 +626,7 @@ int Subscription::write
 							<< getAuthorizedEntity() << delimiter << getToken() << getPushSet() << delimiter << getPersistentId() << std::endl;
 						break;
 					case SUBSCRIBE_VAPID:
-						strm << getSubscribeMode() << delimiter << getName() << delimiter << getPersistentId() << delimiter;
+						strm << getSubscribeMode() << delimiter << getName() << delimiter << getEndpoint() << delimiter << getPersistentId() << delimiter;
 						getWpnKeys().write(strm, delimiter, writeFormat);
 						break;
 					default:
@@ -650,6 +652,7 @@ int Subscription::write
 /// Initialize VAPID
 void Subscription::initVAPID1(
 	const std::string &a_name,
+	const std::string &a_endpoint,
 	const std::string &a_persistentId,
 	const WpnKeys *a_wpn_keys
 	
@@ -657,13 +660,15 @@ void Subscription::initVAPID1(
 {
 	subscribeMode = SUBSCRIBE_VAPID;
 	name = a_name;
-	wpnKeys = *a_wpn_keys;
+	endpoint = a_endpoint;
 	mPersistentId = a_persistentId;
+	wpnKeys = *a_wpn_keys;
 }
 
 /// Initialize VAPID
 void Subscription::initVAPID(
 	const std::string &a_name,
+	const std::string &a_endpoint,
 	const std::string &a_persistentId,
 	const std::string &a_public_key,	// VAPID public key
 	const std::string &a_private_key,	// VAPID private key
@@ -671,7 +676,7 @@ void Subscription::initVAPID(
 )
 {
 	WpnKeys wpnKeys(a_public_key, a_private_key, a_auth_secret);
-	initVAPID1(a_name, a_persistentId, &wpnKeys);
+	initVAPID1(a_name, a_endpoint, a_persistentId, &wpnKeys);
 }
 
 /// Initialize FCM
@@ -722,7 +727,7 @@ void Subscription::parse
 				initFCM(k[1], k[2], k[3], k[4], k[5], k[6], k[7], k[8]); 
 				break;
 			case SUBSCRIBE_VAPID:
-				initVAPID(k[1], k[2], k[3], k[4], k[5]); 
+				initVAPID(k[1], k[2], k[3], k[4], k[5], k[6]); 
 				break;
 			default:
 				break;
