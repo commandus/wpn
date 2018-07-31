@@ -216,7 +216,7 @@ int main(int argc, char** argv)
 				std::cout << std::endl;
 			}
 			break;
-		case CMD_SUBSCRIBE:
+		case CMD_SUBSCRIBE_FCM:
 			{
 				Subscription subscription;
 				std::string d;
@@ -233,6 +233,16 @@ int main(int argc, char** argv)
 				{
 					config.subscriptions->list.push_back(subscription);
 				}
+				if (config.verbosity > 0)
+				{
+					subscription.write(std::cout, "\t", config.outputFormat);
+				}
+			}
+			break;
+		case CMD_SUBSCRIBE_VAPID:
+			{
+				Subscription subscription;
+				config.subscriptions->list.push_back(subscription);
 				if (config.verbosity > 0)
 				{
 					subscription.write(std::cout, "\t", config.outputFormat);
@@ -265,12 +275,34 @@ int main(int argc, char** argv)
 		{
 			std::string retval;
 			std::string token = "";
-			std::string serverKey = config.serverKey;
-			if (serverKey.empty())
-			{
-				// Load server key from the subscription, by the name
-				serverKey = config.getSubscriptionServerKey(config.name);
-				token = config.getSubscriptionToken(config.name);
+			std::string serverKey;
+			WpnKeys wpnKeys;
+			switch (config.subscriptionMode) {
+				case SUBSCRIBE_FIREBASE:
+					serverKey = config.serverKey;
+					break;
+				case SUBSCRIBE_VAPID:
+					wpnKeys.init(config.private_key, config.public_key, config.auth_secret); 
+					break;
+				default:
+					// Load server key from the subscription, by the name
+					const Subscription *subscription = config.getSubscription(config.name);
+					if (subscription) {
+						switch (subscription->getSubscribeMode()) {
+							case SUBSCRIBE_FIREBASE:
+								config.subscriptionMode = SUBSCRIBE_FIREBASE;
+								serverKey = subscription->getServerKey();
+								token = subscription->getToken();
+								break;
+							case SUBSCRIBE_VAPID:
+								config.subscriptionMode = SUBSCRIBE_VAPID;
+								wpnKeys.init(subscription->getWpnKeys()); 
+								break;
+							default:
+								break;
+						}
+					}
+					break;
 			}
 			for (std::vector<std::string>::const_iterator it(config.recipientTokens.begin()); it != config.recipientTokens.end(); ++it)
 			{
@@ -278,20 +310,34 @@ int main(int argc, char** argv)
 				if (config.command.empty())
 				{
 					if (config.verbosity > 1)
-						std::cout << "Sending notification to " << *it 
-							<< ", server key " << serverKey << std::endl;
-						r = push2ClientNotification(&retval,
-						serverKey, *it,
-						config.subject,
-						config.body, config.icon, config.link
-					);
+						std::cout << "Sending notification to " << *it << std::endl;
+					switch (config.subscriptionMode) {
+						case SUBSCRIBE_FIREBASE:
+							r = push2ClientNotificationFCM(&retval, serverKey, *it, 
+								config.subject, config.body, config.icon, config.link);
+							break;
+						case SUBSCRIBE_VAPID:
+							r = push2ClientNotificationVAPID(&retval, *it,
+								wpnKeys.getPrivateKey(), wpnKeys.getPublicKey(), wpnKeys.getAuthSecret(), 
+									config.subject, config.body, config.icon, config.link);
+							break;
+					}
 				}
 				else
 				{
 					if (config.verbosity > 1)
-						std::cout << "Execute command " << config.command << " on " << *it 
-							<< ", server key " << serverKey << std::endl;
-						r = push2ClientData(&retval, serverKey, token, *it, "", config.command, 0, "");
+						std::cout << "Execute command " << config.command << " on " << *it << std::endl;
+					switch (config.subscriptionMode) {
+						case SUBSCRIBE_FIREBASE:
+							r = push2ClientDataFCM(&retval, serverKey, token, *it, "", config.command, 0, "");
+							break;
+						case SUBSCRIBE_VAPID:
+							r = push2ClientDataVAPID(&retval, *it,
+								wpnKeys.getPrivateKey(), wpnKeys.getPublicKey(), wpnKeys.getAuthSecret(), 
+								"", config.command, 0, "");
+							break;
+					}					
+					
 				}
 				if (r >= 200 && r < 300)
 					std::cout << retval << std::endl;

@@ -103,7 +103,8 @@ std::string WpnConfig::getDefaultEndPoint()
 
 WpnConfig::WpnConfig()
 	: errorcode(0), cmd(CMD_LISTEN), verbosity(0), file_name(getDefaultConfigFileName()), endpoint(""), name(""),
-	authorizedEntity(""), notifyFunctionName(DEF_FUNC_NOTIFY), invert_qrcode(false), command(""), cn("")
+	authorizedEntity(""), notifyFunctionName(DEF_FUNC_NOTIFY), invert_qrcode(false), command(""), cn(""),
+	private_key(""), public_key(""), auth_secret("")
 {
 }
 
@@ -138,16 +139,19 @@ int WpnConfig::parseCmd
 	char* argv[]
 )
 {
+	subscriptionMode = 0;
+	
 	struct arg_lit *a_list = arg_lit0("l", "list", "List subscriptions");
 	struct arg_lit *a_list_qrcode = arg_lit0("q", "qrcode", "QRCode list subscriptions");
 	struct arg_lit *a_invert_qrcode = arg_lit0("Q", "qrcode-inverted", "inverted QR code (white console)");
-	struct arg_str *a_list_email = arg_str0("e", "mailto", "<common name>", "e-mail list subscriptions to the person. Use with optional --subject --template-file ");
+	struct arg_str *a_list_email = arg_str0("M", "mailto", "<common name>", "e-mail list subscriptions to the person. Use with optional --subject --template-file ");
 	struct arg_lit *a_link_email = arg_lit0("E", "link", "list subscriptions link");
 	struct arg_lit *a_keys = arg_lit0("y", "keys", "Print keys");
 	struct arg_lit *a_credentials = arg_lit0("p", "credentials", "Print credentials");
-	struct arg_lit *a_subscribe = arg_lit0("s", "subscribe", "Subscribe with mandatory -e, optional -r, -k");
+	struct arg_lit *a_subscribe_vapid = arg_lit0("s", "subscribe", "Subscribe with VAPID. Mandatory -u -n --private-key --public-key --auth-secret");
+	struct arg_lit *a_subscribe_fcm = arg_lit0("f", "subscribe-fcm", "Subscribe with FCM. Mandatory -e -n, optional -r, -k");
 	struct arg_lit *a_unsubscribe = arg_lit0("d", "unsubscribe", "Unsubscribe with -e");
-	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -k (or -n), -x (or -t, -b, -i, -a)");
+	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -k (FCM), --private-key, --public-key, --auth-secret (VAPID) or -n; execute -x. Or -t, -b, -i, -a");
 	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
 	
 	struct arg_str *a_name = arg_str0("n", "name", "<name>", "Subscription name");
@@ -159,6 +163,11 @@ int WpnConfig::parseCmd
 	struct arg_str *a_server_key = arg_str0("k", "key", "<server key>", "Server key to send");
 	struct arg_str *a_recipient_tokens = arg_strn(NULL, NULL, "<account#>", 0, 100, "Recipient token.");
 	struct arg_str *a_recipient_token_file = arg_str0("j", "json", "<file name or URL>", "Recipient token JSON file e.g. [[1,\"token\",..");
+	// VAPID
+	struct arg_str *a_vapid_private_key = arg_str0(NULL, "private-key", "<VAPID private key>", "VAPID private key");
+	struct arg_str *a_vapid_public_key = arg_str0(NULL, "public-key", "<VAPID public key>", "VAPID public key");
+	struct arg_str *a_vapid_auth_secret = arg_str0(NULL, "auth-secret", "<VAPID auth secret>", "VAPID auth secret");
+
 	// notification options
 	struct arg_str *a_subject = arg_str0("t", "subject", "<Text>", "Subject (topic)");
 	struct arg_str *a_body = arg_str0("b", "body", "<Text>", "Body");
@@ -180,11 +189,13 @@ int WpnConfig::parseCmd
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
-		a_list, a_list_qrcode, a_invert_qrcode, a_list_email, a_link_email, a_credentials, a_keys, a_subscribe, a_unsubscribe, a_send,
+		a_list, a_list_qrcode, a_invert_qrcode, a_list_email, a_link_email, a_credentials, a_keys, 
+		a_subscribe_vapid, a_subscribe_fcm, a_unsubscribe, a_send,
 		a_name, a_subscribe_url, a_endpoint, a_authorized_entity,
 		a_file_name,
 		a_server_key, a_subject, a_body, a_icon, a_link, a_command,
 		a_recipient_tokens, a_recipient_token_file,
+		a_vapid_private_key, a_vapid_public_key, a_vapid_auth_secret,
 		a_output, a_template_file,
 		a_output_lib_filenames, a_notify_function_name,
 		a_generatevapidkeys,
@@ -227,11 +238,6 @@ int WpnConfig::parseCmd
 	if (subscribeUrl.empty())
 		subscribeUrl = SUBSCRIBE_URLS[0];
 
-	if (a_endpoint->count)
-		endpoint = *a_endpoint->sval;
-	else
-		endpoint = getDefaultEndPoint();
-
 	if (a_authorized_entity->count)
 		authorizedEntity = *a_authorized_entity->sval;
 	else
@@ -259,17 +265,37 @@ int WpnConfig::parseCmd
 						if (a_credentials->count)
 							cmd = CMD_CREDENTIALS;
 						else
-							if (a_subscribe->count)
-								cmd = CMD_SUBSCRIBE;
+							if (a_subscribe_vapid->count)
+								cmd = CMD_SUBSCRIBE_VAPID;
 							else
-								if (a_unsubscribe->count)
-									cmd = CMD_UNSUBSCRIBE;
+								if (a_subscribe_fcm->count)
+									cmd = CMD_SUBSCRIBE_FCM;
 								else
-									if (a_send->count)
-										cmd = CMD_PUSH;
+									if (a_unsubscribe->count)
+										cmd = CMD_UNSUBSCRIBE;
 									else
-										if (a_generatevapidkeys->count)
-											cmd = CMD_GENERATE_VAPID_KEYS;
+										if (a_send->count)
+											cmd = CMD_PUSH;
+										else
+											if (a_generatevapidkeys->count)
+												cmd = CMD_GENERATE_VAPID_KEYS;
+
+	if (a_endpoint->count)
+		endpoint = *a_endpoint->sval;
+	else {
+		if (cmd == CMD_SUBSCRIBE_FCM) {
+			endpoint = getDefaultEndPoint();
+		}
+	}
+
+	if (a_vapid_private_key->count) {
+		subscriptionMode = SUBSCRIBE_VAPID;;
+		private_key = *a_vapid_private_key->sval;
+	}
+	if (a_vapid_public_key->count)
+		public_key = *a_vapid_private_key->sval;
+	if (a_vapid_auth_secret->count)
+		auth_secret = *a_vapid_auth_secret->sval;
 
 	if (a_notify_function_name->count)
 		notifyFunctionName = *a_notify_function_name->sval;
@@ -338,7 +364,7 @@ int WpnConfig::parseCmd
 		}
 	}
 
-	if (cmd == CMD_SUBSCRIBE)
+	if (cmd == CMD_SUBSCRIBE_FCM)
 	{
 		if (name.empty()) 
 		{
@@ -357,8 +383,38 @@ int WpnConfig::parseCmd
 		}
 	}
 
+	if (cmd == CMD_SUBSCRIBE_VAPID)
+	{
+		if (name.empty()) 
+		{
+			std::cerr << "No subscription name. Set valid -n option." << std::endl;
+			nerrors++;
+		}
+		if (endpoint.empty()) 
+		{
+			std::cerr << "No endpoint. Set valid -u option." << std::endl;
+			nerrors++;
+		}
+		if (private_key.empty()) 
+		{
+			std::cerr << "No VAPID private key. Set valid --private-key option." << std::endl;
+			nerrors++;
+		}
+		if (public_key.empty()) 
+		{
+			std::cerr << "No VAPID public key. Set valid --public-key option." << std::endl;
+			nerrors++;
+		}
+		if (auth_secret.empty()) 
+		{
+			std::cerr << "No VAPID auth secret key. Set valid --auth-secret option." << std::endl;
+			nerrors++;
+		}
+	}
+
 	if (a_server_key->count)
 	{
+		subscriptionMode = SUBSCRIBE_FIREBASE;
 		serverKey = *a_server_key->sval;
 	}
 	else
@@ -595,6 +651,24 @@ void WpnConfig::getPersistentIds(std::vector<std::string> &retval)
 }
 
 /**
+* Get subscription by name
+* @param subscriptionName subscription name
+* @return server key from subscription by the name of subscription
+*/
+const Subscription *WpnConfig::getSubscription(const std::string &subscriptionName) const
+{
+	for (std::vector<Subscription>::const_iterator it(subscriptions->list.begin()); it != subscriptions->list.end(); ++it)
+	{
+		std::string n = it->getName();
+		if (n == subscriptionName)
+		{
+			return &*it;
+		}
+	}
+	return NULL;
+}
+
+/**
  * Get server key
  * @param subscriptionName subscription name
  * @return server key from subscription by the name of subscription
@@ -604,17 +678,11 @@ std::string WpnConfig::getSubscriptionServerKey
 	const std::string &subscriptionName
 ) const
 {
-	for (std::vector<Subscription>::iterator it(subscriptions->list.begin()); it != subscriptions->list.end(); ++it)
-	{
-		std::string n = it->getName();
-		if (n == subscriptionName)
-		{
-			return it->getServerKey();
-		}
-	}
+	const Subscription *subscription = getSubscription(subscriptionName);
+	if (subscription)
+		return subscription->getServerKey();
 	return "";
 }
-
 
 /**
  * Get FCM token
@@ -626,14 +694,9 @@ std::string WpnConfig::getSubscriptionToken
 	const std::string &subscriptionName
 ) const
 {
-	for (std::vector<Subscription>::iterator it(subscriptions->list.begin()); it != subscriptions->list.end(); ++it)
-	{
-		std::string n = it->getName();
-		if (n == subscriptionName)
-		{
-			return it->getToken();
-		}
-	}
+	const Subscription *subscription = getSubscription(subscriptionName);
+	if (subscription)
+		return subscription->getToken();
 	return "";
 }
 

@@ -203,7 +203,7 @@ WpnKeys::WpnKeys()
 WpnKeys::WpnKeys (
 	const WpnKeys &value
 ) {
-	init(value.getPrivateKey(), value.getPublicKey(), value.getAuthSecret());
+	init(value);
 }
 
 WpnKeys::WpnKeys
@@ -250,6 +250,13 @@ void WpnKeys::init(
 	ece_base64url_decode(private_key.c_str(), private_key.size(), ECE_BASE64URL_REJECT_PADDING, privateKey, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
 	ece_base64url_decode(public_key.c_str(), public_key.size(), ECE_BASE64URL_REJECT_PADDING, publicKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH);
 	ece_base64url_decode(auth_secret.c_str(), auth_secret.size(), ECE_BASE64URL_REJECT_PADDING, authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
+}
+
+void WpnKeys::init(
+	const WpnKeys &value
+)
+{
+	init(value.getPrivateKey(), value.getPublicKey(), value.getAuthSecret());
 }
 
 void WpnKeys::parse(
@@ -386,7 +393,6 @@ Subscription::Subscription()
 Subscription::Subscription(
 	const std::string &aName,
 	const std::string &aSubscribeUrl,
-	int aSubscribeMode,
 	const std::string &a_endpoint,
 	const std::string &a_serverKey,
 	const std::string &a_authorizedEntity,
@@ -394,11 +400,29 @@ Subscription::Subscription(
 	const std::string &a_pushSet,
 	const std::string &aPersistentId
 )
-	: subscribeUrl(aSubscribeUrl), subscribeMode(aSubscribeMode), endpoint(a_endpoint), serverKey(a_serverKey),
+	: subscribeUrl(aSubscribeUrl), subscribeMode(SUBSCRIBE_FIREBASE), endpoint(a_endpoint), serverKey(a_serverKey),
 	authorizedEntity(a_authorizedEntity), token(a_token), pushSet(a_pushSet),
 	mPersistentId(aPersistentId)
 {
 	name = escapeURLString(aName);
+}
+
+// VAPID
+Subscription::Subscription(
+	const std::string &a_name,
+	const std::string &a_endpoint,
+	const std::string &a_privateKey,
+	const std::string &a_publicKey,
+	const std::string &a_authSecret,
+	const std::string &aPersistentId
+)
+	: subscribeUrl(""), subscribeMode(SUBSCRIBE_VAPID), endpoint(a_endpoint), 
+	serverKey(""), authorizedEntity(""), token(""), pushSet(""),
+	mPersistentId(aPersistentId)
+{
+	name = escapeURLString(a_name);
+	WpnKeys keys(a_privateKey, a_publicKey, a_authSecret);
+	setWpnKeys(WpnKeys(a_privateKey, a_publicKey, a_authSecret));
 }
 
 Subscription::Subscription(
@@ -599,7 +623,6 @@ int Subscription::write
 						default:
 							break;
 					}
-					
 				}
 				strm << j.dump();
 			}

@@ -244,7 +244,8 @@ int subscribe
 			if (verbosity > 2)
 				std::cerr << "Send: " << s << " to " << subscribeUrl << std::endl;
 			r = curlPost(subscribeUrl, "application/x-www-form-urlencoded", s, retHeaders,  retVal, verbosity);
-std::cerr << "Headers received: " << *retHeaders << std::endl;			
+			if (verbosity > 2)
+				std::cerr << "Headers received: " << *retHeaders << std::endl;			
 			if (retVal) {
 				if (verbosity > 2)
 					std::cerr << "Receive response code: "<< r << ", body:" << *retVal << " from " << subscribeUrl << std::endl;

@@ -18,10 +18,11 @@
 #define CMD_LIST_QRCODE			4
 #define CMD_LIST_LINK			5
 #define CMD_LIST_EMAIL			6
-#define CMD_SUBSCRIBE 			7
-#define CMD_UNSUBSCRIBE			8
-#define CMD_PUSH				9
-#define CMD_GENERATE_VAPID_KEYS	10
+#define CMD_SUBSCRIBE_FCM		7
+#define CMD_SUBSCRIBE_VAPID		8
+#define CMD_UNSUBSCRIBE			9
+#define CMD_PUSH				10
+#define CMD_GENERATE_VAPID_KEYS	11
 
 #define SUBSCRIBE_URL_COUNT		1
 #define SUBSCRIBE_URL_1	 		"https://fcm.googleapis.com/fcm/connect/subscribe"
@@ -62,10 +63,15 @@ public:
 	std::string endpoint;							///<subscription entity
 	std::string authorizedEntity;					///<subscription entity, sender Id
 
+	int subscriptionMode;
 	// send options: key, recipient's FCM tokens
 	std::string serverKey;							///< FCM server key
 	std::vector<std::string> recipientTokens;		///< recipient's FCM tokens
 	std::string recipientTokenFile;					///< file name or http[s] link, e.g. https://ikfia.wpn.commandus.com/app/token?accesskey=2117177
+	// VAPID
+	std::string private_key;
+	std::string public_key;
+	std::string auth_secret;
 	// send options
 	std::string subject;							///< subject
 	std::string body;								///< message body
@@ -101,6 +107,13 @@ public:
 	std::vector <desktopNotifyFunc> desktopNotifyFuncs;
 	bool setPersistentId(const std::string &authorizedEntity, const std::string &persistent_id);
 	void getPersistentIds(std::vector<std::string> &retval);
+
+	/**
+	* Get subscription
+	* @param subscriptionName subscription name
+	* @return server key from subscription by the name of subscription
+	*/
+	const Subscription *getSubscription(const std::string &subscriptionName) const;
 	/**
 	* Get server key
 	* @param subscriptionName subscription name

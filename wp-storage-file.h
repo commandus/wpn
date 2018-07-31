@@ -99,11 +99,6 @@ private:
 	// the auth secret via `pushSubscription.getKey("auth")`.
 	uint8_t authSecret[ECE_WEBPUSH_AUTH_SECRET_LENGTH];
 
-	void init(
-		const std::string &private_key,
-		const std::string &public_key,
-		const std::string &auth_secret
-	);
 	void parse(
 		const std::string &keys,
 		const std::string &delimiter
@@ -113,6 +108,14 @@ private:
 		const std::string &delimiter
 	);
 public:
+	void init(
+		const std::string &private_key,
+		const std::string &public_key,
+		const std::string &auth_secret
+	);
+	void init(
+		const WpnKeys &wpnKeys
+	);
 	WpnKeys();
 	WpnKeys(
 		const WpnKeys &wpnKeys
@@ -203,15 +206,24 @@ private:
 
 public:
 	Subscription();
+	// FCM
 	Subscription(
 		const std::string &name,
 		const std::string &subscribeUrl,
-		int subscribeMode,
 		const std::string &endpoint,
 		const std::string &serverKey,
 		const std::string &authorizedEntity,
 		const std::string &token,
 		const std::string &pushSet,
+		const std::string &persistentId
+	);
+	// VAPID
+	Subscription(
+		const std::string &name,
+		const std::string &endpoint,
+		const std::string &privateKey,
+		const std::string &publicKey,
+		const std::string &authSecret,
 		const std::string &persistentId
 	);
 	Subscription(
