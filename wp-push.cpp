@@ -108,14 +108,15 @@ std::string mkJWTHeader
 (
 	const std::string &aud,
 	const std::string &sub,
-	const std::string &privateKey,
-	const std::string &publicKey
+	const std::string &privateKey
 )
 {
-	// Builds a signed Vapid token to include in the `Authorization` header. The token is null-terminated.
-	// EC_KEY keys;
+	// Builds a signed Vapid token to include in the `Authorization` header. 
+	uint8_t pk[ECE_WEBPUSH_PRIVATE_KEY_LENGTH];
+	ece_base64url_decode(privateKey.c_str(), privateKey.size(), ECE_BASE64URL_REJECT_PADDING, pk, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
+	EC_KEY *key = ece_import_private_key(pk, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
 	time_t exp = time(NULL) + 60 * 60 * 12;
-	return vapid_build_token(NULL, aud, exp, sub);
+	return vapid_build_token(key, aud, exp, sub);
 }
 
 /**
@@ -149,7 +150,9 @@ int push2ClientJSON_VAPID
 	struct curl_slist *chunk = NULL;
 	chunk = curl_slist_append(chunk, ("Content-Type: application/json"));
 	chunk = curl_slist_append(chunk, ("Authorization: WebPush " 
-		+ mkJWTHeader(aud, sub, privateKey, publicKey)).c_str());
+		+ mkJWTHeader(aud, sub, privateKey)).c_str());
+	chunk = curl_slist_append(chunk, ("Crypto-Key: p256ecdsa=" 
+		+ publicKey).c_str());
 
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
