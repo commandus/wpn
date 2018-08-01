@@ -208,3 +208,24 @@ std::string vapid_build_token(
 	free(sig);
 	return token;
 }
+
+std::string extractSubscription(
+	const std::string &endpoint
+)
+{
+	size_t p = 0;
+	p = endpoint.find(':', 0);
+	if (p != std::string::npos) {
+		p = endpoint.find('/', p);
+		if (p != std::string::npos) {
+			p = endpoint.find('/', p);
+			if (p != std::string::npos) {
+				p = endpoint.find('/', p);
+				if (p != std::string::npos) {
+					return endpoint.substr(0, p);
+				}
+			}
+		}
+	}
+	return endpoint;
+}

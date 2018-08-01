@@ -15,3 +15,7 @@ std::string vapid_build_token(
 	time_t exp,
 	const std::string &sub
 );
+
+std::string extractSubscription(
+	const std::string &endpoint
+);

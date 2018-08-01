@@ -43,6 +43,7 @@
 #include "mcs/mcsclient.h"
 #include "utilqr.h"
 #include "utilstring.h"
+#include "utilvapid.h"
 
 #define ERR_WSA		-1
 
@@ -317,6 +318,9 @@ int main(int argc, char** argv)
 								config.subject, config.body, config.icon, config.link, config.verbosity);
 							break;
 						case SUBSCRIBE_VAPID:
+							if (config.sub.empty()) {	// https://fcm.googleapis.com
+								config.sub = extractSubscription(*it);
+							}
 							r = push2ClientNotificationVAPID(&retval, *it,
 								wpnKeys.getPrivateKey(), wpnKeys.getPublicKey(),
 									config.aud, config.sub,
