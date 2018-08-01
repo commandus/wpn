@@ -1,17 +1,17 @@
-#include <openssl/bn.h>
-#include <openssl/ec.h>
-#include <openssl/obj_mac.h>
-#include <openssl/sha.h>
-
-#include <ece.h>
+#include <string>
 #include <ece/keys.h>
 
-// Builds a signed Vapid token to include in the `Authorization` header. The token is null-terminated.
-char* vapid_build_token(
+std::string base64UrlEncode(
+	const void *data,
+	size_t size
+);
+
+/**
+ * Builds a signed Vapid token to include in the `Authorization` header. The token is null-terminated.
+ */
+std::string vapid_build_token(
 	EC_KEY* key, 
-	const char* aud, 
-	size_t audLen, 
+	const std::string &aud, 
 	uint32_t exp,
-	const char* sub, 
-	size_t subLen
+	const std::string &sub
 );

@@ -5,6 +5,7 @@
 #include "nlohmann/json.hpp"
 #include "wp-storage-file.h"
 #include "utilstring.h"
+#include "utilvapid.h"
 
 using json = nlohmann::json;
 
@@ -318,14 +319,12 @@ const uint8_t *WpnKeys::getPrivateKeyArray() const
 
 std::string WpnKeys::getPrivateKey() const
 {
-	char r[ECE_WEBPUSH_PRIVATE_KEY_LENGTH * 3];
-	return std::string(r, ece_base64url_encode(privateKey, ECE_WEBPUSH_PRIVATE_KEY_LENGTH, ECE_BASE64URL_OMIT_PADDING, r, sizeof(r)));
+	return base64UrlEncode(privateKey, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
 }
 
 std::string WpnKeys::getPublicKey() const
 {
-	char r[ECE_WEBPUSH_PUBLIC_KEY_LENGTH * 3];
-	return std::string(r, ece_base64url_encode(publicKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH, ECE_BASE64URL_OMIT_PADDING, r, sizeof(r)));
+	return base64UrlEncode(publicKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH);
 }
 
 const uint8_t *WpnKeys::getAuthSecretArray() const
@@ -335,8 +334,7 @@ const uint8_t *WpnKeys::getAuthSecretArray() const
 
 std::string WpnKeys::getAuthSecret() const
 {
-	char r[ECE_WEBPUSH_AUTH_SECRET_LENGTH * 3];
-	return std::string(r, ece_base64url_encode(authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH, ECE_BASE64URL_OMIT_PADDING, r, sizeof(r)));
+	return base64UrlEncode(authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
 }
 
 int WpnKeys::write

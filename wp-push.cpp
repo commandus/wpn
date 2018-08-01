@@ -115,7 +115,7 @@ std::string mkJWTHeader
 	// Builds a signed Vapid token to include in the `Authorization` header. The token is null-terminated.
 	// EC_KEY keys;
 	time_t exp = time(NULL) + 60 * 60 * 12;
-	return std::string(vapid_build_token(NULL, aud.c_str(), aud.size(), exp, sub.c_str(), sub.size()));
+	return vapid_build_token(NULL, aud, exp, sub);
 }
 
 /**
