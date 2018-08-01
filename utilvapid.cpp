@@ -137,7 +137,7 @@ static const std::string VAPID_HEADER("{\"alg\":\"ES256\",\"typ\":\"JWT\"}");
   */
 static std::string vapid_build_signature_base(
 	const std::string &aud, 
-	uint32_t exp,
+	time_t exp,
 	const std::string & sub
 ) {
 	std::stringstream opayload;
@@ -198,7 +198,7 @@ static uint8_t* vapid_sign(
 std::string vapid_build_token(
 	EC_KEY* key, 
 	const std::string &aud, 
-	uint32_t exp,
+	time_t exp,
 	const std::string &sub
 ) {
 	std::string sigBase = vapid_build_signature_base(aud, exp, sub);

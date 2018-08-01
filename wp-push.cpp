@@ -139,7 +139,7 @@ int push2ClientJSON
 	return http_code;
 }
 
-std::string mkJWTHeader
+static std::string mkJWTHeader
 (
 	const std::string &aud,
 	const std::string &sub,
@@ -160,13 +160,14 @@ std::string mkJWTHeader
 * @param sub e.g. "mailto: wile@acme.com" 
 * @return 200-299- success, <0- error
 */
-int push2ClientJSON_VAPID
+static int push2ClientJSON_VAPID
 (
 	std::string *retval,
+	const std::string &endpoint,
 	const std::string &privateKey,
 	const std::string &publicKey,
-	const std::string aud,
-    const std::string sub,
+	const std::string &aud,
+    const std::string &sub,
 	const std::string &client_token,
 	const std::string &value,
 	int verbosity
@@ -192,7 +193,8 @@ int push2ClientJSON_VAPID
 
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
-	curl_easy_setopt(curl, CURLOPT_URL, FCM_SEND);
+	// curl_easy_setopt(curl, CURLOPT_URL, FCM_SEND);
+	curl_easy_setopt(curl, CURLOPT_URL, endpoint);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
@@ -319,7 +321,7 @@ int push2ClientNotificationVAPID
 			}
 		}
 	};
-	return push2ClientJSON_VAPID(retval, privateKey, publicKey, 
+	return push2ClientJSON_VAPID(retval, endpoint, privateKey, publicKey, 
 		aud, sub, endpoint, requestBody.dump(), verbosity);
 }
 

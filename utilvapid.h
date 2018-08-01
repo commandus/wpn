@@ -12,6 +12,6 @@ std::string base64UrlEncode(
 std::string vapid_build_token(
 	EC_KEY* key, 
 	const std::string &aud, 
-	uint32_t exp,
+	time_t exp,
 	const std::string &sub
 );
