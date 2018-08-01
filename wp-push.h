@@ -14,7 +14,8 @@ int push2ClientJSON
 	std::string *retval,
 	const std::string &server_key,
 	const std::string &client_token,
-	const std::string &json
+	const std::string &json,
+	int verbosity
 );
 
 /**
@@ -29,7 +30,8 @@ int push2ClientNotificationFCM
 	const std::string &title,
 	const std::string &body,
 	const std::string &icon,
-	const std::string &click_action
+	const std::string &click_action,
+	int verbosity
 );
 
 /**
@@ -51,7 +53,8 @@ int push2ClientNotificationVAPID
 	const std::string &title,
 	const std::string &body,
 	const std::string &icon,
-	const std::string &click_action
+	const std::string &click_action,
+	int verbosity
 );
 
 /**
@@ -74,7 +77,8 @@ int push2ClientDataFCM
 	const std::string &persistent_id,
 	const std::string &command,
 	int code,
-	const std::string &output
+	const std::string &output,
+	int verbosity
 );
 
 /**
@@ -99,7 +103,8 @@ int push2ClientDataVAPID
 	const std::string &persistent_id,
 	const std::string &command,
 	int code,
-	const std::string &output
+	const std::string &output,
+	int verbosity
 );
 
 #endif

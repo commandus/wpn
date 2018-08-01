@@ -314,13 +314,13 @@ int main(int argc, char** argv)
 					switch (config.subscriptionMode) {
 						case SUBSCRIBE_FIREBASE:
 							r = push2ClientNotificationFCM(&retval, serverKey, *it, 
-								config.subject, config.body, config.icon, config.link);
+								config.subject, config.body, config.icon, config.link, config.verbosity);
 							break;
 						case SUBSCRIBE_VAPID:
 							r = push2ClientNotificationVAPID(&retval, *it,
 								wpnKeys.getPrivateKey(), wpnKeys.getPublicKey(),
 									config.aud, config.sub,
-									config.subject, config.body, config.icon, config.link);
+									config.subject, config.body, config.icon, config.link, config.verbosity);
 							break;
 					}
 				}
@@ -330,12 +330,12 @@ int main(int argc, char** argv)
 						std::cout << "Execute command " << config.command << " on " << *it << std::endl;
 					switch (config.subscriptionMode) {
 						case SUBSCRIBE_FIREBASE:
-							r = push2ClientDataFCM(&retval, serverKey, token, *it, "", config.command, 0, "");
+							r = push2ClientDataFCM(&retval, serverKey, token, *it, "", config.command, 0, "", config.verbosity);
 							break;
 						case SUBSCRIBE_VAPID:
 							r = push2ClientDataVAPID(&retval, *it,
 								wpnKeys.getPrivateKey(), wpnKeys.getPublicKey(), wpnKeys.getAuthSecret(), 
-								"", config.command, 0, "");
+								"", config.command, 0, "", config.verbosity);
 							break;
 					}					
 					

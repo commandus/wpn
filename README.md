@@ -212,7 +212,7 @@ Specify subscription endpoint (-e):
 ./wpn -d
 ```
 
-## Client push message
+## Client push message 
 
 Send notification with -m option.
 
@@ -259,6 +259,37 @@ Sending using subcription name (-n option) instead of server key (option -k):
 ```
 
 Option -u "https://ikfia-wpn.firebaseio.com" is not required.
+
+## Client push message using VAPID
+
+Send notification with -m option.
+
+You need provide one or more recipient endpoints up to 100 (limited by system actually) in command line or from JSON file (with -j option).
+
+Also you need provide:
+
+- --private-key
+- --public-key
+
+Otherwise, you can provide -n option with name of subscripton (if you also subscribed). In this case subscripton entity and server key are obtained from this subscription:
+
+- subscription name (-n)
+
+Message composed of:
+
+- Subject (-t option)
+- Body (-b option)
+- Icon (-i option)
+- Action URL (-a option)
+
+After push wpn exits immediately.
+
+Sending to one recipient:
+
+```
+./wpn -m -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" --private-key BVf3ez_0L3n23aYx0zrSuwQO_kQ5oAvWL5eaj6QXL0E --public-key BJNvbKtXtYE7PkHVLzXRoDR355kzxJxtLVVfveApgxcvk6gaf5EgGqtPHsU0y23tZ_VwN6Mlzp9p5dv6Zw89RlQ https://fcm.googleapis.com/fcm/send/eZl3bJGqkR0:APA91bESZ1KqT5NOqx01fqIy1u3p9Gj2sDNHC8M4QyjRo-ArnxpDACfEqHmqFOHnCG6BShJepufmpVs-98GXpF8GvBxVTynC0uux5HDKQWdajYzL2r6BZ0PTRjnEEgAmcku4B-n3c9EHJ_0COKJ62OTLJN8HkVwDKA
+```
+
 
 ## Service push message
 

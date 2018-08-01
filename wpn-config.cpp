@@ -346,8 +346,10 @@ int WpnConfig::parseCmd
 		{
 			if (a_name->count == 0)
 			{
-				std::cerr << "-k=server_key or -n=subscription_name missed. " << std::endl;
-				nerrors++;
+				if (a_vapid_private_key->count == 0) {
+					std::cerr << "-k=server_key, --private-key or -n=subscription_name missed. " << std::endl;
+					nerrors++;
+				}
 			}
 		}
 		if (a_command->count == 0)

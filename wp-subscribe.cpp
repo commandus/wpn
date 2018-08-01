@@ -150,7 +150,8 @@ int subscribe2
 			if (verbosity > 2)
 				std::cerr << "Send: " << s << " to " << subscribeUrl << std::endl;
 			r = curlPost(subscribeUrl, "application/json", s, retHeaders,  retVal, verbosity);
-std::cerr << "Headers received: " << retHeaders << std::endl;			
+			if (verbosity > 2)
+				std::cerr << "Headers received: " << retHeaders << std::endl;			
 			if (retVal) {
 				if (verbosity > 2)
 					std::cerr << "Receive response code: "<< r << ", body:" << *retVal << " from " << subscribeUrl << std::endl;

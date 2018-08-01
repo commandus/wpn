@@ -28,6 +28,28 @@ static size_t write_string(void *contents, size_t size, size_t nmemb, void *user
 	return size * nmemb;
 }
 
+static size_t write_header(char* buffer, size_t size, size_t nitems, void *userp) {
+	size_t sz = size * nitems;
+	((std::string*)userp)->append((char*)buffer, sz);
+    return sz;
+}
+
+static int curl_trace
+(
+	CURL *handle, 
+	curl_infotype typ,
+	char *data, 
+	size_t size,
+	void *userp
+)
+{
+	if (typ >= 0 && typ < 7)
+		std::cerr << typ << ": " << std::endl;
+	std::string s(data, size);
+	std::cerr << s << std::endl;
+	return 0;
+}
+
 /**
 * Push raw JSON to device FCM
 * @return 200-299- success, <0- error
@@ -37,7 +59,8 @@ int push2ClientJSON
 	std::string *retval,
 	const std::string &server_key,
 	const std::string &client_token,
-	const std::string &value
+	const std::string &value,
+	int verbosity
 )
 {
 	if (server_key.empty())
@@ -62,10 +85,22 @@ int push2ClientJSON
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, value.c_str());
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, value.size());
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_string);
+	std::string headers;
+	if (verbosity) {
+		curl_easy_setopt(curl, CURLOPT_HEADERDATA, &headers);
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &write_header);
+	}
+
 	std::string r;
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &r);
 // std::cerr << "Send to " << FCM_SEND << ": " << value<< std::endl;		
 	res = curl_easy_perform(curl);
+
+	if (verbosity > 2) 
+	{
+		std::cerr << headers << std::endl;
+	}
+
 	int http_code;
 
     if (res != CURLE_OK)
@@ -133,7 +168,8 @@ int push2ClientJSON_VAPID
 	const std::string aud,
     const std::string sub,
 	const std::string &client_token,
-	const std::string &value
+	const std::string &value,
+	int verbosity
 )
 {
 	if (privateKey.empty())
@@ -163,10 +199,28 @@ int push2ClientJSON_VAPID
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, value.c_str());
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, value.size());
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_string);
+	
+	std::string headers;
+	if (verbosity > 2) {
+		curl_easy_setopt(curl, CURLOPT_HEADERDATA, &headers);
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &write_header);
+	}
+	if (verbosity > 3)
+	{
+		curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, curl_trace);
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+	}
+
 	std::string r;
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &r);
 	// std::cerr << "Send to " << FCM_SEND << ": " << value<< std::endl;		
 	res = curl_easy_perform(curl);
+
+	if (verbosity > 2) 
+	{
+		std::cerr << headers << std::endl;
+	}
+
 	int http_code;
 
     if (res != CURLE_OK)
@@ -217,7 +271,8 @@ int push2ClientNotificationFCM
 	const std::string &title,
 	const std::string &body,
 	const std::string &icon,
-	const std::string &click_action
+	const std::string &click_action,
+ 	int verbosity
 )
 {
 	json requestBody = {
@@ -231,7 +286,7 @@ int push2ClientNotificationFCM
 			}
 		}
 	};
-	return push2ClientJSON(retval, server_key, client_token, requestBody.dump());
+	return push2ClientJSON(retval, server_key, client_token, requestBody.dump(), verbosity);
 }
 
 /**
@@ -249,7 +304,8 @@ int push2ClientNotificationVAPID
 	const std::string &title,
 	const std::string &body,
 	const std::string &icon,
-	const std::string &click_action
+	const std::string &click_action,
+	int verbosity
 )
 {
 	json requestBody = {
@@ -264,7 +320,7 @@ int push2ClientNotificationVAPID
 		}
 	};
 	return push2ClientJSON_VAPID(retval, privateKey, publicKey, 
-		aud, sub, endpoint, requestBody.dump());
+		aud, sub, endpoint, requestBody.dump(), verbosity);
 }
 
 /**
@@ -287,7 +343,8 @@ int push2ClientDataFCM
 	const std::string &persistent_id,
 	const std::string &command,
 	int code,
-	const std::string &output
+	const std::string &output,
+	int verbosity
 )
 {
 	json requestBody = {
@@ -303,7 +360,7 @@ int push2ClientDataFCM
 			}
 		}
 	};
-	return push2ClientJSON(retval, server_key, client_token, requestBody.dump());
+	return push2ClientJSON(retval, server_key, client_token, requestBody.dump(), verbosity);
 }
 
 /**
@@ -328,7 +385,8 @@ int push2ClientDataVAPID
 	const std::string &persistent_id,
 	const std::string &command,
 	int code,
-	const std::string &output
+	const std::string &output,
+	int verbosity
 )
 {
 	json requestBody = {
@@ -344,5 +402,5 @@ int push2ClientDataVAPID
 			}
 		}
 	};
-	return push2ClientJSON(retval, authSecret, authSecret, requestBody.dump());
+	return push2ClientJSON(retval, authSecret, authSecret, requestBody.dump(), verbosity);
 }
