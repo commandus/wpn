@@ -16,6 +16,6 @@ std::string vapid_build_token(
 	const std::string &sub
 );
 
-std::string extractSubscription(
+std::string extractURLProtoAddress(
 	const std::string &endpoint
 );

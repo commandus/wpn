@@ -314,12 +314,12 @@ int main(int argc, char** argv)
 						std::cout << "Sending notification to " << *it << std::endl;
 					switch (config.subscriptionMode) {
 						case SUBSCRIBE_FIREBASE:
-							r = push2ClientNotificationFCM(&retval, serverKey, *it, 
+							r = push2ClientNotificationFCM(&retval, serverKey, *it,
 								config.subject, config.body, config.icon, config.link, config.verbosity);
 							break;
 						case SUBSCRIBE_VAPID:
-							if (config.sub.empty()) {	// https://fcm.googleapis.com
-								config.sub = extractSubscription(*it);
+							if (config.aud.empty()) {	// https://fcm.googleapis.com
+								config.aud = extractURLProtoAddress(*it);
 							}
 							r = push2ClientNotificationVAPID(&retval, *it,
 								wpnKeys.getPrivateKey(), wpnKeys.getPublicKey(),

@@ -93,7 +93,10 @@ int push2ClientJSON
 
 	std::string r;
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &r);
-// std::cerr << "Send to " << FCM_SEND << ": " << value<< std::endl;		
+	if (verbosity > 2) 
+	{
+		std::cerr << "Send to " << FCM_SEND << ": " << value<< std::endl;		
+	}
 	res = curl_easy_perform(curl);
 
 	if (verbosity > 2) 
@@ -151,7 +154,18 @@ static std::string mkJWTHeader
 	ece_base64url_decode(privateKey.c_str(), privateKey.size(), ECE_BASE64URL_REJECT_PADDING, pk, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
 	EC_KEY *key = ece_import_private_key(pk, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
 	time_t exp = time(NULL) + 60 * 60 * 12;
-	return vapid_build_token(key, aud, exp, sub);
+
+	std::string r = vapid_build_token(key, aud, exp, sub);
+	EC_KEY_free(key);
+	std::cerr << "mkJWTHeader" 
+	<< " pk: " << privateKey
+	<< " aud: " << aud
+	<< " exp: " << exp
+	<< " sub: " << sub
+	<< std::endl
+	<< " JWT: " << r
+	<< std::endl;
+	return r;
 }
 
 /**
@@ -167,7 +181,7 @@ static int push2ClientJSON_VAPID
 	const std::string &privateKey,
 	const std::string &publicKey,
 	const std::string &aud,
-    const std::string &sub,
+	const std::string &sub,
 	const std::string &client_token,
 	const std::string &value,
 	int verbosity
@@ -183,18 +197,20 @@ static int push2ClientJSON_VAPID
 	if (!curl)
 		return CURLE_FAILED_INIT; 
 	CURLcode res;
+
+	std::string jwt = mkJWTHeader(aud, sub, privateKey);
 	
 	struct curl_slist *chunk = NULL;
 	chunk = curl_slist_append(chunk, ("Content-Type: application/json"));
 	chunk = curl_slist_append(chunk, ("Authorization: WebPush " 
-		+ mkJWTHeader(aud, sub, privateKey)).c_str());
+		+ jwt).c_str());
 	chunk = curl_slist_append(chunk, ("Crypto-Key: p256ecdsa=" 
 		+ publicKey).c_str());
 
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
 	// curl_easy_setopt(curl, CURLOPT_URL, FCM_SEND);
-	curl_easy_setopt(curl, CURLOPT_URL, endpoint);
+	curl_easy_setopt(curl, CURLOPT_URL, endpoint.c_str());
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
@@ -215,7 +231,7 @@ static int push2ClientJSON_VAPID
 
 	std::string r;
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &r);
-	// std::cerr << "Send to " << FCM_SEND << ": " << value<< std::endl;		
+	// std::cerr << "Send to " << FCM_SEND << ": " << value<< std::endl;
 	res = curl_easy_perform(curl);
 
 	if (verbosity > 2) 
@@ -225,7 +241,7 @@ static int push2ClientJSON_VAPID
 
 	int http_code;
 
-    if (res != CURLE_OK)
+	if (res != CURLE_OK)
 	{
 		if (retval)
 			*retval = curl_easy_strerror(res);

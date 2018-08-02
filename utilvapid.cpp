@@ -10,6 +10,7 @@
 #include <openssl/obj_mac.h>
 #include <openssl/sha.h>
 
+#include <iostream>
 #include <ece.h>
 
 std::string base64UrlEncode(
@@ -145,6 +146,12 @@ static std::string vapid_build_signature_base(
 		<< ",\"exp\":" << exp 
 		<< ",\"sub\":" << vapid_json_quote(sub) << "}";
 	std::string payload(opayload.str());
+	
+	std::cerr << "JWT payload:" 
+	<< std::endl
+	<< payload
+	<< std::endl;
+
 	return base64UrlEncode(VAPID_HEADER.c_str(), VAPID_HEADER.size())
 		+ "."
 		+ base64UrlEncode(payload.c_str(), (size_t) payload.size()) ;
@@ -209,7 +216,7 @@ std::string vapid_build_token(
 	return token;
 }
 
-std::string extractSubscription(
+std::string extractURLProtoAddress(
 	const std::string &endpoint
 )
 {
@@ -218,8 +225,10 @@ std::string extractSubscription(
 	if (p != std::string::npos) {
 		p = endpoint.find('/', p);
 		if (p != std::string::npos) {
+			p++;
 			p = endpoint.find('/', p);
 			if (p != std::string::npos) {
+				p++;
 				p = endpoint.find('/', p);
 				if (p != std::string::npos) {
 					return endpoint.substr(0, p);
