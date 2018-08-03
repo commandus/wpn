@@ -41,16 +41,16 @@ static const char* SUBSCRIBE_URLS[SUBSCRIBE_URL_COUNT] = {
 static std::string getDefaultConfigFileName()
 {
 	std::string r = DEF_FILE_NAME;
-	HANDLE hToken = 0;
 	// Need a process with query permission set
+	HANDLE hToken = 0;
 	if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken))
 	{
 		// Returns a path like C:/Documents and Settings/nibu if my user name is nibu
 		char homedir[MAX_PATH];
 		DWORD size = sizeof(homedir);
-		if (GetUserProfileDirectoryA(hToken, homedir, &size))
+		if (GetUserProfileDirectoryA(hToken, homedir, &size) && (size > 0))
 		{
-			r = std::string(homedir, size) + "\\" + DEF_FILE_NAME;
+			r = std::string(homedir, size - 1).append("\\").append(DEF_FILE_NAME);
 		}
 		CloseHandle(hToken);
 	}
@@ -149,7 +149,7 @@ int WpnConfig::parseCmd
 	struct arg_lit *a_keys = arg_lit0("y", "keys", "Print keys");
 	struct arg_lit *a_credentials = arg_lit0("p", "credentials", "Print credentials");
 	struct arg_lit *a_subscribe_vapid = arg_lit0("s", "subscribe", "Subscribe with VAPID. Mandatory -u -n --private-key --public-key --auth-secret");
-	struct arg_lit *a_subscribe_fcm = arg_lit0("f", "subscribe-fcm", "Subscribe with FCM. Mandatory -e -n, optional -r, -k");
+	struct arg_lit *a_subscribe_fcm = arg_lit0("S", "subscribe-fcm", "Subscribe with FCM. Mandatory -e -n, optional -r, -k");
 	struct arg_lit *a_unsubscribe = arg_lit0("d", "unsubscribe", "Unsubscribe with -e");
 	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -k (FCM), --private-key, --public-key, --auth-secret (VAPID) or -n; execute -x. Or -t, -b, -i, -a");
 	struct arg_str *a_aud = arg_str0(NULL, "aud", "<URL>", "aud link e.g. http://acme.com");
