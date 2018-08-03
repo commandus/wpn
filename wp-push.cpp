@@ -2,6 +2,9 @@
 #include <openssl/ossl_typ.h>
 #include <openssl/ossl_typ.h>
 #include <openssl/ossl_typ.h>
+#include <openssl/bio.h>
+#include <openssl/pem.h>
+
 #include <iostream>
 #include <sstream>
 #include "wp-push.h"
@@ -142,6 +145,17 @@ int push2ClientJSON
 	return http_code;
 }
 
+#define FORMAT_PEM	(5 | 1)
+
+static void logPEMForKey(EC_KEY *key) {
+    const EC_GROUP *group = EC_KEY_get0_group(key);
+	BIO *out = BIO_new_fp(stdout, BIO_NOCLOSE);
+	// auto out = bio_open_owner("kays.pem", FORMAT_PEM, 1);
+    PEM_write_bio_ECPKParameters(out, group);
+    PEM_write_bio_EC_PUBKEY(out, key);
+    PEM_write_bio_ECPrivateKey(out, key, NULL, NULL, 0, NULL, NULL);
+}
+
 static std::string mkJWTHeader
 (
 	const std::string &aud,
@@ -153,9 +167,11 @@ static std::string mkJWTHeader
 	uint8_t pk[ECE_WEBPUSH_PRIVATE_KEY_LENGTH];
 	ece_base64url_decode(privateKey.c_str(), privateKey.size(), ECE_BASE64URL_REJECT_PADDING, pk, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
 	EC_KEY *key = ece_import_private_key(pk, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
-	time_t exp = time(NULL) + 60 * 60 * 12;
+	
+	time_t exp = time(NULL) + (60 * 60 * 12);
 
 	std::string r = vapid_build_token(key, aud, exp, sub);
+	logPEMForKey(key);
 	EC_KEY_free(key);
 	std::cerr << "mkJWTHeader" 
 	<< " pk: " << privateKey
@@ -165,6 +181,7 @@ static std::string mkJWTHeader
 	<< std::endl
 	<< " JWT: " << r
 	<< std::endl;
+	
 	return r;
 }
 

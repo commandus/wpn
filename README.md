@@ -544,6 +544,10 @@ curl -i -H "Accept:application/json" -H "Content-Type:application/json" -X POST 
 
 ## Issues
 
+### Library choice
+
+- https://github.com/Thalhammer/jwt-cpp fails with ES256
+
 ### ECEC library
 
 https://github.com/web-push-libs/ecec/issues/37
@@ -600,3 +604,4 @@ mailq
 sudo postsuper -d ALL
 
 ```
+
