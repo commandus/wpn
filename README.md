@@ -605,3 +605,13 @@ sudo postsuper -d ALL
 
 ```
 
+
+endpoint
+https://fcm.googleapis.com/fcm/send/eZl3bJGqkR0:APA91bESZ1KqT5NOqx01fqIy1u3p9Gj2sDNHC8M4QyjRo-ArnxpDACfEqHmqFOHnCG6BShJepufmpVs-98GXpF8GvBxVTynC0uux5HDKQWdajYzL2r6BZ0PTRjnEEgAmcku4B-n3c9EHJ_0COKJ62OTLJN8HkVwDKA
+
+p256dh
+BJ4Kwfg9qJxiQy1RlDX0W-gr5X2sy-K-jinKt_ZNbCLUPWiG0EZrull0SO1_KfRQfntJnFfbHiuCCve7GQuDQTE
+
+auth
+aKEEhoc1tAYueXqBm_frBA
+

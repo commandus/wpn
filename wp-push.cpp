@@ -171,7 +171,7 @@ static std::string mkJWTHeader
 	time_t exp = time(NULL) + (60 * 60 * 12);
 
 	std::string r = vapid_build_token(key, aud, exp, sub);
-	logPEMForKey(key);
+	// logPEMForKey(key);
 	EC_KEY_free(key);
 	std::cerr << "mkJWTHeader" 
 	<< " pk: " << privateKey
