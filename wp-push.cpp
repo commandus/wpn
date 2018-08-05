@@ -168,7 +168,7 @@ static std::string mkJWTHeader
 	ece_base64url_decode(privateKey.c_str(), privateKey.size(), ECE_BASE64URL_REJECT_PADDING, pk, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
 	EC_KEY *key = ece_import_private_key(pk, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
 	
-	time_t exp = time(NULL) + (60 * 60 * 12);
+	time_t exp = time(NULL) + (60 * 60 * 24);
 
 	std::string r = vapid_build_token(key, aud, exp, sub);
 	// logPEMForKey(key);
@@ -219,8 +219,8 @@ static int push2ClientJSON_VAPID
 	
 	struct curl_slist *chunk = NULL;
 	chunk = curl_slist_append(chunk, ("Content-Type: application/json"));
-	chunk = curl_slist_append(chunk, ("Authorization: WebPush " 
-		+ jwt).c_str());
+	chunk = curl_slist_append(chunk, ("Authorization: 'WebPush " 
+		+ jwt + "'").c_str());
 	chunk = curl_slist_append(chunk, ("Crypto-Key: p256ecdsa=" 
 		+ publicKey).c_str());
 
