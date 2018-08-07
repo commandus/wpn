@@ -1,3 +1,11 @@
+var http = require('http');
+// store a reference to the original request function
+const originalRequest = http.request; 
+http.request = function wrapMethodRequest(req) {
+  console.log(req);
+  return originalRequest.apply(this, arguments);
+}
+
 var webPush = require('web-push');
 webPush.setVapidDetails(
   'mailto:andrei.i.ivanov@gmail.com',
