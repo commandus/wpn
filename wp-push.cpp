@@ -160,15 +160,14 @@ static std::string mkJWTHeader
 (
 	const std::string &aud,
 	const std::string &sub,
-	const std::string &privateKey
+	const std::string &privateKey,
+	time_t exp
 )
 {
 	// Builds a signed Vapid token to include in the `Authorization` header. 
 	uint8_t pk[ECE_WEBPUSH_PRIVATE_KEY_LENGTH];
 	ece_base64url_decode(privateKey.c_str(), privateKey.size(), ECE_BASE64URL_REJECT_PADDING, pk, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
 	EC_KEY *key = ece_import_private_key(pk, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
-	
-	time_t exp = time(NULL) + (60 * 60 * 24);
 
 	std::string r = vapid_build_token(key, aud, exp, sub);
 	// logPEMForKey(key);
@@ -215,14 +214,27 @@ static int push2ClientJSON_VAPID
 		return CURLE_FAILED_INIT; 
 	CURLcode res;
 
-	std::string jwt = mkJWTHeader(aud, sub, privateKey);
+	
+	std::string jwt1 = mkJWTHeader("https://updates.push.services.mozilla.com", 
+		"mailto:andrei.i.ivanov@gmail.com", 
+		"_93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk",
+		1533621648
+	);
+	std::cerr << std::endl << "JWT-1" << std::endl
+	<< jwt1
+	<< std::endl;
+// const publicKey = 'BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A';
+
+	time_t exp = time(NULL) + (60 * 60 * 24);
+	std::string jwt = mkJWTHeader(aud, sub, privateKey, exp);
 	
 	struct curl_slist *chunk = NULL;
-	chunk = curl_slist_append(chunk, ("Content-Type: application/json"));
-	chunk = curl_slist_append(chunk, ("Authorization: 'WebPush " 
-		+ jwt + "'").c_str());
-	chunk = curl_slist_append(chunk, ("Crypto-Key: p256ecdsa=" 
-		+ publicKey).c_str());
+	// chunk = curl_slist_append(chunk, ("Content-Type: application/json"));
+	// chunk = curl_slist_append(chunk, ("Authorization: WebPush " + jwt).c_str());
+	// chunk = curl_slist_append(chunk, ("Crypto-Key: p256ecdsa=" + publicKey).c_str());
+	chunk = curl_slist_append(chunk, "Content-Type: application/octet-stream");
+	chunk = curl_slist_append(chunk, "Content-Encoding: aes128gcm");
+	chunk = curl_slist_append(chunk, ("Authorization: vapid t=" + jwt + ", k=" + publicKey).c_str());
 
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
