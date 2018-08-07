@@ -104,7 +104,7 @@ std::string WpnConfig::getDefaultEndPoint()
 WpnConfig::WpnConfig()
 	: errorcode(0), cmd(CMD_LISTEN), verbosity(0), file_name(getDefaultConfigFileName()), endpoint(""), name(""),
 	authorizedEntity(""), notifyFunctionName(DEF_FUNC_NOTIFY), invert_qrcode(false), command(""), cn(""),
-	private_key(""), public_key(""), auth_secret(""), aud(""), sub("")
+	private_key(""), public_key(""), auth_secret(""), sub("")
 {
 }
 
@@ -152,7 +152,6 @@ int WpnConfig::parseCmd
 	struct arg_lit *a_subscribe_fcm = arg_lit0("S", "subscribe-fcm", "Subscribe with FCM. Mandatory -e -n, optional -r, -k");
 	struct arg_lit *a_unsubscribe = arg_lit0("d", "unsubscribe", "Unsubscribe with -e");
 	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -k (FCM), --private-key, --public-key, --auth-secret (VAPID) or -n; execute -x. Or -t, -b, -i, -a");
-	struct arg_str *a_aud = arg_str0(NULL, "aud", "<URL>", "aud link e.g. http://acme.com");
 	struct arg_str *a_sub = arg_str0(NULL, "sub", "<URL>", "sub link e.g. mailto://alice@acme.com");
 	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
 
@@ -193,7 +192,7 @@ int WpnConfig::parseCmd
 	void* argtable[] = { 
 		a_list, a_list_qrcode, a_invert_qrcode, a_list_email, a_link_email, a_credentials, a_keys, 
 		a_subscribe_vapid, a_subscribe_fcm, a_unsubscribe, a_send,
-		a_aud, a_sub,
+		a_sub,
 		a_name, a_subscribe_url, a_endpoint, a_authorized_entity,
 		a_file_name,
 		a_server_key, a_subject, a_body, a_icon, a_link, a_command,
@@ -232,10 +231,6 @@ int WpnConfig::parseCmd
 		name = *a_name->sval;
 	else
 		name = "";
-	if (a_aud->count)
-		aud = *a_aud->sval;
-	else
-		aud = "";
 	if (a_sub->count)
 		sub = *a_sub->sval;
 	else

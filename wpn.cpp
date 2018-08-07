@@ -318,12 +318,9 @@ int main(int argc, char** argv)
 								config.subject, config.body, config.icon, config.link, config.verbosity);
 							break;
 						case SUBSCRIBE_VAPID:
-							if (config.aud.empty()) {	// https://fcm.googleapis.com
-								config.aud = extractURLProtoAddress(*it);
-							}
 							r = push2ClientNotificationVAPID(&retval, *it,
 								wpnKeys.getPrivateKey(), wpnKeys.getPublicKey(),
-									config.aud, config.sub,
+									config.sub,
 									config.subject, config.body, config.icon, config.link, config.verbosity);
 							break;
 					}

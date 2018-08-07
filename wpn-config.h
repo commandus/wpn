@@ -72,7 +72,6 @@ public:
 	std::string private_key;
 	std::string public_key;
 	std::string auth_secret;
-	std::string aud;
 	std::string sub;
 	// send options
 	std::string subject;							///< subject
