@@ -11,6 +11,7 @@
 #include <ece/keys.h>
 #include <openssl/ec.h>
 #include <openssl/sha.h>
+#include <argtable3/argtable3.h>
 
 #include "utilvapid.h"
 
