@@ -406,7 +406,7 @@ Subscription consists of
 ## Dependencies
 
 - curl https://github.com/curl/curl
-- argtable2 https://github.com/jonathanmarvens/argtable2/
+- argtable3 https://github.com/argtable/argtable3 https://www.argtable.org/ BSD
 - openssl 1.1.0 https://github.com/openssl/openssl
 - nghttp2 https://github.com/nghttp2/nghttp2
 - ecec https://github.com/web-push-libs/ecec
