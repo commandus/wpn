@@ -28,6 +28,9 @@ bin_PROGRAMS = wpn
 QRHEADERS = third_party/nayuki/QR-Code-generator/BitBuffer.hpp third_party/nayuki/QR-Code-generator/QrCode.hpp third_party/nayuki/QR-Code-generator/QrSegment.hpp
 QRSOURCES = third_party/nayuki/QR-Code-generator/BitBuffer.cpp third_party/nayuki/QR-Code-generator/QrCode.cpp third_party/nayuki/QR-Code-generator/QrSegment.cpp
 
+ARGT3HEADERS = third_party/argtable3/argtable3.h
+ARGT3SOURCES = third_party/argtable3/argtable3.c
+
 nobase_dist_include_HEADERS = \
 	platform.h \
 	wpn-config.h wpn.h wpn-notify.h \
@@ -39,11 +42,12 @@ nobase_dist_include_HEADERS = \
 	third_party/nlohmann/json.hpp \
 	third_party/sole/sole.hpp \
 	utilqr.h $(QRHEADERS) \
+	$(ARGT3HEADERS) \
 	utilvapid.h \
 	$(gengrpcs_h)
-common_src = 
+common_src = $(ARGT3SOURCES)
 
-commonlibs = -L/usr/local/lib/ -lssl -lcrypto -largtable2 -lcurl -lece -lnghttp2 -lglog -lunwind -lgrpc++ -lgrpc -lgpr -lprotobuf
+commonlibs = -L/usr/local/lib/ -lssl -lcrypto -lcurl -lece -lnghttp2 -lglog -lunwind -lgrpc++ -lgrpc -lgpr -lprotobuf
 
 #
 #	wpn
