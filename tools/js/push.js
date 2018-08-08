@@ -38,7 +38,7 @@ var payload = JSON.stringify(
       title: 'Title',
       body: 'Body',
       icon: 'https://commandus.com/favicon.ico',
-      click_action: '"https://commandus.com/'
+      click_action: 'https://commandus.com/'
     } 
   }
 );

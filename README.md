@@ -606,15 +606,15 @@ sudo postsuper -d ALL
 ```
 
 
-endpoint
-https://fcm.googleapis.com/fcm/send/drlt3MBlyKg:APA91bFSy2gE-JbT2dF03KbeqEnwoG6wobVrFFB0_FsauO2mXJBLrbEnq5yO5tD7C1Z0g0eP6xTJqBX_jOT7-qZOCkPtqoIOX6yNhUfsQu68YW5wcOgD9U6_xhmPhz4Lcmo5dvMQUwWXpEymDHrpsofkZkQe52W90A
-
-p256dh
-BMcqGYKcCtyUL41khPHOT26ngyl1RCshkBA5aInY8HzFDamwhChcwL9Lx8lb9WomwJ6PYNKlgq3bGvDf57y1ZgI
-
-auth
-xjnEX8_LfKvX0CYZDXB10w
+sub mailto:andrei.i.ivanov@gmail.com
+public BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A
+private _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk
 
 
 
-
+'Content-Length': 151,
+'Content-Type': 'application/octet-stream',
+'Content-Encoding': 'aesgcm',
+Encryption: 'salt=EHsLe9nq7wohprzTL5IJag',
+'Crypto-Key': 'dh=BN9uvaWWj7TO6I6lXwOex7t-N86-IWC7xYnB5DxzyafcDBlLTOoFT5Z7oy-6mBuJaRZI4OuLUbRyEUqYUozODpM;p256ecdsa=BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A',
+Authorization: 'WebPush eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJhdWQiOiJodHRwczovL3VwZGF0ZXMucHVzaC5zZXJ2aWNlcy5tb3ppbGxhLmNvbSIsImV4cCI6MTUzMzY0OTk3NCwic3ViIjoibWFpbHRvOmFuZHJlaS5pLml2YW5vdkBnbWFpbC5jb20ifQ.lod0oYFtf6Nf_Tt3ItI-r1axSW7w3Sq7iNaakbyZ420qYm_PBwH-pU9Wt9yG91nuiLCjGM2UbuAitpqQSo_VvA'
