@@ -107,7 +107,7 @@ int main() {
 	cipherFile.write((char*)ciphertext, ciphertextLen);
 	cipherFile.close();
 
-	std::cout << "curl -v -X POST -H \"Content-Type: application/octet-stream\" -H \"Content-Encoding: aesgcm\" -H \"TTL: 2419200\", -H \"Crypto-Key: "
+	std::cout << "curl -v -X POST -H \"Content-Type: application/octet-stream\" -H \"Content-Encoding: aesgcm\" -H \"TTL: 2419200\" -H \"Crypto-Key: "
 		<< cryptoKeyHeader
 		<< ";p256ecdsa=" << vapid_pk
 		<< "\" -H \"Encryption: " << encryptionHeader
