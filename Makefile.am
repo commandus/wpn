@@ -23,7 +23,7 @@ CLEANFILES = $(gengrpcs)
 #
 #	Binaries
 #
-bin_PROGRAMS = wpn
+bin_PROGRAMS = wpn webpush-curl
 
 QRHEADERS = third_party/nayuki/QR-Code-generator/BitBuffer.hpp third_party/nayuki/QR-Code-generator/QrCode.hpp third_party/nayuki/QR-Code-generator/QrSegment.hpp
 QRSOURCES = third_party/nayuki/QR-Code-generator/BitBuffer.cpp third_party/nayuki/QR-Code-generator/QrCode.cpp third_party/nayuki/QR-Code-generator/QrSegment.cpp
@@ -64,6 +64,17 @@ wpn_SOURCES= \
 
 wpn_LDADD = $(commonlibs) -ldl
 wpn_CPPFLAGS = $(commoncppflags)
+
+#
+#	webpush-curl
+#
+webpush_curl_SOURCES= \
+	tools/curl/webpush-curl.cpp \
+	utilvapid.cpp \
+	$(common_src)
+
+webpush_curl_LDADD = $(commonlibs)
+webpush_curl_CPPFLAGS = $(commoncppflags)
 
 #
 #	Configs, readme, CMake etc.
