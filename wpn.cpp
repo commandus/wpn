@@ -32,7 +32,7 @@
 #include <fstream>
 #include <algorithm>
 #include <signal.h>
-#include <argtable2.h>
+#include <argtable3/argtable3.h>
 #include <curl/curl.h>
 
 #include "wpn.h"
