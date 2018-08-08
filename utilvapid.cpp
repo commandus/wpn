@@ -148,11 +148,6 @@ static std::string vapid_build_signature_base(
 		<< ",\"sub\":" << vapid_json_quote(sub) << "}";
 	std::string payload(opayload.str());
 	
-	std::cerr << "JWT payload:" 
-	<< std::endl
-	<< payload
-	<< std::endl;
-
 	return base64UrlEncode(VAPID_HEADER.c_str(), VAPID_HEADER.size())
 		+ "."
 		+ base64UrlEncode(payload.c_str(), (size_t) payload.size()) ;
@@ -256,15 +251,6 @@ std::string mkJWTHeader
 	std::string r = vapid_build_token(key, aud, exp, sub);
 	// logPEMForKey(key);
 	EC_KEY_free(key);
-	std::cerr << "mkJWTHeader" 
-	<< " pk: " << privateKey
-	<< " aud: " << aud
-	<< " exp: " << exp
-	<< " sub: " << sub
-	<< std::endl
-	<< " JWT: " << r
-	<< std::endl;
-	
 	return r;
 }
 
