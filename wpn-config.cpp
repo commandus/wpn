@@ -1,6 +1,6 @@
 #include "wpn-config.h"
 #include <iostream>
-#include <argtable2.h>
+#include <argtable3/argtable3.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fstream>

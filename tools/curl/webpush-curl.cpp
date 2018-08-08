@@ -18,23 +18,6 @@
 
 std::string vapid_pk = "BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A";
 
-static std::string mkJWTHeader
-(
-	const std::string &aud,
-	const std::string &sub,
-	const std::string &privateKey,
-	time_t exp
-)
-{
-	// Builds a signed Vapid token to include in the `Authorization` header. 
-	uint8_t pk[ECE_WEBPUSH_PRIVATE_KEY_LENGTH];
-	ece_base64url_decode(privateKey.c_str(), privateKey.size(), ECE_BASE64URL_REJECT_PADDING, pk, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
-	EC_KEY *key = ece_import_private_key(pk, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
-	std::string r = vapid_build_token(key, aud, exp, sub);
-	EC_KEY_free(key);
-	return r;
-}
-
 int main() {
   const char* endpoint = "https://updates.push.services.mozilla.com/wpush/v2/gAAAAABbZ7cIJuyrIqApNuZd0AVjSSrYk5Cef5cI29-g8iRpHvFZzvqO6bI0ymUcf1tJpvg0lCIF7GxAbU7yg7EMXUh6c4MKaFPsSEsLzC7Mlb1JyIAMz5Wf0orVg15A2OD9dBCCUwbol78DdinNpwz-ExA67dH7InfiUDeYZS6QmVNXaPhzpGo";
   const char* p256dh = "BBpYsgvCmjRZTlwQ__nWoeaLwuqxVc9Eg-GSloPxQdvVxapVybJKJMns8IMkYQUDiLBrnXp-qFugkPBq3fOncvY";
@@ -119,13 +102,14 @@ int main() {
   encryptionHeader[encryptionHeaderLen] = '\0';
 
   const char* filename = "aesgcm.bin";
+  /*
   FILE* ciphertextFile = fopen(filename, "wb");
   assert(ciphertextFile);
   size_t ciphertextFileLen =
     fwrite(ciphertext, sizeof(uint8_t), ciphertextLen, ciphertextFile);
   assert(ciphertextLen == ciphertextFileLen);
   fclose(ciphertextFile);
-
+  */
   printf("curl -v -X POST -H \"Content-Type: application/octet-stream\" -H \"Content-Encoding: aesgcm\" -H \"Crypto-Key: "
          "%s;p256ecdsa=%s\" -H \"Encryption: %s\" -H \"Authorization: WebPush %s\"  --data-binary @%s %s\n",
          cryptoKeyHeader, vapid_pk.c_str(), encryptionHeader, jwt.c_str(), filename, endpoint);

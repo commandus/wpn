@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <ece.h>
+#include <ece/keys.h>
 
 std::string base64UrlEncode(
 	const void *data,
@@ -238,3 +239,32 @@ std::string extractURLProtoAddress(
 	}
 	return endpoint;
 }
+
+std::string mkJWTHeader
+(
+	const std::string &aud,
+	const std::string &sub,
+	const std::string &privateKey,
+	time_t exp
+)
+{
+	// Builds a signed Vapid token to include in the `Authorization` header. 
+	uint8_t pk[ECE_WEBPUSH_PRIVATE_KEY_LENGTH];
+	ece_base64url_decode(privateKey.c_str(), privateKey.size(), ECE_BASE64URL_REJECT_PADDING, pk, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
+	EC_KEY *key = ece_import_private_key(pk, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
+
+	std::string r = vapid_build_token(key, aud, exp, sub);
+	// logPEMForKey(key);
+	EC_KEY_free(key);
+	std::cerr << "mkJWTHeader" 
+	<< " pk: " << privateKey
+	<< " aud: " << aud
+	<< " exp: " << exp
+	<< " sub: " << sub
+	<< std::endl
+	<< " JWT: " << r
+	<< std::endl;
+	
+	return r;
+}
+

@@ -19,3 +19,11 @@ std::string vapid_build_token(
 std::string extractURLProtoAddress(
 	const std::string &endpoint
 );
+
+std::string mkJWTHeader
+(
+	const std::string &aud,
+	const std::string &sub,
+	const std::string &privateKey,
+	time_t exp
+);
