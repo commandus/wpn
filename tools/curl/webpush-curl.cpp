@@ -48,8 +48,6 @@ int main() {
     } \
   }";
 
-  std::cout << plaintext << std::endl;
-
   size_t plaintextLen = strlen(plaintext);
 
 

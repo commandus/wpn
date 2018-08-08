@@ -1,3 +1,0 @@
-
-g++ aesgcm.cpp -o aesgcm -lece -L/usr/local/lib/ -lcrypto
-
