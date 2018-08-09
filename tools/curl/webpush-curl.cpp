@@ -201,7 +201,6 @@ int main(int argc, char **argv)
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
 	std::string filename = "aesgcm.bin";
-	time_t exp = time(NULL) + (60 * 60 * 12);
 
 	json requestBody = {
 		{"notification", 
