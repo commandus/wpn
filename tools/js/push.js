@@ -13,7 +13,7 @@ webPush.setVapidDetails(
   '_93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk'
 );
 
-/*
+
 // chrome
 var pushSubscription = {
   endpoint: 'https://fcm.googleapis.com/fcm/send/dAob7IITAjk:APA91bF0cuvHE-p8lbpdayCdiGJzNWNfu53Bd6O29cnpbz_8nzZyRHw-ChTo2o43KjGmmlk7T1GjwdaymttN_fjtp7x8gX9jC5yN2F2fPdbVkBp6IXV8wlKCvDyXZy8qDs1ObLlcl6Odic1Wu11oQIJLSZ8Df9cFEA',
@@ -22,8 +22,10 @@ var pushSubscription = {
     auth:"Jc9t4JP9tonIwjzXty-WxQ"
   }
 };
-*/
 
+
+/*
+// firefox
 var pushSubscription = {
   endpoint: 'https://updates.push.services.mozilla.com/wpush/v2/gAAAAABbZ7cIJuyrIqApNuZd0AVjSSrYk5Cef5cI29-g8iRpHvFZzvqO6bI0ymUcf1tJpvg0lCIF7GxAbU7yg7EMXUh6c4MKaFPsSEsLzC7Mlb1JyIAMz5Wf0orVg15A2OD9dBCCUwbol78DdinNpwz-ExA67dH7InfiUDeYZS6QmVNXaPhzpGo',
   keys:{
@@ -31,6 +33,7 @@ var pushSubscription = {
     auth:"4SgZbJVmKUP56tJ39wcWPw"
   }
 };
+*/
 
 var payload = JSON.stringify(
   {
