@@ -47,7 +47,7 @@ var payload = JSON.stringify(
 );
 
 var options = {
-  contentEncoding: 'aesgcm'
+  contentEncoding: 'aes128gcm'
 };
 
 webPush.sendNotification(

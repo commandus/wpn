@@ -29,11 +29,8 @@ static const char* progname = "wpn";
  * @param endpoint recipient endpoint
  * @param p256dh recipient key 
  * @param auth recipient key auth 
- * @param body JSON string message 
- * @param aud = audience URL e.g. https://commandus.com/";
- * @param sub = originator contact ULR e.g. "mailto:andrei.i.ivanov@gmail.com";
- * @param exp = expiration time, Unix epoch
- * 
+ * @param body JSON string message
+ * @param contentEncoding string message  
  */
 std::string webpush2curl(
 	const std::string &publicKey,
@@ -43,9 +40,7 @@ std::string webpush2curl(
 	const std::string &p256dh,
 	const std::string &auth,
 	const std::string &body,
-	const std::string &aud,
-	const std::string &sub,
-	time_t exp
+	int contentEncoding
 ) {
 	uint8_t rawRecvPubKey[ECE_WEBPUSH_PUBLIC_KEY_LENGTH];
 	size_t rawRecvPubKeyLen = ece_base64url_decode(p256dh.c_str(), p256dh.size(), ECE_BASE64URL_REJECT_PADDING, rawRecvPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH);
@@ -100,14 +95,23 @@ std::string webpush2curl(
 	cipherFile.write(cipherString.c_str(), cipherSize);
 	cipherFile.close();
 
+	time_t expiration = time(NULL) + (24 * 60 * 60);
 	std::stringstream r;
-	r << "curl -v -X POST -H \"Content-Type: application/octet-stream\" -H \"Content-Encoding: aesgcm\" -H \"TTL: 2419200\" -H \"Crypto-Key: "
-		<< cryptoKeyHeader
-		<< ";p256ecdsa=" << publicKey
-		<< "\" -H \"Encryption: " << encryptionHeader
-		<< "\" -H \"Authorization: WebPush " << mkJWTHeader(aud, sub, privateKey, exp)
-		<< "\"  --data-binary @" << filename
-		<< " " << endpoint << std::endl;
+	if (contentEncoding == AES128GCM) {
+		r << "curl -v -X POST -H \"Content-Type: application/octet-stream\" -H \"Content-Encoding: aes128gcm\" -H \"TTL: 2419200\" "
+			<< " -H \"Encryption: " << encryptionHeader
+			<< "\" -H \"Authorization: vapid t=" << mkJWTHeader(extractURLProtoAddress(endpoint), "", privateKey, expiration) << ", k=" << publicKey 
+			<< "\"  --data-binary @" << filename
+			<< " " << endpoint << std::endl;
+	} else {
+		r << "curl -v -X POST -H \"Content-Type: application/octet-stream\" -H \"Content-Encoding: aesgcm\" -H \"TTL: 2419200\" -H \"Crypto-Key: "
+			<< cryptoKeyHeader
+			<< ";p256ecdsa=" << publicKey
+			<< "\" -H \"Encryption: " << encryptionHeader
+			<< "\" -H \"Authorization: WebPush " << mkJWTHeader(extractURLProtoAddress(endpoint), "", privateKey, expiration)
+			<< "\"  --data-binary @" << filename
+			<< " " << endpoint << std::endl;
+	}
 
 	return r.str();
 }
@@ -127,6 +131,8 @@ int main(int argc, char **argv)
 	std::string endpoint;
 	std::string p256dh;
 	std::string auth;
+	
+	int contentEncoding; // AESGCM or AES128GCM
 
 	struct arg_str *a_title = arg_str1("t", "title", "<title>", "Title of push notification");
 	struct arg_str *a_body = arg_str1("b", "body", "<text>", "Push notification body");
@@ -140,13 +146,15 @@ int main(int argc, char **argv)
 	struct arg_str *a_endpoint = arg_str1("e", "endpoint", "<URL>", "Recipient's endpoint URL");
 	struct arg_str *a_p256dh = arg_str1("d", "p256dh", "<key>", "Recipient's endpoint p256dh");
 	struct arg_str *a_auth = arg_str1("a", "auth", "<key>", "Recipient's endpoint auth");
-	
+
+	struct arg_lit *a_aes128gcm = arg_lit0("1", "aes128gcm", "content encoding aes128gcm. Default aesgcm");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
 		a_title, a_body, a_icon, a_action, a_aud, a_sub, 
 		a_public_key, a_private_key, a_endpoint, a_p256dh, a_auth,
+		a_aes128gcm,
 		a_help, a_end 
 	};
 
@@ -172,6 +180,11 @@ int main(int argc, char **argv)
 	endpoint = *a_endpoint->sval;
 	p256dh = *a_p256dh->sval;
 	auth = *a_auth->sval;
+	if (a_aes128gcm->count)
+		contentEncoding = AES128GCM;
+	else
+		contentEncoding = AESGCM;
+		
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)
 	{
@@ -188,7 +201,7 @@ int main(int argc, char **argv)
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
 	std::string filename = "aesgcm.bin";
-	time_t exp = time(NULL) + (60 * 60 * 24);
+	time_t exp = time(NULL) + (60 * 60 * 12);
 
 	json requestBody = {
 		{"notification", 
@@ -203,7 +216,7 @@ int main(int argc, char **argv)
 
 	std::string r = webpush2curl(
 		publicKey, privateKey, filename, endpoint, p256dh, auth,
-		requestBody.dump(), aud, sub, exp);
+		requestBody.dump(), contentEncoding);
 	std::cout << r << std::endl;
 	return 0;
 }
