@@ -1,6 +1,9 @@
 #include <string>
 #include <ece/keys.h>
 
+#define AESGCM 		0
+#define AES128GCM	1
+
 std::string base64UrlEncode(
 	const void *data,
 	size_t size

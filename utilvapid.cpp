@@ -133,28 +133,7 @@ static std::string vapid_json_quote(
 
 static const std::string VAPID_HEADER("{\"alg\":\"ES256\",\"typ\":\"JWT\"}");
 
-/**
-  * Builds and returns the signature base string. This is what we'll sign with
-  * our private key. The base string is *not* null-terminated.
-  */
-static std::string vapid_build_signature_base(
-	const std::string &aud, 
-	time_t exp,
-	const std::string & sub
-) {
-	std::stringstream opayload;
-	opayload << "{\"aud\":" << vapid_json_quote(aud) 
-		<< ",\"exp\":" << exp 
-		<< ",\"sub\":" << vapid_json_quote(sub) << "}";
-	std::string payload(opayload.str());
-	
-	return base64UrlEncode(VAPID_HEADER.c_str(), VAPID_HEADER.size())
-		+ "."
-		+ base64UrlEncode(payload.c_str(), (size_t) payload.size()) ;
-}
-
-// Signs a signature base string with the given `key`, and returns the raw
-// signature.
+// Signs a signature base string with the given `key`, and returns the raw signature.
 static uint8_t* vapid_sign(
 	EC_KEY* key,
 	const void* sigBase,
@@ -196,7 +175,7 @@ static uint8_t* vapid_sign(
 }
 
 /**
-  * Builds a signed Vapid token to include in the `Authorization` header. The token is null-terminated.
+  * Builds JWT: a signed Vapid token to include in the `Authorization` header.
   */
 std::string vapid_build_token(
 	EC_KEY* key, 
@@ -204,7 +183,22 @@ std::string vapid_build_token(
 	time_t exp,
 	const std::string &sub
 ) {
-	std::string sigBase = vapid_build_signature_base(aud, exp, sub);
+	// get JWT base 
+	std::stringstream opayload;
+	opayload << "{\"aud\":" << vapid_json_quote(aud) 
+		<< ",\"exp\":" << exp 
+		<< ",\"sub\":" << vapid_json_quote(sub) << "}";
+	std::string payload(opayload.str());
+	
+	
+	std::cout << payload << std::endl;
+	
+	std::string sigBase = base64UrlEncode(VAPID_HEADER.c_str(), VAPID_HEADER.size())
+		+ "." + base64UrlEncode(payload.c_str(), (size_t) payload.size()) ;
+
+	std::cout << sigBase << std::endl;
+	
+	// add signature
 	size_t sigLen;
 	uint8_t* sig = vapid_sign(key, sigBase.c_str(), sigBase.size(), &sigLen);
 	std::string token = sigBase + "." + base64UrlEncode(sig, sigLen);
