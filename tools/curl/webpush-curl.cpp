@@ -1,13 +1,5 @@
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include <string>
 #include <iostream>
-#include <sstream>
-#include <fstream>
-
 #include <ece.h>
 #include <ece/keys.h>
 #include <openssl/ec.h>
@@ -21,100 +13,6 @@
 using json = nlohmann::json;
 
 static const char* progname = "wpn";
-
-/**
- * @param publicKey = "BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A";
- * @param privateKey = "_93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk";
- * @param filename	temporary file keeping AES GCM ciphered data
- * @param endpoint recipient endpoint
- * @param p256dh recipient key 
- * @param auth recipient key auth 
- * @param body JSON string message
- * @param contentEncoding string message  
- */
-std::string webpush2curl(
-	const std::string &publicKey,
-	const std::string &privateKey,
-	const std::string &filename,
-	const std::string &endpoint,
-	const std::string &p256dh,
-	const std::string &auth,
-	const std::string &body,
-	int contentEncoding
-) {
-	uint8_t rawRecvPubKey[ECE_WEBPUSH_PUBLIC_KEY_LENGTH];
-	size_t rawRecvPubKeyLen = ece_base64url_decode(p256dh.c_str(), p256dh.size(), ECE_BASE64URL_REJECT_PADDING, rawRecvPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH);
-	
-	uint8_t authSecret[ECE_WEBPUSH_AUTH_SECRET_LENGTH];
-	size_t authSecretLen = ece_base64url_decode(auth.c_str(), auth.size(), ECE_BASE64URL_REJECT_PADDING, authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
-
-	size_t cipherSize = ece_aesgcm_ciphertext_max_length(ECE_WEBPUSH_DEFAULT_RS, 0, body.size());
-	std::string cipherString(cipherSize, '\0');
-
-	// Encrypt the body and fetch encryption parameters for the headers:
-	// - salt holds the encryption salt, which we include in the `Encryption` header.
-	// - rawSenderPubKey holds the ephemeral sender, or app server, public key, which we include as the `dh` parameter in the `Crypto-Key` header.
-	uint8_t salt[ECE_SALT_LENGTH];
-	uint8_t rawSenderPubKey[ECE_WEBPUSH_PUBLIC_KEY_LENGTH];
-	int err = ece_webpush_aesgcm_encrypt(
-		rawRecvPubKey, rawRecvPubKeyLen, authSecret, authSecretLen,
-		ECE_WEBPUSH_DEFAULT_RS, 0, (const uint8_t*)body.c_str(), body.size(), salt,
-		ECE_SALT_LENGTH, rawSenderPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH, (uint8_t *) cipherString.c_str(),
-		&cipherSize
-	);
-	if (err != ECE_OK)
-		return "";
-
-	// Build the `Crypto-Key` and `Encryption` HTTP headers. First, we pass
-	// `NULL`s for `cryptoKeyHeader` and `encryptionHeader`, and 0 for their
-	// lengths, to calculate the lengths of the buffers we need. Then, we
-	// allocate, write out, and null-terminate the headers.
-	size_t cryptoKeyHeaderLen = 0;
-	size_t encryptionHeaderLen = 0;
-	err = ece_webpush_aesgcm_headers_from_params(
-		salt, ECE_SALT_LENGTH, rawSenderPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH,
-		ECE_WEBPUSH_DEFAULT_RS, NULL, &cryptoKeyHeaderLen, NULL,
-		&encryptionHeaderLen
-	);
-	if (err != ECE_OK)
-		return "";
-
-	// Allocate an extra byte for the null terminator.
-	std::string cryptoKeyHeader(cryptoKeyHeaderLen, '\0');
-	std::string encryptionHeader(encryptionHeaderLen, '\0');
-
-	err = ece_webpush_aesgcm_headers_from_params(
-		salt, ECE_SALT_LENGTH, rawSenderPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH,
-		ECE_WEBPUSH_DEFAULT_RS, (char *) cryptoKeyHeader.c_str(), &cryptoKeyHeaderLen,
-		(char *) encryptionHeader.c_str(), &encryptionHeaderLen
-	);
-	if (err != ECE_OK)
-		return "";
-
-	std::ofstream cipherFile(filename, std::ios::out | std::ios::binary);
-	cipherFile.write(cipherString.c_str(), cipherSize);
-	cipherFile.close();
-
-	time_t expiration = time(NULL) + (24 * 60 * 60);
-	std::stringstream r;
-	if (contentEncoding == AES128GCM) {
-		r << "curl -v -X POST -H \"Content-Type: application/octet-stream\" -H \"Content-Encoding: aes128gcm\" -H \"TTL: 2419200\" "
-			<< " -H \"Encryption: " << encryptionHeader
-			<< "\" -H \"Authorization: vapid t=" << mkJWTHeader(extractURLProtoAddress(endpoint), "", privateKey, expiration) << ", k=" << publicKey 
-			<< "\"  --data-binary @" << filename
-			<< " " << endpoint << std::endl;
-	} else {
-		r << "curl -v -X POST -H \"Content-Type: application/octet-stream\" -H \"Content-Encoding: aesgcm\" -H \"TTL: 2419200\" -H \"Crypto-Key: "
-			<< cryptoKeyHeader
-			<< ";p256ecdsa=" << publicKey
-			<< "\" -H \"Encryption: " << encryptionHeader
-			<< "\" -H \"Authorization: WebPush " << mkJWTHeader(extractURLProtoAddress(endpoint), "", privateKey, expiration)
-			<< "\"  --data-binary @" << filename
-			<< " " << endpoint << std::endl;
-	}
-
-	return r.str();
-}
 
 int main(int argc, char **argv) 
 {
@@ -216,6 +114,8 @@ int main(int argc, char **argv)
 	std::string r = webpush2curl(
 		publicKey, privateKey, filename, endpoint, p256dh, auth,
 		requestBody.dump(), contentEncoding);
+	std::cout << r << std::endl;
+	webpushCurl(r, publicKey, privateKey, endpoint, p256dh, auth, requestBody.dump(), contentEncoding);
 	std::cout << r << std::endl;
 	return 0;
 }

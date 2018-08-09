@@ -30,3 +30,48 @@ std::string mkJWTHeader
 	const std::string &privateKey,
 	time_t exp
 );
+
+/**
+ * Helper function for testing
+ * Print out "curl ..."  command line string
+ * @param publicKey e.g. "BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A";
+ * @param privateKey e.g. "_93..";
+ * @param filename	temporary file keeping AES GCM ciphered data
+ * @param endpoint recipient endpoint
+ * @param p256dh recipient key 
+ * @param auth recipient key auth 
+ * @param body JSON string message
+ * @param contentEncoding AESGCM or AES128GCM
+ */
+std::string webpush2curl(
+	const std::string &publicKey,
+	const std::string &privateKey,
+	const std::string &filename,
+	const std::string &endpoint,
+	const std::string &p256dh,
+	const std::string &auth,
+	const std::string &body,
+	int contentEncoding
+);
+
+/**
+ * Send VAPID web push using CURL library
+ * @param retval return string
+ * @param publicKey e.g. "BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A";
+ * @param privateKey e.g. "_93..";
+ * @param endpoint recipient endpoint
+ * @param p256dh recipient key 
+ * @param auth recipient key auth 
+ * @param body JSON string message
+ * @param contentEncoding AESGCM or AES128GCM
+ */
+int webpushCurl(
+	std::string &retval,
+	const std::string &publicKey,
+	const std::string &privateKey,
+	const std::string &endpoint,
+	const std::string &p256dh,
+	const std::string &auth,
+	const std::string &body,
+	int contentEncoding
+);

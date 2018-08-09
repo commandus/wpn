@@ -1,7 +1,9 @@
 /**
   */
-#include <string>
+#include "utilvapid.h"
 #include <sstream>
+#include <fstream>
+
 #include <stdlib.h>
 #include <inttypes.h>
 #include <string.h>
@@ -10,9 +12,9 @@
 #include <openssl/obj_mac.h>
 #include <openssl/sha.h>
 
-#include <iostream>
 #include <ece.h>
-#include <ece/keys.h>
+
+#include <curl/curl.h>
 
 std::string base64UrlEncode(
 	const void *data,
@@ -189,15 +191,8 @@ std::string vapid_build_token(
 		<< ",\"exp\":" << exp 
 		<< ",\"sub\":" << vapid_json_quote(sub) << "}";
 	std::string payload(opayload.str());
-	
-	
-	std::cout << payload << std::endl;
-	
 	std::string sigBase = base64UrlEncode(VAPID_HEADER.c_str(), VAPID_HEADER.size())
 		+ "." + base64UrlEncode(payload.c_str(), (size_t) payload.size()) ;
-
-	std::cout << sigBase << std::endl;
-	
 	// add signature
 	size_t sigLen;
 	uint8_t* sig = vapid_sign(key, sigBase.c_str(), sigBase.size(), &sigLen);
@@ -248,3 +243,222 @@ std::string mkJWTHeader
 	return r;
 }
 
+/**
+ * Build the `Crypto-Key` and `Encryption` HTTP headers. First, we pass
+ * `NULL`s for `cryptoKeyHeader` and `encryptionHeader`, and 0 for their
+ * lengths, to calculate the lengths of the buffers we need. Then, we
+ * allocate, write out, and null-terminate the headers.
+ * @param retval return cipher as string
+ * @param cryptoKeyHeader return Crypto
+ * @param encryptionHeader return Encrypt
+ * @param p256dh recipient key 
+ * @param auth recipient key auth 
+ * @param body JSON string message
+ */
+static int WPCipher(
+	std::string &retval,
+	std::string &cryptoKeyHeader,
+	std::string &encryptionHeader,
+
+	const std::string &p256dh,
+	const std::string &auth,
+	const std::string &body
+)
+{
+	uint8_t rawRecvPubKey[ECE_WEBPUSH_PUBLIC_KEY_LENGTH];
+	size_t rawRecvPubKeyLen = ece_base64url_decode(p256dh.c_str(), p256dh.size(), ECE_BASE64URL_REJECT_PADDING, rawRecvPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH);
+	
+	uint8_t authSecret[ECE_WEBPUSH_AUTH_SECRET_LENGTH];
+	size_t authSecretLen = ece_base64url_decode(auth.c_str(), auth.size(), ECE_BASE64URL_REJECT_PADDING, authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
+
+	size_t cipherSize = ece_aesgcm_ciphertext_max_length(ECE_WEBPUSH_DEFAULT_RS, 0, body.size());
+	retval = std::string(cipherSize, '\0');
+
+	// Encrypt the body and fetch encryption parameters for the headers:
+	// - salt holds the encryption salt, which we include in the `Encryption` header.
+	// - rawSenderPubKey holds the ephemeral sender, or app server, public key, which we include as the `dh` parameter in the `Crypto-Key` header.
+	uint8_t rawSenderPubKey[ECE_WEBPUSH_PUBLIC_KEY_LENGTH];
+	uint8_t salt[ECE_SALT_LENGTH];
+
+	int err = ece_webpush_aesgcm_encrypt(
+		rawRecvPubKey, rawRecvPubKeyLen, authSecret, authSecretLen,
+		ECE_WEBPUSH_DEFAULT_RS, 0, (const uint8_t*)body.c_str(), body.size(), salt,
+		ECE_SALT_LENGTH, rawSenderPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH, (uint8_t *) retval.c_str(),
+		&cipherSize
+	);
+	if (err != ECE_OK)
+		return err;
+
+	size_t cryptoKeyHeaderLen = 0;
+	size_t encryptionHeaderLen = 0;
+	err = ece_webpush_aesgcm_headers_from_params(
+		salt, ECE_SALT_LENGTH, rawSenderPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH,
+		ECE_WEBPUSH_DEFAULT_RS, NULL, &cryptoKeyHeaderLen, NULL,
+		&encryptionHeaderLen
+	);
+	if (err != ECE_OK)
+		return err;
+
+	// Allocate an extra byte for the null terminator.
+	cryptoKeyHeader = std::string(cryptoKeyHeaderLen, '\0');
+	encryptionHeader = std::string(encryptionHeaderLen, '\0');
+
+	err = ece_webpush_aesgcm_headers_from_params(
+		salt, ECE_SALT_LENGTH, rawSenderPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH,
+		ECE_WEBPUSH_DEFAULT_RS, (char *) cryptoKeyHeader.c_str(), &cryptoKeyHeaderLen,
+		(char *) encryptionHeader.c_str(), &encryptionHeaderLen
+	);
+	return err;
+}
+
+/**
+ * Helper function for testing
+ * Print out "curl ..."  command line string
+ * @param publicKey e.g. "BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A";
+ * @param privateKey e.g. "_93..";
+ * @param filename	temporary file keeping AES GCM ciphered data
+ * @param endpoint recipient endpoint
+ * @param p256dh recipient key 
+ * @param auth recipient key auth 
+ * @param body JSON string message
+ * @param contentEncoding AESGCM or AES128GCM
+*/
+std::string webpush2curl(
+	const std::string &publicKey,
+	const std::string &privateKey,
+	const std::string &filename,
+	const std::string &endpoint,
+	const std::string &p256dh,
+	const std::string &auth,
+	const std::string &body,
+	int contentEncoding
+) {
+	std::string cipherString;
+	std::string cryptoKeyHeader;
+	std::string encryptionHeader;
+	int code = WPCipher(cipherString, cryptoKeyHeader, encryptionHeader, p256dh, auth, body);
+	if (code)
+		return "";
+
+	std::ofstream cipherFile(filename, std::ios::out | std::ios::binary);
+	cipherFile.write(cipherString.c_str(), cipherString.size());
+	cipherFile.close();
+
+	time_t expiration = time(NULL) + (24 * 60 * 60);
+	std::stringstream r;
+	if (contentEncoding == AES128GCM) {
+		r << "curl -v -X POST -H \"Content-Type: application/octet-stream\" -H \"Content-Encoding: aes128gcm\" -H \"TTL: 2419200\" "
+			<< " -H \"Encryption: " << encryptionHeader
+			<< "\" -H \"Authorization: vapid t=" << mkJWTHeader(extractURLProtoAddress(endpoint), "", privateKey, expiration) << ", k=" << publicKey 
+			<< "\"  --data-binary @" << filename
+			<< " " << endpoint << std::endl;
+	} else {
+		r << "curl -v -X POST -H \"Content-Type: application/octet-stream\" -H \"Content-Encoding: aesgcm\" -H \"TTL: 2419200\" -H \"Crypto-Key: "
+			<< cryptoKeyHeader
+			<< ";p256ecdsa=" << publicKey
+			<< "\" -H \"Encryption: " << encryptionHeader
+			<< "\" -H \"Authorization: WebPush " << mkJWTHeader(extractURLProtoAddress(endpoint), "", privateKey, expiration)
+			<< "\"  --data-binary @" << filename
+			<< " " << endpoint << std::endl;
+	}
+
+	return r.str();
+}
+
+/**
+  * @brief CURL write callback
+  */
+static size_t write_string(void *contents, size_t size, size_t nmemb, void *userp)
+{
+	if (userp)
+		((std::string*)userp)->append((char*)contents, size * nmemb);
+	return size * nmemb;
+}
+
+/**
+ * Send VAPID web push request using CURL library
+ * @param retval return string
+ * @param publicKey e.g. "BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A";
+ * @param privateKey e.g. "_93..";
+ * @param endpoint recipient endpoint
+ * @param p256dh recipient key 
+ * @param auth recipient key auth 
+ * @param body JSON string message
+ * @param contentEncoding AESGCM or AES128GCM
+*/
+int webpushCurl(
+	std::string &retval,
+	const std::string &publicKey,
+	const std::string &privateKey,
+	const std::string &endpoint,
+	const std::string &p256dh,
+	const std::string &auth,
+	const std::string &body,
+	int contentEncoding
+) {
+	std::string cipherString;
+	std::string cryptoKeyHeader;
+	std::string encryptionHeader;
+	int code = WPCipher(cipherString, cryptoKeyHeader, encryptionHeader, p256dh, auth, body);
+	if (code)
+		return code;
+
+	time_t expiration = time(NULL) + (24 * 60 * 60);
+
+	CURL *curl = curl_easy_init();
+	if (!curl)
+		return CURLE_FAILED_INIT; 
+	CURLcode res;
+	
+	struct curl_slist *chunk = NULL;
+	chunk = curl_slist_append(chunk, ("Content-Type: application/octet-stream"));
+	chunk = curl_slist_append(chunk, ("TTL: 2419200"));
+	chunk = curl_slist_append(chunk, ("Encryption: " + encryptionHeader).c_str());
+	
+	if (contentEncoding == AES128GCM) {
+		chunk = curl_slist_append(chunk, ("Content-Encoding: aes128gcm"));
+		chunk = curl_slist_append(chunk, ("Authorization: vapid t=" 
+			+ mkJWTHeader(extractURLProtoAddress(endpoint), "", privateKey, expiration)
+			+ ", k=" + publicKey).c_str());
+	} else {
+		chunk = curl_slist_append(chunk, ("Content-Encoding: aesgcm"));
+		chunk = curl_slist_append(chunk, ("Crypto-Key: " + cryptoKeyHeader + ";p256ecdsa=" + publicKey).c_str());
+		chunk = curl_slist_append(chunk, ("Encryption: " + encryptionHeader).c_str());
+		chunk = curl_slist_append(chunk, ("Authorization: WebPush " + mkJWTHeader(extractURLProtoAddress(endpoint), "", privateKey, expiration)).c_str());
+	}
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+
+	curl_easy_setopt(curl, CURLOPT_URL, endpoint.c_str());
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, cipherString.c_str());
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, cipherString.size());
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_string);
+	std::string headers;
+
+	std::string r;
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &r);
+	res = curl_easy_perform(curl);
+	int http_code;
+
+    if (res != CURLE_OK)
+	{
+		retval = std::string(curl_easy_strerror(res));
+		http_code = - res;
+	}
+	else
+	{
+		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+		if ((http_code >= 200) && (http_code < 300))
+		{
+		}
+		else
+		{
+			// Error
+			retval = std::string(r);
+		}
+	}
+	curl_easy_cleanup(curl);
+	return 0;
+}
