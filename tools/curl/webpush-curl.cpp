@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 	struct arg_str *a_contact = arg_str0("f", "from", "<email>", "Sender's email e.g. mailto:alice@acme.com");
 	struct arg_str *a_curl_file = arg_str0("o", "curl", "<file>", "Print curl command. File keeps ciphered data.");
 	
-	struct arg_lit *a_aes128gcm = arg_lit0("1", "aes128gcm", "content encoding aes128gcm. Default aesgcm");
+	struct arg_lit *a_aes128gcm = arg_lit0("1", "aesgcm", "content encoding aes128gcm. Default aes128gcm");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 

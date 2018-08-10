@@ -1,5 +1,3 @@
-/**
-  */
 #include "utilvapid.h"
 #include <sstream>
 #include <fstream>
@@ -289,6 +287,8 @@ static int WPCipher(
 	if (err != ECE_OK)
 		return err;
 
+	retval.resize(cipherSize);
+	
 	size_t cryptoKeyHeaderLen = 0;
 	size_t encryptionHeaderLen = 0;
 	err = ece_webpush_aesgcm_headers_from_params(
@@ -308,6 +308,45 @@ static int WPCipher(
 		ECE_WEBPUSH_DEFAULT_RS, (char *) cryptoKeyHeader.c_str(), &cryptoKeyHeaderLen,
 		(char *) encryptionHeader.c_str(), &encryptionHeaderLen
 	);
+	return err;
+}
+
+/**
+ * Build the `Crypto-Key` and `Encryption` HTTP headers. First, we pass
+ * `NULL`s for `cryptoKeyHeader` and `encryptionHeader`, and 0 for their
+ * lengths, to calculate the lengths of the buffers we need. Then, we
+ * allocate, write out, and null-terminate the headers.
+ * @param retval return cipher as string
+ * @param cryptoKeyHeader return Crypto
+ * @param encryptionHeader return Encrypt
+ * @param p256dh recipient key 
+ * @param auth recipient key auth 
+ * @param body JSON string message
+ */
+static int WPCipher128(
+	std::string &retval,
+	const std::string &p256dh,
+	const std::string &auth,
+	const std::string &body
+)
+{
+	uint8_t rawRecvPubKey[ECE_WEBPUSH_PUBLIC_KEY_LENGTH];
+	size_t rawRecvPubKeyLen = ece_base64url_decode(p256dh.c_str(), p256dh.size(), ECE_BASE64URL_REJECT_PADDING, rawRecvPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH);
+	
+	uint8_t authSecret[ECE_WEBPUSH_AUTH_SECRET_LENGTH];
+	size_t authSecretLen = ece_base64url_decode(auth.c_str(), auth.size(), ECE_BASE64URL_REJECT_PADDING, authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
+	size_t cipherSize = ece_aes128gcm_payload_max_length(ECE_WEBPUSH_DEFAULT_RS, 0, body.size());
+	retval = std::string(cipherSize, '\0');
+	// Encrypt the body and fetch encryption parameters for the headers:
+	// - salt holds the encryption salt, which we include in the `Encryption` header.
+	// - rawSenderPubKey holds the ephemeral sender, or app server, public key, which we include as the `dh` parameter in the `Crypto-Key` header.
+
+	int err = ece_webpush_aes128gcm_encrypt(
+		rawRecvPubKey, rawRecvPubKeyLen, authSecret, authSecretLen,
+		ECE_WEBPUSH_DEFAULT_RS, 0, (const uint8_t*) body.c_str(), body.size(), 
+		(uint8_t *) retval.c_str(), &cipherSize
+	);
+	retval.resize(cipherSize);
 	return err;
 }
 
@@ -338,7 +377,13 @@ std::string webpush2curl(
 	std::string cipherString;
 	std::string cryptoKeyHeader;
 	std::string encryptionHeader;
-	int code = WPCipher(cipherString, cryptoKeyHeader, encryptionHeader, p256dh, auth, body);
+	int code;
+	if (contentEncoding == AES128GCM) {
+		code = WPCipher128(cipherString, p256dh, auth, body);
+	} else {
+		code = WPCipher(cipherString, cryptoKeyHeader, encryptionHeader, p256dh, auth, body);
+	}
+
 	if (code)
 		return "";
 
@@ -350,8 +395,7 @@ std::string webpush2curl(
 	std::stringstream r;
 	if (contentEncoding == AES128GCM) {
 		r << "curl -v -X POST -H \"Content-Type: application/octet-stream\" -H \"Content-Encoding: aes128gcm\" -H \"TTL: 2419200\" "
-			<< " -H \"Encryption: " << encryptionHeader
-			<< "\" -H \"Authorization: vapid t=" << mkJWTHeader(extractURLProtoAddress(endpoint), contact, privateKey, expiration) << ", k=" << publicKey 
+			<< "-H \"Authorization: vapid t=" << mkJWTHeader(extractURLProtoAddress(endpoint), contact, privateKey, expiration) << ", k=" << publicKey 
 			<< "\"  --data-binary @" << filename
 			<< " " << endpoint << std::endl;
 	} else {
@@ -404,7 +448,12 @@ int webpushCurl(
 	std::string cipherString;
 	std::string cryptoKeyHeader;
 	std::string encryptionHeader;
-	int code = WPCipher(cipherString, cryptoKeyHeader, encryptionHeader, p256dh, auth, body);
+	int code;
+	if (contentEncoding == AES128GCM) {
+		code = WPCipher128(cipherString, p256dh, auth, body);
+	} else {
+		code = WPCipher(cipherString, cryptoKeyHeader, encryptionHeader, p256dh, auth, body);
+	}
 	if (code)
 		return code;
 
@@ -418,7 +467,6 @@ int webpushCurl(
 	struct curl_slist *chunk = NULL;
 	chunk = curl_slist_append(chunk, ("Content-Type: application/octet-stream"));
 	chunk = curl_slist_append(chunk, ("TTL: 2419200"));
-	chunk = curl_slist_append(chunk, ("Encryption: " + encryptionHeader).c_str());
 	
 	if (contentEncoding == AES128GCM) {
 		chunk = curl_slist_append(chunk, ("Content-Encoding: aes128gcm"));

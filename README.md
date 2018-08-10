@@ -410,14 +410,22 @@ Subscription consists of
 Print out CURL command line to send web push notification
 
 Firefox:
+
+Send using AES GCM:
 ```
-./webpush-curl -t Title -b body -i https://commandus.com/favicon.ico -f mailto:andrei.i.i.ivanov@commandus.com -l https://commandus.com/ -c "Visit site" -s https://commandus.com/ -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk -e https://updates.push.services.mozilla.com/wpush/v2/gAAAAABbZ7cIJuyrIqApNuZd0AVjSSrYk5Cef5cI29-g8iRpHvFZzvqO6bI0ymUcf1tJpvg0lCIF7GxAbU7yg7EMXUh6c4MKaFPsSEsLzC7Mlb1JyIAMz5Wf0orVg15A2OD9dBCCUwbol78DdinNpwz-ExA67dH7InfiUDeYZS6QmVNXaPhzpGo -d BBpYsgvCmjRZTlwQ__nWoeaLwuqxVc9Eg-GSloPxQdvVxapVybJKJMns8IMkYQUDiLBrnXp-qFugkPBq3fOncvY -a 4SgZbJVmKUP56tJ39wcWPw
-curl -v -X POST -H "Content-Type: application/octet-stream" -H "Content-Encoding: aesgcm"  ...
+./webpush-curl -t Title -b body -i https://commandus.com/favicon.ico -f mailto:andrei.i.i.ivanov@commandus.com -l https://commandus.com/ -c "Visit site" -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk -e https://updates.push.services.mozilla.com/wpush/v2/gAAAAABbZ7cIJuyrIqApNuZd0AVjSSrYk5Cef5cI29-g8iRpHvFZzvqO6bI0ymUcf1tJpvg0lCIF7GxAbU7yg7EMXUh6c4MKaFPsSEsLzC7Mlb1JyIAMz5Wf0orVg15A2OD9dBCCUwbol78DdinNpwz-ExA67dH7InfiUDeYZS6QmVNXaPhzpGo -d BBpYsgvCmjRZTlwQ__nWoeaLwuqxVc9Eg-GSloPxQdvVxapVybJKJMns8IMkYQUDiLBrnXp-qFugkPBq3fOncvY -a 4SgZbJVmKUP56tJ39wcWPw
 ```
 
 Chrome:
+
+Send using AES GCM:
 ```
-./webpush-curl -t "hi there" -b "body m" -i https://commandus.com/favicon.ico -f mailto:andrei.i.i.ivanov@commandus.com -l https://commandus.com/ -c "Visit site" -s https://fcm.googleapis.com  -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk -e https://fcm.googleapis.com/fcm/send/fsvJsFvUpvE:APA91bFLUUr0Owxupb1AqRZ_DE5AfVta35Hm2SAbczaGEQF6PgtEbhI0_ZWArirhcbioKakGPPR5lq4plQBm6QJazCKTiuQvRE1ptidKLq6S2y7h_89spPRi_E9ncJS59A5knRnKSxRh1T6TzJKizW739bWAQm7KKg -d BK0nI6BHSAM7yhv-5TUybvgzUSePr95RUkvNwDw3D7EsG_p0XpbbXnnY7PcwVWv9-v-17dDvD1mK7n4LWXcgSnM -a yMBwZZsKcENvwyeAux8FVg
+./webpush-curl -t "hi there" -b "body message" -i https://commandus.com/favicon.ico -f "" -l https://commandus.com/ -c "Visit site" -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk -e https://fcm.googleapis.com/fcm/send/fsvJsFvUpvE:APA91bFLUUr0Owxupb1AqRZ_DE5AfVta35Hm2SAbczaGEQF6PgtEbhI0_ZWArirhcbioKakGPPR5lq4plQBm6QJazCKTiuQvRE1ptidKLq6S2y7h_89spPRi_E9ncJS59A5knRnKSxRh1T6TzJKizW739bWAQm7KKg -d BK0nI6BHSAM7yhv-5TUybvgzUSePr95RUkvNwDw3D7EsG_p0XpbbXnnY7PcwVWv9-v-17dDvD1mK7n4LWXcgSnM -a yMBwZZsKcENvwyeAux8FVg
+```
+
+Print out curl command line:
+```
+./webpush-curl -t "hi there" -b "body message" -i https://commandus.com/favicon.ico -f "" -l https://commandus.com/ -c "Visit site" -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk -e https://fcm.googleapis.com/fcm/send/fsvJsFvUpvE:APA91bFLUUr0Owxupb1AqRZ_DE5AfVta35Hm2SAbczaGEQF6PgtEbhI0_ZWArirhcbioKakGPPR5lq4plQBm6QJazCKTiuQvRE1ptidKLq6S2y7h_89spPRi_E9ncJS59A5knRnKSxRh1T6TzJKizW739bWAQm7KKg -d BK0nI6BHSAM7yhv-5TUybvgzUSePr95RUkvNwDw3D7EsG_p0XpbbXnnY7PcwVWv9-v-17dDvD1mK7n4LWXcgSnM -a yMBwZZsKcENvwyeAux8FVg -o aesgcm.bin
 
 curl -v -X POST -H "Content-Type: application/octet-stream" -H "Content-Encoding: aesgcm"  ...
 ```
