@@ -227,7 +227,7 @@ std::string extractURLProtoAddress(
 std::string mkJWTHeader
 (
 	const std::string &aud,
-	const std::string &sub,
+	const std::string &sub,	///< contact
 	const std::string &privateKey,
 	time_t exp
 )
@@ -321,6 +321,7 @@ static int WPCipher(
  * @param p256dh recipient key 
  * @param auth recipient key auth 
  * @param body JSON string message
+ * @param contact mailto:
  * @param contentEncoding AESGCM or AES128GCM
 */
 std::string webpush2curl(
@@ -331,6 +332,7 @@ std::string webpush2curl(
 	const std::string &p256dh,
 	const std::string &auth,
 	const std::string &body,
+	const std::string &contact,
 	int contentEncoding
 ) {
 	std::string cipherString;
@@ -349,7 +351,7 @@ std::string webpush2curl(
 	if (contentEncoding == AES128GCM) {
 		r << "curl -v -X POST -H \"Content-Type: application/octet-stream\" -H \"Content-Encoding: aes128gcm\" -H \"TTL: 2419200\" "
 			<< " -H \"Encryption: " << encryptionHeader
-			<< "\" -H \"Authorization: vapid t=" << mkJWTHeader(extractURLProtoAddress(endpoint), "", privateKey, expiration) << ", k=" << publicKey 
+			<< "\" -H \"Authorization: vapid t=" << mkJWTHeader(extractURLProtoAddress(endpoint), contact, privateKey, expiration) << ", k=" << publicKey 
 			<< "\"  --data-binary @" << filename
 			<< " " << endpoint << std::endl;
 	} else {
@@ -357,7 +359,7 @@ std::string webpush2curl(
 			<< cryptoKeyHeader
 			<< ";p256ecdsa=" << publicKey
 			<< "\" -H \"Encryption: " << encryptionHeader
-			<< "\" -H \"Authorization: WebPush " << mkJWTHeader(extractURLProtoAddress(endpoint), "", privateKey, expiration)
+			<< "\" -H \"Authorization: WebPush " << mkJWTHeader(extractURLProtoAddress(endpoint), contact, privateKey, expiration)
 			<< "\"  --data-binary @" << filename
 			<< " " << endpoint << std::endl;
 	}
@@ -384,6 +386,7 @@ static size_t write_string(void *contents, size_t size, size_t nmemb, void *user
  * @param p256dh recipient key 
  * @param auth recipient key auth 
  * @param body JSON string message
+ * @param contact mailto:
  * @param contentEncoding AESGCM or AES128GCM
 */
 int webpushCurl(
@@ -394,8 +397,10 @@ int webpushCurl(
 	const std::string &p256dh,
 	const std::string &auth,
 	const std::string &body,
+	const std::string &contact,
 	int contentEncoding
 ) {
+	retval = "";
 	std::string cipherString;
 	std::string cryptoKeyHeader;
 	std::string encryptionHeader;
@@ -418,13 +423,13 @@ int webpushCurl(
 	if (contentEncoding == AES128GCM) {
 		chunk = curl_slist_append(chunk, ("Content-Encoding: aes128gcm"));
 		chunk = curl_slist_append(chunk, ("Authorization: vapid t=" 
-			+ mkJWTHeader(extractURLProtoAddress(endpoint), "", privateKey, expiration)
+			+ mkJWTHeader(extractURLProtoAddress(endpoint), contact, privateKey, expiration)
 			+ ", k=" + publicKey).c_str());
 	} else {
 		chunk = curl_slist_append(chunk, ("Content-Encoding: aesgcm"));
 		chunk = curl_slist_append(chunk, ("Crypto-Key: " + cryptoKeyHeader + ";p256ecdsa=" + publicKey).c_str());
 		chunk = curl_slist_append(chunk, ("Encryption: " + encryptionHeader).c_str());
-		chunk = curl_slist_append(chunk, ("Authorization: WebPush " + mkJWTHeader(extractURLProtoAddress(endpoint), "", privateKey, expiration)).c_str());
+		chunk = curl_slist_append(chunk, ("Authorization: WebPush " + mkJWTHeader(extractURLProtoAddress(endpoint), contact, privateKey, expiration)).c_str());
 	}
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
@@ -435,10 +440,7 @@ int webpushCurl(
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, cipherString.c_str());
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, cipherString.size());
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_string);
-	std::string headers;
-
-	std::string r;
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &r);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &retval);
 	res = curl_easy_perform(curl);
 	int http_code;
 
@@ -450,15 +452,7 @@ int webpushCurl(
 	else
 	{
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-		if ((http_code >= 200) && (http_code < 300))
-		{
-		}
-		else
-		{
-			// Error
-			retval = std::string(r);
-		}
 	}
 	curl_easy_cleanup(curl);
-	return 0;
+	return http_code;
 }

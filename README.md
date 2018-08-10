@@ -411,19 +411,26 @@ Print out CURL command line to send web push notification
 
 Firefox:
 ```
-./webpush-curl -t Title -b body -i https://commandus.com/favicon.ico -c https://commandus.com/ -s https://commandus.com/ -f mailto:andrei.i.ivanov@gmail.com -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk -e https://updates.push.services.mozilla.com/wpush/v2/gAAAAABbZ7cIJuyrIqApNuZd0AVjSSrYk5Cef5cI29-g8iRpHvFZzvqO6bI0ymUcf1tJpvg0lCIF7GxAbU7yg7EMXUh6c4MKaFPsSEsLzC7Mlb1JyIAMz5Wf0orVg15A2OD9dBCCUwbol78DdinNpwz-ExA67dH7InfiUDeYZS6QmVNXaPhzpGo -d BBpYsgvCmjRZTlwQ__nWoeaLwuqxVc9Eg-GSloPxQdvVxapVybJKJMns8IMkYQUDiLBrnXp-qFugkPBq3fOncvY -a 4SgZbJVmKUP56tJ39wcWPw
-
+./webpush-curl -t Title -b body -i https://commandus.com/favicon.ico -f mailto:andrei.i.i.ivanov@commandus.com -l https://commandus.com/ -c "Visit site" -s https://commandus.com/ -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk -e https://updates.push.services.mozilla.com/wpush/v2/gAAAAABbZ7cIJuyrIqApNuZd0AVjSSrYk5Cef5cI29-g8iRpHvFZzvqO6bI0ymUcf1tJpvg0lCIF7GxAbU7yg7EMXUh6c4MKaFPsSEsLzC7Mlb1JyIAMz5Wf0orVg15A2OD9dBCCUwbol78DdinNpwz-ExA67dH7InfiUDeYZS6QmVNXaPhzpGo -d BBpYsgvCmjRZTlwQ__nWoeaLwuqxVc9Eg-GSloPxQdvVxapVybJKJMns8IMkYQUDiLBrnXp-qFugkPBq3fOncvY -a 4SgZbJVmKUP56tJ39wcWPw
 curl -v -X POST -H "Content-Type: application/octet-stream" -H "Content-Encoding: aesgcm"  ...
 ```
 
 Chrome:
 ```
-./webpush-curl -t Title -b body -i https://commandus.com/favicon.ico -c https://commandus.com/ -s https://commandus.com/ -f mailto:andrei.i.ivanov@gmail.com -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk -e https://fcm.googleapis.com/fcm/send/dAob7IITAjk:APA91bF0cuvHE-p8lbpdayCdiGJzNWNfu53Bd6O29cnpbz_8nzZyRHw-ChTo2o43KjGmmlk7T1GjwdaymttN_fjtp7x8gX9jC5yN2F2fPdbVkBp6IXV8wlKCvDyXZy8qDs1ObLlcl6Odic1Wu11oQIJLSZ8Df9cFEA -d BCjbINwYThS2ZAOKseAmax6ENhfEhqKmMMlUyzdZm2qQy_vA3tMRlOF9ReMAcvsefwHhqSt3WUyCjbUzQ53PSLw -a Jc9t4JP9tonIwjzXty-WxQ
+./webpush-curl -t "hi there" -b "body m" -i https://commandus.com/favicon.ico -f mailto:andrei.i.i.ivanov@commandus.com -l https://commandus.com/ -c "Visit site" -s https://fcm.googleapis.com  -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk -e https://fcm.googleapis.com/fcm/send/fsvJsFvUpvE:APA91bFLUUr0Owxupb1AqRZ_DE5AfVta35Hm2SAbczaGEQF6PgtEbhI0_ZWArirhcbioKakGPPR5lq4plQBm6QJazCKTiuQvRE1ptidKLq6S2y7h_89spPRi_E9ncJS59A5knRnKSxRh1T6TzJKizW739bWAQm7KKg -d BK0nI6BHSAM7yhv-5TUybvgzUSePr95RUkvNwDw3D7EsG_p0XpbbXnnY7PcwVWv9-v-17dDvD1mK7n4LWXcgSnM -a yMBwZZsKcENvwyeAux8FVg
 
 curl -v -X POST -H "Content-Type: application/octet-stream" -H "Content-Encoding: aesgcm"  ...
 ```
 
-## Dependencies
+## Build
+
+```
+./autogen.sh
+./configure
+make
+```
+
+Dependencies
 
 - curl https://github.com/curl/curl
 - argtable3 https://github.com/argtable/argtable3 https://www.argtable.org/ BSD

@@ -41,6 +41,7 @@ std::string mkJWTHeader
  * @param p256dh recipient key 
  * @param auth recipient key auth 
  * @param body JSON string message
+ * @param contact mailto:
  * @param contentEncoding AESGCM or AES128GCM
  */
 std::string webpush2curl(
@@ -51,6 +52,7 @@ std::string webpush2curl(
 	const std::string &p256dh,
 	const std::string &auth,
 	const std::string &body,
+	const std::string &contact,
 	int contentEncoding
 );
 
@@ -63,6 +65,7 @@ std::string webpush2curl(
  * @param p256dh recipient key 
  * @param auth recipient key auth 
  * @param body JSON string message
+ * @param contact mailto:
  * @param contentEncoding AESGCM or AES128GCM
  */
 int webpushCurl(
@@ -73,5 +76,6 @@ int webpushCurl(
 	const std::string &p256dh,
 	const std::string &auth,
 	const std::string &body,
+	const std::string &contact,
 	int contentEncoding
 );

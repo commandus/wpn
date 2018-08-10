@@ -16,10 +16,10 @@ webPush.setVapidDetails(
 
 // chrome
 var pushSubscription = {
-  endpoint: 'https://fcm.googleapis.com/fcm/send/dAob7IITAjk:APA91bF0cuvHE-p8lbpdayCdiGJzNWNfu53Bd6O29cnpbz_8nzZyRHw-ChTo2o43KjGmmlk7T1GjwdaymttN_fjtp7x8gX9jC5yN2F2fPdbVkBp6IXV8wlKCvDyXZy8qDs1ObLlcl6Odic1Wu11oQIJLSZ8Df9cFEA',
+  endpoint: 'https://fcm.googleapis.com/fcm/send/fsvJsFvUpvE:APA91bFLUUr0Owxupb1AqRZ_DE5AfVta35Hm2SAbczaGEQF6PgtEbhI0_ZWArirhcbioKakGPPR5lq4plQBm6QJazCKTiuQvRE1ptidKLq6S2y7h_89spPRi_E9ncJS59A5knRnKSxRh1T6TzJKizW739bWAQm7KKg',
   keys:{
-    p256dh:"BCjbINwYThS2ZAOKseAmax6ENhfEhqKmMMlUyzdZm2qQy_vA3tMRlOF9ReMAcvsefwHhqSt3WUyCjbUzQ53PSLw", 
-    auth:"Jc9t4JP9tonIwjzXty-WxQ"
+    p256dh:"BK0nI6BHSAM7yhv-5TUybvgzUSePr95RUkvNwDw3D7EsG_p0XpbbXnnY7PcwVWv9-v-17dDvD1mK7n4LWXcgSnM", 
+    auth:"yMBwZZsKcENvwyeAux8FVg"
   }
 };
 
@@ -47,7 +47,8 @@ var payload = JSON.stringify(
 );
 
 var options = {
-  contentEncoding: 'aes128gcm'
+  // contentEncoding: 'aes128gcm'
+  contentEncoding: 'aesgcm'
 };
 
 webPush.sendNotification(
