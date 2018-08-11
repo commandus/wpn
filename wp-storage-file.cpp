@@ -2,12 +2,9 @@
 
 #include <fstream>
 #include "sole/sole.hpp"
-#include "nlohmann/json.hpp"
 #include "wp-storage-file.h"
 #include "utilstring.h"
 #include "utilvapid.h"
-
-using json = nlohmann::json;
 
 // --------------- AndroidCredentials ---------------
 
@@ -154,7 +151,7 @@ void AndroidCredentials::setGCMToken(const std::string &value)
 	mGCMToken = value;
 }
 
-int AndroidCredentials::write
+std::ostream::pos_type AndroidCredentials::write
 (
 	std::ostream &strm,
 	const std::string &delimiter,
@@ -165,32 +162,36 @@ int AndroidCredentials::write
 	switch (writeFormat)
 	{
 		case 1:
-			{
-				json j = {
-					{"appId", mAppId},
-					{"androidId ", mAndroidId},
-					{"securityToken", mSecurityToken},
-					{"GCMToken", mGCMToken}
-				};
-				strm << j.dump();
-			}
+			strm << toJson().dump();
 			break;
 		default:
 			strm << mAppId << delimiter << mAndroidId << delimiter << mSecurityToken 
 			<< delimiter << mGCMToken << std::endl;
 	}
 	r = strm.tellp() - r;
-	return (int) r;
+	return r;
 }
 
-int AndroidCredentials::write
+std::ostream::pos_type AndroidCredentials::write
 (
 	const std::string &fileName
 ) const
 {
 	std::ofstream strm(fileName);
-	int r = write(strm, DEF_DELIMITER);
+	std::ostream::pos_type r = write(strm, DEF_DELIMITER);
 	strm.close();
+	return r;
+}
+
+json AndroidCredentials::toJson(
+) const
+{
+	json r = {
+		{ "appId", mAppId },
+		{ "androidId ", mAndroidId },
+		{ "securityToken", mSecurityToken },
+		{ "GCMToken", mGCMToken }
+	};
 	return r;
 }
 
@@ -337,7 +338,7 @@ std::string WpnKeys::getAuthSecret() const
 	return base64UrlEncode(authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
 }
 
-int WpnKeys::write
+std::ostream::pos_type WpnKeys::write
 (
 	std::ostream &strm,
 	const std::string &delimiter,
@@ -348,36 +349,33 @@ int WpnKeys::write
 	switch (writeFormat)
 	{
 		case FORMAT_JSON:
-			{
-				json j = {
-					{"privateKey", getPrivateKey()},
-					{"publicKey", getPublicKey()},
-					{"authSecret", getAuthSecret()}
-				};
-				strm << j.dump();
-			}
+			strm << toJson().dump();
 			break;
 		default:
 			strm << getPrivateKey() << delimiter << getPublicKey() << delimiter << getAuthSecret() << std::endl;
 	}
-	return (int) strm.tellp() - r;
+	return strm.tellp() - r;
 }
 
-int WpnKeys::write(
+std::ostream::pos_type WpnKeys::write(
 	const std::string &fileName
 ) const
 {
 	std::ofstream strm(fileName);
-	int r = write(strm, DEF_DELIMITER);
+	std::ostream::pos_type r = write(strm, DEF_DELIMITER);
 	strm.close();
 	return r;
 }
 
-std::string WpnKeys::asJSON() const
+json WpnKeys::toJson(
+) const
 {
-	std::stringstream ss;
-	write(ss, DEF_DELIMITER, 1);
-	return ss.str();
+	json r = {
+		{ "privateKey", getPrivateKey() },
+		{ "publicKey", getPublicKey() },
+		{ "authSecret", getAuthSecret() }
+	};
+	return r;
 }
 
 // --------------- Subscription ---------------
@@ -548,125 +546,89 @@ void Subscription::setPersistentId
 		mPersistentId = value;
 }
 
-int Subscription::write
+std::ostream::pos_type Subscription::write
 (
 	std::ostream &strm,
 	const std::string &delimiter,
-	const int writeFormat,
-	const bool shortFormat
+	const int writeFormat
 ) const
 {
 	std::ostream::pos_type r = strm.tellp();
-	int subscriptionMode = getSubscribeMode();
 	switch (writeFormat)
 	{
 		case FORMAT_JSON:
 			{
-				json j;
-				if (shortFormat) {
-					switch(subscriptionMode) {
-						case SUBSCRIBE_FIREBASE:
-							j = {
-								{"name", getName()},
-								{"authorizedEntity", getAuthorizedEntity()},
-								{"token", getToken()},
-								{"serverKey", getServerKey()}
-							};
-							break;
-						case SUBSCRIBE_VAPID:
-							{
-								const WpnKeys& wpnKeys = getWpnKeys();
-								j = {
-									{"name", getName()},
-									{"endpoint", getEndpoint()},
-									{"publicKey", wpnKeys.getPublicKey()},
-									{"privateKey", wpnKeys.getPrivateKey()},
-									{"authSecret", wpnKeys.getAuthSecret()},
-									{"persistentId", getPersistentId()}
-								};
-							}
-							break;
-						default:
-							break;
-					}
-
-				} else {
-					switch(subscriptionMode) {
-						case SUBSCRIBE_FIREBASE:
-							j = {
-								{"name", getName()},
-								{"subscribeUrl", getSubscribeUrl()},
-								{"subscribeMode", getSubscribeMode()},
-								{"endpoint", getEndpoint()},
-								{"authorizedEntity", getAuthorizedEntity()},
-								{"token", getToken()},
-								{"pushSet", getPushSet()},
-								{"persistentId", getPersistentId()},
-								{"serverKey", getServerKey()}
-							};
-							break;
-						case SUBSCRIBE_VAPID:
-							{
-								const WpnKeys& wpnKeys = getWpnKeys();
-								j = {
-									{"name", getName()},
-									{"endpoint", getEndpoint()},
-									{"publicKey", wpnKeys.getPublicKey()},
-									{"privateKey", wpnKeys.getPrivateKey()},
-									{"authSecret", wpnKeys.getAuthSecret()},
-									{"persistentId", getPersistentId()}
-								};
-							}
-							break;
-						default:
-							break;
-					}
-				}
-				strm << j.dump();
+				strm << toJson().dump();
 			}
 			break;
 		default:
-			if (shortFormat) {
-				switch(subscriptionMode) {
-					case SUBSCRIBE_FIREBASE:
-						strm << getName() << delimiter << getAuthorizedEntity() << delimiter << getServerKey() 
-							<< delimiter << getToken() << std::endl;
-						break;
-					case SUBSCRIBE_VAPID:
-						strm << getName() << delimiter << getEndpoint() << delimiter << getPersistentId() << delimiter;
-						getWpnKeys().write(strm, delimiter, writeFormat);
-						break;
-					default:
-						break;
-				}
-			} else {
-				switch(subscriptionMode) {
-					case SUBSCRIBE_FIREBASE:
-						strm << getSubscribeMode() << delimiter << getName() << delimiter << getSubscribeUrl() << delimiter
-							<< getEndpoint() << delimiter << getServerKey() << delimiter 
-							<< getAuthorizedEntity() << delimiter << getToken() << getPushSet() << delimiter << getPersistentId() << std::endl;
-						break;
-					case SUBSCRIBE_VAPID:
-						strm << getSubscribeMode() << delimiter << getName() << delimiter << getEndpoint() << delimiter << getPersistentId() << delimiter;
-						getWpnKeys().write(strm, delimiter, writeFormat);
-						break;
-					default:
-						break;
-				}
+		{
+			int subscriptionMode = getSubscribeMode();
+
+			switch (subscriptionMode) {
+			case SUBSCRIBE_FIREBASE:
+				strm << getSubscribeMode() << delimiter << getName() << delimiter << getSubscribeUrl() << delimiter
+					<< getEndpoint() << delimiter << getServerKey() << delimiter
+					<< getAuthorizedEntity() << delimiter << getToken() << getPushSet() << delimiter << getPersistentId() << std::endl;
+				break;
+			case SUBSCRIBE_VAPID:
+				strm << getSubscribeMode() << delimiter << getName() << delimiter << getEndpoint() << delimiter << getPersistentId() << delimiter;
+				getWpnKeys().write(strm, delimiter, writeFormat);
+				break;
+			default:
+				break;
 			}
-			break;
+		}
+		break;
 	}
-	return (int) strm.tellp() - r;
+	return strm.tellp() - r;
 }
 
-int Subscription::write
+std::ostream::pos_type Subscription::write
 (
 	const std::string &fileName
 ) const
 {
 	std::ofstream strm(fileName);
-	int r = write(strm, DEF_DELIMITER, 0, false);
+	std::ostream::pos_type r = write(strm, DEF_DELIMITER, FORMAT_TEXT);
 	strm.close();
+	return r;
+}
+
+json Subscription::toJson(
+) const
+{
+	json r;
+	switch (getSubscribeMode()) {
+	case SUBSCRIBE_FIREBASE:
+		r = {
+			{ "name", getName() },
+			{ "subscribeUrl", getSubscribeUrl() },
+			{ "subscribeMode", getSubscribeMode() },
+			{ "endpoint", getEndpoint() },
+			{ "authorizedEntity", getAuthorizedEntity() },
+			{ "token", getToken() },
+			{ "pushSet", getPushSet() },
+			{ "persistentId", getPersistentId() },
+			{ "serverKey", getServerKey() }
+		};
+		break;
+	case SUBSCRIBE_VAPID:
+	{
+		const WpnKeys& wpnKeys = getWpnKeys();
+		r = {
+			{ "name", getName() },
+			{ "endpoint", getEndpoint() },
+			{ "publicKey", wpnKeys.getPublicKey() },
+			{ "privateKey", wpnKeys.getPrivateKey() },
+			{ "authSecret", wpnKeys.getAuthSecret() },
+			{ "persistentId", getPersistentId() }
+		};
+	}
+	break;
+	default:
+		break;
+	}
 	return r;
 }
 
@@ -828,30 +790,29 @@ const std::string & Subscriptions::getReceivedPersistentId() const
 	return receivedPersistentId;
 }
 
-int Subscriptions::write
+std::ostream::pos_type Subscriptions::write
 (
 	std::ostream &strm,
 	const std::string &delimiter,
-	const int writeFormat,
-	const bool shortFormat
+	const int writeFormat
 ) const
 {
-	long r = 0;
+	std::ostream::pos_type r = 0;
 	strm << receivedPersistentId << std::endl;
 	for (std::vector<Subscription>::const_iterator it(list.begin()); it != list.end(); ++it)
 	{
-		r += it->write(strm, delimiter, writeFormat, shortFormat);
+		r += it->write(strm, delimiter, writeFormat);
 	}
 	return r;
 }
 
-int Subscriptions::write
+std::ostream::pos_type Subscriptions::write
 (
 	const std::string &fileName
 ) const
 {
 	std::ofstream strm(fileName);
-	int r = write(strm, DEF_DELIMITER);
+	std::ostream::pos_type r = write(strm, DEF_DELIMITER);
 	strm.close();
 	return r;
 }
@@ -872,4 +833,19 @@ void Subscriptions::read(
 			break;
 		list.push_back(s);
 	}
+}
+
+json Subscriptions::toJson(
+) const
+{
+	json subscriptions = json::array();
+	for (std::vector<Subscription>::const_iterator it(list.begin()); it != list.end(); ++it)
+	{
+		subscriptions.push_back(it->toJson());
+	}
+
+	json r = {
+		{ "subscriptions", subscriptions }
+	};
+	return r;
 }

@@ -116,7 +116,7 @@ int main(int argc, char** argv)
 			{
 				if ((config.outputFormat == 0) && (config.verbosity > 0))
 					std::cout << "subscribeUrl\tsubscribe mode\tendpoint\tauthorized entity\tFCM token\tpushSet" << std::endl;
-				config.subscriptions->write(std::cout, "\t", config.outputFormat, config.verbosity == 0);
+				config.subscriptions->write(std::cout, "\t", config.outputFormat);
 			}
 			break;
 		case CMD_LIST_QRCODE:
@@ -372,7 +372,7 @@ int main(int argc, char** argv)
 				subscription.write(std::cout, "\t", config.outputFormat);
 			}
 			*/
-			std::cout << config.wpnKeys->asJSON() << std::endl;
+			std::cout << config.wpnKeys->toJson().dump() << std::endl;
 		}
 			break;
 		default:

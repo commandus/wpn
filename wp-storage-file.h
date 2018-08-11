@@ -4,6 +4,7 @@
  * 
  * https://github.com/web-push-libs/ecec
  * 
+ * AndroidCredentials, WpnKeys, Subscriptions
  * Helper utilities
  */
 #ifndef WP_STORAGE_FILE_H
@@ -13,13 +14,17 @@
 #include <iostream>
 #include <vector>
 #include <ece.h>
+#include "nlohmann/json.hpp"
 
 #define DEF_DELIMITER " "	// space character
 
 #define SUBSCRIBE_FIREBASE			1
 #define SUBSCRIBE_VAPID				2
 
+#define FORMAT_TEXT					0
 #define FORMAT_JSON					1
+
+using json = nlohmann::json;
 
 class AndroidCredentials
 {
@@ -71,13 +76,15 @@ public:
 	void setSecurityToken(uint64_t value);
 	void setGCMToken(const std::string &value);
 
-	int write(
+	std::ostream::pos_type write(
 		std::ostream &strm,
 		const std::string &delimiter = DEF_DELIMITER,
-		const int writeFormat = 0
+		const int writeFormat = FORMAT_TEXT
 	) const;
-	int write(
+	std::ostream::pos_type write(
 		const std::string &fileName
+	) const;
+	json toJson(
 	) const;
 };
 
@@ -143,15 +150,18 @@ public:
 	std::string getAuthSecret() const;
 	const uint8_t *getAuthSecretArray() const;
 	
-	int write(
+	std::ostream::pos_type write(
 		std::ostream &strm,
 		const std::string &delimiter = DEF_DELIMITER,
-		const int writeFormat = 0
+		const int writeFormat = FORMAT_TEXT
 	) const;
-	int write(
+	std::ostream::pos_type write(
 		const std::string &fileName
 	) const;
-	std::string asJSON() const;
+
+	json toJson(
+	) const;
+
 	int generate();
 };
 
@@ -262,15 +272,18 @@ public:
 	const std::string &getPersistentId() const;
 	void setPersistentId(const std::string &value);
 
-	int write(
+	std::ostream::pos_type write(
 		std::ostream &strm,
 		const std::string &delimiter,
-		const int writeFormat = 0,
-		const bool shortFormat = false
+		const int writeFormat = FORMAT_TEXT
 	) const;
-	int write(
+	std::ostream::pos_type write(
 		const std::string &fileName
 	) const;
+
+	json toJson(
+	) const;
+
 	bool valid() const;
 	bool operator==(const Subscription &val) const;
 };
@@ -296,14 +309,15 @@ public:
 	void setReceivedPersistentId(const std::string &value);
 	std::vector<Subscription> list;
 
-	int write(
+	std::ostream::pos_type write(
 		std::ostream &strm,
 		const std::string &delimiter = DEF_DELIMITER,
-		const int writeFormat = 0,
-		const bool shortFormat = false
+		const int writeFormat = FORMAT_TEXT
 	)  const;
-	int write(
+	std::ostream::pos_type write(
 		const std::string &fileName
+	) const;
+	json toJson(
 	) const;
 };
 
