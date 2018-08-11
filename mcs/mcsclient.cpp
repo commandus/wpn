@@ -889,7 +889,7 @@ bool MCSClient::hasIdNToken()
 	return (mConfig->androidCredentials->getAndroidId() && mConfig->androidCredentials->getSecurityToken());
 }
 
-int MCSClient::write()
+std::ostream::pos_type MCSClient::write()
 {
 	if (!mConfig)
 		return 0;

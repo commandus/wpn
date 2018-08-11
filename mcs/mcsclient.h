@@ -108,7 +108,7 @@ public:
     uint64_t getSecurityToken();
 	bool hasIdNToken();
 
-	int write();
+	std::ostream::pos_type write();
 
 	int logIn();
 

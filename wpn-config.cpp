@@ -218,7 +218,14 @@ int WpnConfig::parseCmd
 		file_name = getDefaultConfigFileName();
 
 	// read
-	read(file_name);
+	if (file_name.find(".js")) {
+		std::ifstream strm(file_name);
+		json j;
+		strm >> j;
+		fromJson(j);
+		strm.close();
+	} else
+		read(file_name);
 
 	if (a_subscribe_url->count)
 		subscribeUrl = *a_subscribe_url->sval;
@@ -524,7 +531,7 @@ int WpnConfig::error()
 	return errorcode;
 }
 
-int WpnConfig::read(const std::string &fileName)
+std::istream::pos_type WpnConfig::read(const std::string &fileName)
 {
 	std::ifstream configRead(fileName.c_str());
 	androidCredentials = new AndroidCredentials(configRead);
@@ -535,10 +542,10 @@ int WpnConfig::read(const std::string &fileName)
 	return (int) r;
 }
 
-int WpnConfig::write() const
+std::ostream::pos_type WpnConfig::write() const
 {
 	std::ofstream configWrite(file_name);
-	int r = androidCredentials->write(configWrite);
+	std::ostream::pos_type r = androidCredentials->write(configWrite);
 	r += wpnKeys->write(configWrite);
 	r += subscriptions->write(configWrite);
 	configWrite.close();
@@ -556,6 +563,13 @@ json WpnConfig::toJson() const
 		{ "subscriptions", s }
 	};
 	return r;
+}
+
+void WpnConfig::fromJson(const json &value)
+{
+	androidCredentials = new AndroidCredentials(value["credentials"]);
+	wpnKeys = new WpnKeys(value["keys"]);
+	subscriptions = new Subscriptions(value["subscriptions"]);
 }
 
 SO_INSTANCE loadPlugin(const std::string &fileName)

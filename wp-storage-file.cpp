@@ -47,6 +47,14 @@ AndroidCredentials::AndroidCredentials(
 {
 	std::ifstream strm(fileName);
 	read(strm, DEF_DELIMITER);
+	strm.close();
+}
+
+AndroidCredentials::AndroidCredentials(
+	const json &value
+)
+{
+	init(value["appId"], value["androidId"], value["securityToken"], value["GCMToken"]);
 }
 
 std::string AndroidCredentials::genAppId()
@@ -188,7 +196,7 @@ json AndroidCredentials::toJson(
 {
 	json r = {
 		{ "appId", mAppId },
-		{ "androidId ", mAndroidId },
+		{ "androidId", mAndroidId },
 		{ "securityToken", mSecurityToken },
 		{ "GCMToken", mGCMToken }
 	};
@@ -241,6 +249,14 @@ WpnKeys::WpnKeys(
 {
 	std::ifstream strm(fileName);
 	read(strm, DEF_DELIMITER);
+	strm.close();
+}
+
+WpnKeys::WpnKeys(
+	const json &value
+)
+{
+	init(value["privateKey"], value["publicKey"], value["authSecret"]);
 }
 
 void WpnKeys::init(
@@ -382,7 +398,7 @@ json WpnKeys::toJson(
 
 Subscription::Subscription()
 	: name(""), subscribeUrl(""), subscribeMode(0), endpoint(""), authorizedEntity(""),
-	token(""), pushSet(""), mPersistentId("")
+	token(""), pushSet(""), persistentId("")
 {
 }
 
@@ -398,7 +414,7 @@ Subscription::Subscription(
 )
 	: subscribeUrl(aSubscribeUrl), subscribeMode(SUBSCRIBE_FIREBASE), endpoint(a_endpoint), serverKey(a_serverKey),
 	authorizedEntity(a_authorizedEntity), token(a_token), pushSet(a_pushSet),
-	mPersistentId(aPersistentId)
+	persistentId(aPersistentId)
 {
 	name = escapeURLString(aName);
 }
@@ -414,7 +430,7 @@ Subscription::Subscription(
 )
 	: subscribeUrl(""), subscribeMode(SUBSCRIBE_VAPID), endpoint(a_endpoint), 
 	serverKey(""), authorizedEntity(""), token(""), pushSet(""),
-	mPersistentId(aPersistentId)
+	persistentId(aPersistentId)
 {
 	name = escapeURLString(a_name);
 	WpnKeys keys(a_privateKey, a_publicKey, a_authSecret);
@@ -435,6 +451,36 @@ Subscription::Subscription(
 {
 	std::ifstream strm(fileName);
 	read(strm, DEF_DELIMITER);
+	strm.close();
+}
+
+Subscription::Subscription(
+	const json &value
+)
+{
+	this->subscribeMode = value["subscribeMode"];
+	switch (this->subscribeMode) {
+	case SUBSCRIBE_FIREBASE:
+		this->name = value["name"];
+		this->subscribeUrl = value["subscribeUrl"];
+		this->endpoint = value["endpoint"];
+		this->authorizedEntity = value["authorizedEntity"];
+		this->token = value["token"];
+		this->pushSet = value["pushSet"];
+		this->persistentId = value["persistentId"];
+		this->serverKey = value["serverKey"];
+		break;
+	case SUBSCRIBE_VAPID:
+	{
+		this->wpnKeys.init(value["publicKey"], value["privateKey"], value["authSecret"]);
+		this->name = value["name"];
+		this->endpoint = value["endpoint"];
+		this->persistentId = value["persistentId"];
+		break;
+	}
+	default:
+		break;
+	}
 }
 
 std::string Subscription::getName() const
@@ -479,7 +525,7 @@ std::string Subscription::getPushSet() const
 
 const std::string &Subscription::getPersistentId() const
 {
-	return mPersistentId;
+	return persistentId;
 }
 
 const WpnKeys& Subscription::getWpnKeys() const
@@ -543,7 +589,7 @@ void Subscription::setPersistentId
 )
 {
 	if (!value.empty())
-		mPersistentId = value;
+		persistentId = value;
 }
 
 std::ostream::pos_type Subscription::write
@@ -564,7 +610,6 @@ std::ostream::pos_type Subscription::write
 		default:
 		{
 			int subscriptionMode = getSubscribeMode();
-
 			switch (subscriptionMode) {
 			case SUBSCRIBE_FIREBASE:
 				strm << getSubscribeMode() << delimiter << getName() << delimiter << getSubscribeUrl() << delimiter
@@ -602,9 +647,9 @@ json Subscription::toJson(
 	switch (getSubscribeMode()) {
 	case SUBSCRIBE_FIREBASE:
 		r = {
+			{ "subscribeMode", getSubscribeMode() },
 			{ "name", getName() },
 			{ "subscribeUrl", getSubscribeUrl() },
-			{ "subscribeMode", getSubscribeMode() },
 			{ "endpoint", getEndpoint() },
 			{ "authorizedEntity", getAuthorizedEntity() },
 			{ "token", getToken() },
@@ -617,6 +662,7 @@ json Subscription::toJson(
 	{
 		const WpnKeys& wpnKeys = getWpnKeys();
 		r = {
+			{ "subscribeMode", getSubscribeMode() },
 			{ "name", getName() },
 			{ "endpoint", getEndpoint() },
 			{ "publicKey", wpnKeys.getPublicKey() },
@@ -644,7 +690,7 @@ void Subscription::initVAPID1(
 	subscribeMode = SUBSCRIBE_VAPID;
 	name = a_name;
 	endpoint = a_endpoint;
-	mPersistentId = a_persistentId;
+	persistentId = a_persistentId;
 	wpnKeys = *a_wpn_keys;
 }
 
@@ -682,7 +728,7 @@ void Subscription::initFCM(
 	authorizedEntity = a_authorizedEntity;
 	token = a_token;
 	pushSet = a_pushSet;
-	mPersistentId = a_persistentId;
+	persistentId = a_persistentId;
 }
 
 void Subscription::parse
@@ -766,6 +812,19 @@ Subscriptions::Subscriptions
 {
 	std::ifstream strm(fileName);
 	read(strm, DEF_DELIMITER);
+	strm.close();
+}
+
+Subscriptions::Subscriptions(
+	const json &value
+)
+{
+	for (json::const_iterator it = value.begin(); it != value.end(); ++it) {
+		Subscription s(*it);
+		if (!s.valid())
+			break;
+		list.push_back(s);
+	}
 }
 
 /**

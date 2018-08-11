@@ -101,8 +101,8 @@ public:
 	AndroidCredentials *androidCredentials;
 	WpnKeys *wpnKeys;
 	Subscriptions *subscriptions;
-	int read(const std::string &fileName);
-	int write() const;
+	std::istream::pos_type read(const std::string &fileName);
+	std::ostream::pos_type write() const;
 
 	size_t loadDesktopNotifyFuncs();
 	void unloadDesktopNotifyFuncs();
@@ -134,6 +134,7 @@ public:
 		const std::string &subscriptionName
 	) const;
 	json toJson() const;
+	void fromJson(const json &value);
 };
 
 #endif

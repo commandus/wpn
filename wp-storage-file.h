@@ -68,6 +68,9 @@ public:
 	AndroidCredentials(
 		const std::string &fileName
 	);
+	AndroidCredentials(
+		const json &value
+	);
 	const std::string &getAppId() const;
 	uint64_t getAndroidId() const;
 	uint64_t getSecurityToken() const;
@@ -143,7 +146,9 @@ public:
 	WpnKeys(
 		const std::string &fileName
 	);
-
+	WpnKeys(
+		const json &value
+	);
 	std::string getPrivateKey() const;
 	const uint8_t *getPrivateKeyArray() const;
 	std::string getPublicKey() const;
@@ -176,7 +181,7 @@ private:
 	std::string authorizedEntity;	///< FCM entity     - VAPID public key
 	std::string token;				///< FCM token      - VAPID auth secret
 	std::string pushSet;
-	std::string mPersistentId;	///< last received message id for unknown reason
+	std::string persistentId;	///< last received message id for unknown reason
 	WpnKeys wpnKeys;
 	/// Initialize FCM
 	void initFCM(
@@ -243,6 +248,10 @@ public:
 	Subscription(
 		const std::string &fileName
 	);
+	Subscription(
+		const json &value
+	);
+
 	/// constructor for find only
 	Subscription(
 		const std::string &endpoint,
@@ -304,6 +313,9 @@ public:
 	);
 	Subscriptions(
 		const std::string &fileName
+	);
+	Subscriptions(
+		const json &value
 	);
 	const std::string & getReceivedPersistentId() const;
 	void setReceivedPersistentId(const std::string &value);
