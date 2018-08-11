@@ -394,5 +394,7 @@ int main(int argc, char** argv)
 
 	config.write();
 	
+	std::cout << config.toJson().dump();
+	
 	return 0;
 }

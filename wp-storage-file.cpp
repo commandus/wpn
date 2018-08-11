@@ -843,9 +843,5 @@ json Subscriptions::toJson(
 	{
 		subscriptions.push_back(it->toJson());
 	}
-
-	json r = {
-		{ "subscriptions", subscriptions }
-	};
-	return r;
+	return subscriptions;
 }

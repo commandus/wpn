@@ -15,7 +15,6 @@
 
 #include "platform.h"
 #include "utilstring.h"
-#include "nlohmann/json.hpp"
 
 #define DEF_FILE_NAME			".wpn"
 #define DEF_FCM_ENDPOINT_PREFIX	"https://fcm.googleapis.com/fcm/send/"
@@ -28,8 +27,6 @@
 #else
 #define DEF_PLUGIN_FILE_EXT		".so"
 #endif
-
-using json = nlohmann::json;
 
 static const char* progname = "wpn";
 
@@ -545,6 +542,19 @@ int WpnConfig::write() const
 	r += wpnKeys->write(configWrite);
 	r += subscriptions->write(configWrite);
 	configWrite.close();
+	return r;
+}
+
+json WpnConfig::toJson() const
+{
+	json c = androidCredentials->toJson();
+	json k = wpnKeys->toJson();
+	json s = subscriptions->toJson();
+	json r = {
+		{"credentials", c},
+		{ "keys", k },
+		{ "subscriptions", s }
+	};
 	return r;
 }
 
