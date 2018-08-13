@@ -392,9 +392,9 @@ int main(int argc, char** argv)
 			}
 	}
 
-	config.write();
+	config.save();
 	
-	std::cout << config.toJson().dump();
+	std::cout << config.toJson().dump(4);
 	
 	return 0;
 }

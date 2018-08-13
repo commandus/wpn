@@ -134,7 +134,8 @@ public:
 		const std::string &subscriptionName
 	) const;
 	json toJson() const;
-	void fromJson(const json &value);
+	bool fromJson(const json &value);
+	bool save() const;
 };
 
 #endif
