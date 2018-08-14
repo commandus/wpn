@@ -14,6 +14,10 @@
 
 #include <curl/curl.h>
 
+#include "nlohmann/json.hpp"
+
+using json = nlohmann::json;
+
 std::string base64UrlEncode(
 	const void *data,
 	size_t size
@@ -509,4 +513,59 @@ int webpushVapid(
 	}
 	curl_easy_cleanup(curl);
 	return http_code;
+}
+
+/**
+ * Push "command output" to device
+ * @param retval return string
+ * @param publicKey e.g. "BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A";
+ * @param privateKey e.g. "_93..";
+ * @param endpoint recipient endpoint
+ * @param p256dh recipient key 
+ * @param auth recipient key auth 
+ * @param persistent_id reference to request. If empty, it is request, otherwise response
+ * @param command command line
+ * @param code execution return code, usually 0
+ * @param output result from stdout
+ * @param verbosity level
+ * @param contact mailto:
+ * @param contentEncoding AESGCM or AES128GCM
+ * @param expiration expiration time unix epoch seconds, default 0- now + 12 hours
+ * @return 200-299- success, <0- error
+*/
+int webpushVapidData
+(
+	std::string &retval,
+	const std::string &publicKey,
+	const std::string &privateKey,
+	const std::string &endpoint,
+	const std::string &p256dh,
+	const std::string &auth,
+
+	const std::string &persistent_id,
+	const std::string &command,
+	int code,
+	const std::string &output,
+	int verbosity,
+ 
+ 	const std::string &contact,
+	int contentEncoding,
+	time_t expiration
+)
+{
+	json requestBody = {
+		{"to", endpoint},
+		{"data", 
+			{
+				{"command", command},
+				{"persistent_id", persistent_id},
+				{"code", code},
+				{"output", output},
+				{"serverKey", ""},	// TODO Add credentials
+				{"token", ""}		// TODO Add credentials
+			}
+		}
+	};
+	return webpushVapid(retval, publicKey, privateKey, endpoint, p256dh, auth,
+		requestBody.dump(), contact, contentEncoding, expiration);
 }

@@ -224,7 +224,7 @@ int main(int argc, char** argv)
 				std::string headers;
 
 				int r = subscribe(subscription, SUBSCRIBE_FORCE_FIREBASE, *config.wpnKeys, 
-					config.subscribeUrl, config.getDefaultEndPoint(), config.authorizedEntity,
+					config.subscribeUrl, config.getDefaultFCMEndPoint(), config.authorizedEntity,
 					config.serverKey, &d, &headers, config.verbosity);
 				if ((r < 200) || (r >= 300))
 				{
@@ -255,7 +255,7 @@ int main(int argc, char** argv)
 				if (config.authorizedEntity.empty())
 				{
 					// delete all
-					Subscription f(config.endpoint, config.authorizedEntity);
+					Subscription f(config.fcm_endpoint, config.authorizedEntity);
 					for (std::vector<Subscription>::iterator it(config.subscriptions->list.begin()); it != config.subscriptions->list.end(); ++it)
 					{
 						// TODO
@@ -264,7 +264,7 @@ int main(int argc, char** argv)
 				}
 				else
 				{
-					Subscription f(config.endpoint, config.authorizedEntity);
+					Subscription f(config.fcm_endpoint, config.authorizedEntity);
 					std::vector<Subscription>::iterator it = std::find(config.subscriptions->list.begin(),
 						config.subscriptions->list.end(), f);
 					if (it != config.subscriptions->list.end())
@@ -278,12 +278,15 @@ int main(int argc, char** argv)
 			std::string token = "";
 			std::string serverKey;
 			WpnKeys wpnKeys;
+			if (!config.private_key.empty()) {
+				// override Wpn keys
+				wpnKeys.init(config.private_key, config.public_key, config.auth_secret); 
+			}
 			switch (config.subscriptionMode) {
 				case SUBSCRIBE_FORCE_FIREBASE:
 					serverKey = config.serverKey;
 					break;
 				case SUBSCRIBE_FORCE_VAPID:
-					wpnKeys.init(config.private_key, config.public_key, config.auth_secret); 
 					break;
 				default:
 					// Load server key from the subscription, by the name
@@ -296,8 +299,12 @@ int main(int argc, char** argv)
 								token = subscription->getToken();
 								break;
 							case SUBSCRIBE_FORCE_VAPID:
-								config.subscriptionMode = SUBSCRIBE_FORCE_VAPID;
-								wpnKeys.init(subscription->getWpnKeys()); 
+								{
+									config.subscriptionMode = SUBSCRIBE_FORCE_VAPID;
+									// subscription MUST keep wpn keys
+									WpnKeys wpnkeys = subscription->getWpnKeys();
+									wpnKeys.init(subscription->getWpnKeys());
+								}
 								break;
 							default:
 								break;
@@ -305,6 +312,7 @@ int main(int argc, char** argv)
 					}
 					break;
 			}
+			// for VAPID only one endpoint not many
 			for (std::vector<std::string>::const_iterator it(config.recipientTokens.begin()); it != config.recipientTokens.end(); ++it)
 			{
 				int r;
@@ -318,10 +326,8 @@ int main(int argc, char** argv)
 								config.subject, config.body, config.icon, config.link, config.verbosity);
 							break;
 						case SUBSCRIBE_FORCE_VAPID:
-							r = push2ClientNotificationVAPID(&retval, *it,
-								wpnKeys.getPrivateKey(), wpnKeys.getPublicKey(),
-									config.sub,
-									config.subject, config.body, config.icon, config.link, config.verbosity);
+							r = webpushVapid(retval, wpnKeys.getPublicKey(), wpnKeys.getPrivateKey(), *it, config.public_key, config.auth_secret, 
+								config.body, config.sub, config.aesgcm ? AESGCM : AES128GCM);
 							break;
 					}
 				}
@@ -334,7 +340,7 @@ int main(int argc, char** argv)
 							r = push2ClientDataFCM(&retval, serverKey, token, *it, "", config.command, 0, "", config.verbosity);
 							break;
 						case SUBSCRIBE_FORCE_VAPID:
-							r = webpushVapid(retval, wpnKeys.getPublicKey(), wpnKeys.getPrivateKey(), config.endpoint, config.public_key, config.auth_secret, 
+							r = webpushVapid(retval, wpnKeys.getPublicKey(), wpnKeys.getPrivateKey(), *it, config.public_key, config.auth_secret, 
 								config.body, config.sub, config.aesgcm ? AESGCM : AES128GCM);
 							break;
 					}

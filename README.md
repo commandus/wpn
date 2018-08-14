@@ -212,7 +212,23 @@ Specify subscription endpoint (-e):
 ./wpn -d
 ```
 
-## Client push message 
+## Client push message
+
+wpn supports two types of web push:
+
+- GCM
+- VAPID
+
+GCM way requires registered Firebase project, you need have one private key from the project to push messages to one or more subscribers.
+
+VAPID is not linked to Firebase project, you need have one auto-generated VAPID private key and public key of the recipient. Therefore you can
+push one message to one subscriber per time.
+
+Old browsers supports GCM web push, modern browsers supports both of them.
+
+VAPID use two different encodings, old version use AES GCM and new version AES 128 GCM. By default a modern AES 128 GCM encoding is used.
+
+### Client push message using GCM
 
 Send notification with -m option.
 
@@ -260,11 +276,21 @@ Sending using subcription name (-n option) instead of server key (option -k):
 
 Option -u "https://ikfia-wpn.firebaseio.com" is not required.
 
-## Client push message using VAPID
+### Client push message using VAPID
 
 Send notification with -m option.
 
-You need provide one or more recipient endpoints up to 100 (limited by system actually) in command line or from JSON file (with -j option).
+By default uses auto-generated WPN keys, you can override them by following three options:
+
+- --private-key VAPID private key
+- --public-key VAPID public key
+- --auth-secret VAPID private key
+
+Print default WPN keys with use -y, --keys option.
+
+You need provide one recipient endpoint in command line or from JSON file (with -j option).
+
+Do not pass more than one endpoint.
 
 Also you need provide:
 
@@ -406,6 +432,36 @@ Subscription consists of
 ## Utilities
 
 ### webpush-curl
+
+To send message to recipient, message, sender and recipient options are mandatory.
+
+Message:
+
+- -t, --title Message subject
+- -b, --body Message body
+- -i, --icon Message icon URL
+- -l, --action-link Message action link URL
+- -c, --action-caption Message action link caption
+
+Sender:
+
+- -k, --public Sender's VAPID public key 
+- -p, --private Sender's VAPID private key
+
+Recipient:
+
+- -e, --endpoint Recipient's endpoint
+- -d, --p256dh Recipient's endpoint p256dh
+- -a, --auth Recipient's endpoint auth
+
+
+Optional:
+
+- -f, --from Sender's e-mail, e.g. mailto:alice@acme.com, or http(s) URL. 
+- -1, --aesgcm Turn aesgcm encoding. Default is aes128gcm
+- -o, --curl Do not send, print curl command. File keeps ciphered data.
+
+Option --сurl can be used for debugging with curl external program. File keeps encoded data for sending.
 
 Print out CURL command line to send web push notification
 

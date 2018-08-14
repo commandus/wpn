@@ -90,7 +90,7 @@ static int parseJsonRecipientTokens
 	return c;
 }
 
-std::string WpnConfig::getDefaultEndPoint()
+std::string WpnConfig::getDefaultFCMEndPoint()
 {
 	std::string r(DEF_FCM_ENDPOINT_PREFIX);
 	if (androidCredentials)
@@ -99,7 +99,7 @@ std::string WpnConfig::getDefaultEndPoint()
 }
 
 WpnConfig::WpnConfig()
-	: errorcode(0), cmd(CMD_LISTEN), verbosity(0), file_name(getDefaultConfigFileName()), endpoint(""), name(""),
+	: errorcode(0), cmd(CMD_LISTEN), verbosity(0), file_name(getDefaultConfigFileName()), fcm_endpoint(""), name(""),
 	authorizedEntity(""), notifyFunctionName(DEF_FUNC_NOTIFY), invert_qrcode(false), command(""), cn(""),
 	private_key(""), public_key(""), auth_secret(""), sub("")
 {
@@ -153,17 +153,16 @@ int WpnConfig::parseCmd
 
 	struct arg_str *a_name = arg_str0("n", "name", "<name>", "Subscription name");
 	struct arg_str *a_subscribe_url = arg_str0("r", "registrar", "<URL>", "Subscription registrar URL, like https://fcm.googleapis.com/fcm/connect/subscribe or 1. Default 1");
-	struct arg_str *a_endpoint = arg_str0("u", "endpoint", "<URL>", "Optional, push service endpoint URL prefix.");
 	struct arg_str *a_authorized_entity = arg_str0("e", "entity", "<entity-id>", "Push message sender identifier, usually decimal number");
 
 	// send options
 	struct arg_str *a_server_key = arg_str0("k", "key", "<server key>", "Server key to send");
 	struct arg_str *a_recipient_tokens = arg_strn(NULL, NULL, "<account#>", 0, 100, "Recipient token.");
 	struct arg_str *a_recipient_token_file = arg_str0("j", "json", "<file name or URL>", "Recipient token JSON file e.g. [[1,\"token\",..");
-	// VAPID
-	struct arg_str *a_vapid_private_key = arg_str0(NULL, "private-key", "<VAPID private key>", "VAPID private key");
-	struct arg_str *a_vapid_public_key = arg_str0(NULL, "public-key", "<VAPID public key>", "VAPID public key");
-	struct arg_str *a_vapid_auth_secret = arg_str0(NULL, "auth-secret", "<VAPID auth secret>", "VAPID auth secret");
+	// VAPID recipient
+	struct arg_str *a_vapid_private_key = arg_str0(NULL, "private-key", "<VAPID private key>", "Override sender's VAPID private key.");
+	struct arg_str *a_vapid_public_key = arg_str0(NULL, "public-key", "<VAPID public key>", "Override sender's VAPID public key");
+	struct arg_str *a_vapid_auth_secret = arg_str0(NULL, "auth-secret", "<VAPID auth secret>", "Override sender's VAPID auth secret");
 
 	// notification options
 	struct arg_str *a_subject = arg_str0("t", "subject", "<Text>", "Subject (topic)");
@@ -184,6 +183,7 @@ int WpnConfig::parseCmd
 	struct arg_lit *a_aesgcm = arg_lit0("1", "aesgcm", "Force AESGCM. Default AES128GCM");
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
 
+	struct arg_str *a_endpoint = arg_str0("u", "fcm-endpoint", "<URL>", "Override FCM push service endpoint URL prefix.");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
@@ -191,7 +191,7 @@ int WpnConfig::parseCmd
 		a_list, a_list_qrcode, a_invert_qrcode, a_list_email, a_link_email, a_credentials, a_keys, 
 		a_subscribe_vapid, a_subscribe_fcm, a_unsubscribe, a_send,
 		a_sub,
-		a_name, a_subscribe_url, a_endpoint, a_authorized_entity,
+		a_name, a_subscribe_url, a_authorized_entity,
 		a_file_name,
 		a_server_key, a_subject, a_body, a_icon, a_link, a_command,
 		a_recipient_tokens, a_recipient_token_file,
@@ -199,8 +199,9 @@ int WpnConfig::parseCmd
 		a_output, a_template_file,
 		a_output_lib_filenames, a_notify_function_name,
 		a_generatevapidkeys,
-		a_aesgcm,
-		a_verbosity,  a_help, a_end 
+		a_aesgcm, a_verbosity,  
+		a_endpoint, 
+		a_help, a_end 
 	};
 
 	int nerrors;
@@ -293,11 +294,9 @@ int WpnConfig::parseCmd
 												cmd = CMD_GENERATE_VAPID_KEYS;
 
 	if (a_endpoint->count)
-		endpoint = *a_endpoint->sval;
+		fcm_endpoint = *a_endpoint->sval;
 	else {
-		if (cmd == CMD_SUBSCRIBE_FCM) {
-			endpoint = getDefaultEndPoint();
-		}
+		fcm_endpoint = getDefaultFCMEndPoint();
 	}
 
 	if (a_vapid_private_key->count) {
@@ -406,11 +405,6 @@ int WpnConfig::parseCmd
 		if (name.empty()) 
 		{
 			std::cerr << "No subscription name. Set valid -n option." << std::endl;
-			nerrors++;
-		}
-		if (endpoint.empty()) 
-		{
-			std::cerr << "No endpoint. Set valid -u option." << std::endl;
 			nerrors++;
 		}
 		if (private_key.empty()) 

@@ -64,7 +64,7 @@ public:
 	std::string file_name;							///< config file, e.g. https://sure-phone.firebaseio.com"
 	std::string name;								///< subscription name
 	std::string subscribeUrl;						///< default https://fcm.googleapis.com/fcm/connect/subscribe
-	std::string endpoint;							///<subscription entity
+	std::string fcm_endpoint;						///<subscription entity
 	std::string authorizedEntity;					///<subscription entity, sender Id
 
 	int subscriptionMode;
@@ -97,8 +97,7 @@ public:
 	);
 	~WpnConfig();
 	int error();
-	std::string getDefaultEndPoint();
-	
+
 	AndroidCredentials *androidCredentials;
 	WpnKeys *wpnKeys;
 	Subscriptions *subscriptions;
@@ -137,6 +136,8 @@ public:
 	json toJson() const;
 	bool fromJson(const json &value);
 	bool save() const;
+	
+	std::string getDefaultFCMEndPoint();
 };
 
 #endif

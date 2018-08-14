@@ -46,14 +46,14 @@ int main(int argc, char **argv)
 	struct arg_str *a_contact = arg_str0("f", "from", "<email>", "Sender's email e.g. mailto:alice@acme.com");
 	struct arg_str *a_curl_file = arg_str0("o", "curl", "<file>", "Print curl command. File keeps ciphered data.");
 	
-	struct arg_lit *a_aes128gcm = arg_lit0("1", "aesgcm", "content encoding aes128gcm. Default aes128gcm");
+	struct arg_lit *a_aesgcm = arg_lit0("1", "aesgcm", "Force AESGCM. Default AES128GCM");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
 		a_title, a_body, a_icon, a_action_link, a_action_title, a_sub, 
 		a_public_key, a_private_key, a_endpoint, a_p256dh, a_auth,
-		a_aes128gcm,
+		a_aesgcm,
 		a_contact,
 		a_curl_file,
 		a_help, a_end 
@@ -81,10 +81,10 @@ int main(int argc, char **argv)
 	endpoint = *a_endpoint->sval;
 	p256dh = *a_p256dh->sval;
 	auth = *a_auth->sval;
-	if (a_aes128gcm->count)
-		contentEncoding = AES128GCM;
-	else
+	if (a_aesgcm->count)
 		contentEncoding = AESGCM;
+	else
+		contentEncoding = AES128GCM;
 	if (a_contact->count)
 		contact = *a_contact->sval;
 	else

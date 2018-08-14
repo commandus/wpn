@@ -182,7 +182,7 @@ private:
 	std::string authorizedEntity;	///< FCM entity     - VAPID public key
 	std::string token;				///< FCM token      - VAPID auth secret
 	std::string pushSet;
-	std::string persistentId;	///< last received message id for unknown reason
+	std::string persistentId;		///< last received message id for unknown reason
 	WpnKeys wpnKeys;
 	/// Initialize FCM
 	void initFCM(

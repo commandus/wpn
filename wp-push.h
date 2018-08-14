@@ -35,28 +35,6 @@ int push2ClientNotificationFCM
 );
 
 /**
-* Push notification to device
-* @param endpoint endpoint
-* @param privateKey PK
-* @param publicKey public key
-* @param authSecret secret
-* @return 200-299- success, <0- error
-*/
-int push2ClientNotificationVAPID
-(
-	std::string *retval,
-	const std::string &endpoint,
-	const std::string &privateKey,
-	const std::string &publicKey,
-	const std::string &sub,
-	const std::string &title,
-	const std::string &body,
-	const std::string &icon,
-	const std::string &click_action,
-	int verbosity
-);
-
-/**
 * Push "command output" to device
 * @param server_key FCM subscription server key
 * @param token FCM recipient token
@@ -73,32 +51,6 @@ int push2ClientDataFCM
 	const std::string &server_key,
 	const std::string &token,
 	const std::string &client_token,
-	const std::string &persistent_id,
-	const std::string &command,
-	int code,
-	const std::string &output,
-	int verbosity
-);
-
-/**
-* Push "command output" to device
-* @param endpoint endpoint
-* @param privateKey PK
-* @param publicKey public key
-* @param authSecret secret
-* @param persistent_id reference to request. If empty, it is request, otherwise response
-* @param command command line
-* @param code execution return code, usually 0
-* @param output result from stdout
-* @return 200-299- success, <0- error
-*/
-int push2ClientDataVAPID
-(
-	std::string *retval,
-	const std::string &endpoint,
-	const std::string &privateKey,
-	const std::string &publicKey,
-	const std::string &authSecret,
 	const std::string &persistent_id,
 	const std::string &command,
 	int code,
