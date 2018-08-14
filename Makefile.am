@@ -82,4 +82,7 @@ webpush_curl_CPPFLAGS = $(commoncppflags)
 configdir = $(datadir)
 dist_config_DATA = \
 	$(proto) \
-	COPYING  CODE_OF_CONDUCT.md  CONTRIBUTING.md  HISTORY  README.md autogen.sh .kdev_include_paths
+	wpn.sln wpn.vcxproj CMakeLists.txt wpn.kdev4 \
+	tools/mkcert tools/curl/README tools/curl/webpush-curl/webpush-curl.vcxproj \
+	LICENSE COPYING CODE_OF_CONDUCT.md CONTRIBUTING.md HISTORY README.md \
+	autogen.sh .kdev_include_paths email-template.html incoming-call
