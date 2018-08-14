@@ -362,8 +362,9 @@ static int WPCipher128(
  * @param body JSON string message
  * @param contact mailto:
  * @param contentEncoding AESGCM or AES128GCM
+ * @param expiration 0- 12 hours from now
 */
-std::string webpush2curl(
+std::string webpushVapidCmd(
 	const std::string &publicKey,
 	const std::string &privateKey,
 	const std::string &filename,
@@ -372,7 +373,8 @@ std::string webpush2curl(
 	const std::string &auth,
 	const std::string &body,
 	const std::string &contact,
-	int contentEncoding
+	int contentEncoding,
+	time_t expiration
 ) {
 	std::string cipherString;
 	std::string cryptoKeyHeader;
@@ -391,7 +393,8 @@ std::string webpush2curl(
 	cipherFile.write(cipherString.c_str(), cipherString.size());
 	cipherFile.close();
 
-	time_t expiration = time(NULL) + (24 * 60 * 60);
+	if (expiration ==0)
+		expiration = time(NULL) + (12 * 60 * 60);
 	std::stringstream r;
 	if (contentEncoding == AES128GCM) {
 		r << "curl -v -X POST -H \"Content-Type: application/octet-stream\" -H \"Content-Encoding: aes128gcm\" -H \"TTL: 2419200\" "
@@ -432,8 +435,9 @@ static size_t write_string(void *contents, size_t size, size_t nmemb, void *user
  * @param body JSON string message
  * @param contact mailto:
  * @param contentEncoding AESGCM or AES128GCM
+ * @param expiration 0- 12 hours from now
 */
-int webpushCurl(
+int webpushVapid(
 	std::string &retval,
 	const std::string &publicKey,
 	const std::string &privateKey,
@@ -442,7 +446,8 @@ int webpushCurl(
 	const std::string &auth,
 	const std::string &body,
 	const std::string &contact,
-	int contentEncoding
+	int contentEncoding,
+	time_t expiration
 ) {
 	retval = "";
 	std::string cipherString;
@@ -457,7 +462,8 @@ int webpushCurl(
 	if (code)
 		return code;
 
-	time_t expiration = time(NULL) + (24 * 60 * 60);
+	if (expiration == 0)
+		expiration = time(NULL) + (12 * 60 * 60);
 
 	CURL *curl = curl_easy_init();
 	if (!curl)

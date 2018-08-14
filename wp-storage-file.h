@@ -18,8 +18,9 @@
 
 #define DEF_DELIMITER " "	// space character
 
-#define SUBSCRIBE_FIREBASE			1
-#define SUBSCRIBE_VAPID				2
+#define SUBSCRIBE_DB				0
+#define SUBSCRIBE_FORCE_FIREBASE	1
+#define SUBSCRIBE_FORCE_VAPID		2
 
 #define FORMAT_TEXT					0
 #define FORMAT_JSON					1

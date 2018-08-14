@@ -223,7 +223,7 @@ int main(int argc, char** argv)
 				std::string d;
 				std::string headers;
 
-				int r = subscribe(subscription, SUBSCRIBE_FIREBASE, *config.wpnKeys, 
+				int r = subscribe(subscription, SUBSCRIBE_FORCE_FIREBASE, *config.wpnKeys, 
 					config.subscribeUrl, config.getDefaultEndPoint(), config.authorizedEntity,
 					config.serverKey, &d, &headers, config.verbosity);
 				if ((r < 200) || (r >= 300))
@@ -279,10 +279,10 @@ int main(int argc, char** argv)
 			std::string serverKey;
 			WpnKeys wpnKeys;
 			switch (config.subscriptionMode) {
-				case SUBSCRIBE_FIREBASE:
+				case SUBSCRIBE_FORCE_FIREBASE:
 					serverKey = config.serverKey;
 					break;
-				case SUBSCRIBE_VAPID:
+				case SUBSCRIBE_FORCE_VAPID:
 					wpnKeys.init(config.private_key, config.public_key, config.auth_secret); 
 					break;
 				default:
@@ -290,13 +290,13 @@ int main(int argc, char** argv)
 					const Subscription *subscription = config.getSubscription(config.name);
 					if (subscription) {
 						switch (subscription->getSubscribeMode()) {
-							case SUBSCRIBE_FIREBASE:
-								config.subscriptionMode = SUBSCRIBE_FIREBASE;
+							case SUBSCRIBE_FORCE_FIREBASE:
+								config.subscriptionMode = SUBSCRIBE_FORCE_FIREBASE;
 								serverKey = subscription->getServerKey();
 								token = subscription->getToken();
 								break;
-							case SUBSCRIBE_VAPID:
-								config.subscriptionMode = SUBSCRIBE_VAPID;
+							case SUBSCRIBE_FORCE_VAPID:
+								config.subscriptionMode = SUBSCRIBE_FORCE_VAPID;
 								wpnKeys.init(subscription->getWpnKeys()); 
 								break;
 							default:
@@ -313,11 +313,11 @@ int main(int argc, char** argv)
 					if (config.verbosity > 1)
 						std::cout << "Sending notification to " << *it << std::endl;
 					switch (config.subscriptionMode) {
-						case SUBSCRIBE_FIREBASE:
+						case SUBSCRIBE_FORCE_FIREBASE:
 							r = push2ClientNotificationFCM(&retval, serverKey, *it,
 								config.subject, config.body, config.icon, config.link, config.verbosity);
 							break;
-						case SUBSCRIBE_VAPID:
+						case SUBSCRIBE_FORCE_VAPID:
 							r = push2ClientNotificationVAPID(&retval, *it,
 								wpnKeys.getPrivateKey(), wpnKeys.getPublicKey(),
 									config.sub,
@@ -330,16 +330,14 @@ int main(int argc, char** argv)
 					if (config.verbosity > 1)
 						std::cout << "Execute command " << config.command << " on " << *it << std::endl;
 					switch (config.subscriptionMode) {
-						case SUBSCRIBE_FIREBASE:
+						case SUBSCRIBE_FORCE_FIREBASE:
 							r = push2ClientDataFCM(&retval, serverKey, token, *it, "", config.command, 0, "", config.verbosity);
 							break;
-						case SUBSCRIBE_VAPID:
-							r = push2ClientDataVAPID(&retval, *it,
-								wpnKeys.getPrivateKey(), wpnKeys.getPublicKey(), wpnKeys.getAuthSecret(), 
-								"", config.command, 0, "", config.verbosity);
+						case SUBSCRIBE_FORCE_VAPID:
+							r = webpushVapid(retval, wpnKeys.getPublicKey(), wpnKeys.getPrivateKey(), config.endpoint, config.public_key, config.auth_secret, 
+								config.body, config.sub, config.aesgcm ? AESGCM : AES128GCM);
 							break;
-					}					
-					
+					}
 				}
 				if (r >= 200 && r < 300)
 					std::cout << retval << std::endl;
@@ -391,10 +389,6 @@ int main(int argc, char** argv)
 				config.unloadDesktopNotifyFuncs();
 			}
 	}
-
 	config.save();
-	
-	std::cout << config.toJson().dump(4);
-	
 	return 0;
 }

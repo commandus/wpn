@@ -16,7 +16,7 @@
 #include "platform.h"
 #include "utilstring.h"
 
-#define DEF_FILE_NAME			".wpn"
+#define DEF_FILE_NAME			".wpn.js"
 #define DEF_FCM_ENDPOINT_PREFIX	"https://fcm.googleapis.com/fcm/send/"
 #define DEF_OUTPUT_SO_FN		"libwpn-stdout.so"
 #define DEF_FUNC_NOTIFY			"desktopNotify"
@@ -136,8 +136,7 @@ int WpnConfig::parseCmd
 	char* argv[]
 )
 {
-	subscriptionMode = 0;
-
+	subscriptionMode = SUBSCRIBE_DB;
 	struct arg_lit *a_list = arg_lit0("l", "list", "List subscriptions");
 	struct arg_lit *a_list_qrcode = arg_lit0("q", "qrcode", "QRCode list subscriptions");
 	struct arg_lit *a_invert_qrcode = arg_lit0("Q", "qrcode-inverted", "inverted QR code (white console)");
@@ -181,8 +180,10 @@ int WpnConfig::parseCmd
 	
 	// output options
 	struct arg_lit *a_generatevapidkeys = arg_lit0(NULL, "generate-vapid-keys", "Generate VAPID keys pair");
-
+	//
+	struct arg_lit *a_aesgcm = arg_lit0("1", "aesgcm", "Force AESGCM. Default AES128GCM");
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
+
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
@@ -198,6 +199,7 @@ int WpnConfig::parseCmd
 		a_output, a_template_file,
 		a_output_lib_filenames, a_notify_function_name,
 		a_generatevapidkeys,
+		a_aesgcm,
 		a_verbosity,  a_help, a_end 
 	};
 
@@ -299,13 +301,17 @@ int WpnConfig::parseCmd
 	}
 
 	if (a_vapid_private_key->count) {
-		subscriptionMode = SUBSCRIBE_VAPID;;
+		subscriptionMode = SUBSCRIBE_FORCE_VAPID;;
 		private_key = *a_vapid_private_key->sval;
 	}
-	if (a_vapid_public_key->count)
+	if (a_vapid_public_key->count) {
+		subscriptionMode = SUBSCRIBE_FORCE_VAPID;;
 		public_key = *a_vapid_private_key->sval;
-	if (a_vapid_auth_secret->count)
+	}
+	if (a_vapid_auth_secret->count) {
+		subscriptionMode = SUBSCRIBE_FORCE_VAPID;;
 		auth_secret = *a_vapid_auth_secret->sval;
+	}
 
 	if (a_notify_function_name->count)
 		notifyFunctionName = *a_notify_function_name->sval;
@@ -426,7 +432,7 @@ int WpnConfig::parseCmd
 
 	if (a_server_key->count)
 	{
-		subscriptionMode = SUBSCRIBE_FIREBASE;
+		subscriptionMode = SUBSCRIBE_FORCE_FIREBASE;
 		serverKey = *a_server_key->sval;
 	}
 	else
@@ -505,6 +511,7 @@ int WpnConfig::parseCmd
 			outputFormat = 1;
 	}
 
+	aesgcm = a_aesgcm->count > 0;
 	verbosity = a_verbosity->count;
 	
 	invert_qrcode = a_invert_qrcode->count > 0;
@@ -558,7 +565,7 @@ json WpnConfig::toJson() const
 	json k = wpnKeys->toJson();
 	json s = subscriptions->toJson();
 	json r = {
-		{"credentials", c},
+		{ "credentials", c},
 		{ "keys", k },
 		{ "subscriptions", s }
 	};
@@ -573,7 +580,6 @@ bool WpnConfig::save() const
 		configWrite.close();
 	} else
 		write();
-	
 	return true;
 }
 

@@ -135,7 +135,7 @@ int subscribe2
 	subscription.setAuthorizedEntity(authorizedEntity);
 
 	switch (subscribeMode) {
-		case SUBSCRIBE_FIREBASE:
+		case SUBSCRIBE_FORCE_FIREBASE:
 		{
 			std::string key = wpnKeys.getPublicKey();
 			std::string auth = wpnKeys.getAuthSecret();
@@ -232,7 +232,7 @@ int subscribe
 	subscription.setAuthorizedEntity(authorizedEntity);
 
 	switch (subscribeMode) {
-		case SUBSCRIBE_FIREBASE:
+		case SUBSCRIBE_FORCE_FIREBASE:
 		{
 			std::string key = wpnKeys.getPublicKey();
 			std::string auth = wpnKeys.getAuthSecret();

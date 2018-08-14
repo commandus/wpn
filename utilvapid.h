@@ -44,7 +44,7 @@ std::string mkJWTHeader
  * @param contact mailto:
  * @param contentEncoding AESGCM or AES128GCM
  */
-std::string webpush2curl(
+std::string webpushVapidCmd(
 	const std::string &publicKey,
 	const std::string &privateKey,
 	const std::string &filename,
@@ -53,7 +53,8 @@ std::string webpush2curl(
 	const std::string &auth,
 	const std::string &body,
 	const std::string &contact,
-	int contentEncoding
+	int contentEncoding,
+	time_t expiration = 0
 );
 
 /**
@@ -67,8 +68,9 @@ std::string webpush2curl(
  * @param body JSON string message
  * @param contact mailto:
  * @param contentEncoding AESGCM or AES128GCM
+ * @return >0- HTTP code, <0- error code
  */
-int webpushCurl(
+int webpushVapid(
 	std::string &retval,
 	const std::string &publicKey,
 	const std::string &privateKey,
@@ -77,5 +79,6 @@ int webpushCurl(
 	const std::string &auth,
 	const std::string &body,
 	const std::string &contact,
-	int contentEncoding
+	int contentEncoding,
+	time_t expiration = 0
 );

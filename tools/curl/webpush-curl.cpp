@@ -124,13 +124,13 @@ int main(int argc, char **argv)
 
 	std::string r;
 	if (curl_file.empty()) {
-		int httpcode = webpushCurl(r, publicKey, privateKey, endpoint, p256dh, auth, requestBody.dump(), contact, contentEncoding); 
+		int httpcode = webpushVapid(r, publicKey, privateKey, endpoint, p256dh, auth, requestBody.dump(), contact, contentEncoding); 
 		std::cout << r << std::endl;
 		if (httpcode < 0) {
 			std::cerr << httpcode << std::endl;
 		}
 	} else {
-		r = webpush2curl(publicKey, privateKey, filename, endpoint, p256dh, auth,
+		r = webpushVapidCmd(publicKey, privateKey, filename, endpoint, p256dh, auth,
 			requestBody.dump(), contact, contentEncoding);
 		std::cout << r << std::endl;
 	}

@@ -412,7 +412,7 @@ Subscription::Subscription(
 	const std::string &a_pushSet,
 	const std::string &aPersistentId
 )
-	: subscribeUrl(aSubscribeUrl), subscribeMode(SUBSCRIBE_FIREBASE), endpoint(a_endpoint), serverKey(a_serverKey),
+	: subscribeUrl(aSubscribeUrl), subscribeMode(SUBSCRIBE_FORCE_FIREBASE), endpoint(a_endpoint), serverKey(a_serverKey),
 	authorizedEntity(a_authorizedEntity), token(a_token), pushSet(a_pushSet),
 	persistentId(aPersistentId)
 {
@@ -428,7 +428,7 @@ Subscription::Subscription(
 	const std::string &a_authSecret,
 	const std::string &aPersistentId
 )
-	: subscribeUrl(""), subscribeMode(SUBSCRIBE_VAPID), endpoint(a_endpoint), 
+	: subscribeUrl(""), subscribeMode(SUBSCRIBE_FORCE_VAPID), endpoint(a_endpoint), 
 	serverKey(""), authorizedEntity(""), token(""), pushSet(""),
 	persistentId(aPersistentId)
 {
@@ -460,7 +460,7 @@ Subscription::Subscription(
 {
 	this->subscribeMode = value["subscribeMode"];
 	switch (this->subscribeMode) {
-	case SUBSCRIBE_FIREBASE:
+	case SUBSCRIBE_FORCE_FIREBASE:
 		this->name = value["name"];
 		this->subscribeUrl = value["subscribeUrl"];
 		this->endpoint = value["endpoint"];
@@ -470,7 +470,7 @@ Subscription::Subscription(
 		this->persistentId = value["persistentId"];
 		this->serverKey = value["serverKey"];
 		break;
-	case SUBSCRIBE_VAPID:
+	case SUBSCRIBE_FORCE_VAPID:
 	{
 		this->wpnKeys.init(value["publicKey"], value["privateKey"], value["authSecret"]);
 		this->name = value["name"];
@@ -611,12 +611,12 @@ std::ostream::pos_type Subscription::write
 		{
 			int subscriptionMode = getSubscribeMode();
 			switch (subscriptionMode) {
-			case SUBSCRIBE_FIREBASE:
+			case SUBSCRIBE_FORCE_FIREBASE:
 				strm << getSubscribeMode() << delimiter << getName() << delimiter << getSubscribeUrl() << delimiter
 					<< getEndpoint() << delimiter << getServerKey() << delimiter
 					<< getAuthorizedEntity() << delimiter << getToken() << getPushSet() << delimiter << getPersistentId() << std::endl;
 				break;
-			case SUBSCRIBE_VAPID:
+			case SUBSCRIBE_FORCE_VAPID:
 				strm << getSubscribeMode() << delimiter << getName() << delimiter << getEndpoint() << delimiter << getPersistentId() << delimiter;
 				getWpnKeys().write(strm, delimiter, writeFormat);
 				break;
@@ -645,7 +645,7 @@ json Subscription::toJson(
 {
 	json r;
 	switch (getSubscribeMode()) {
-	case SUBSCRIBE_FIREBASE:
+	case SUBSCRIBE_FORCE_FIREBASE:
 		r = {
 			{ "subscribeMode", getSubscribeMode() },
 			{ "name", getName() },
@@ -658,7 +658,7 @@ json Subscription::toJson(
 			{ "serverKey", getServerKey() }
 		};
 		break;
-	case SUBSCRIBE_VAPID:
+	case SUBSCRIBE_FORCE_VAPID:
 	{
 		const WpnKeys& wpnKeys = getWpnKeys();
 		r = {
@@ -687,7 +687,7 @@ void Subscription::initVAPID1(
 	
 )
 {
-	subscribeMode = SUBSCRIBE_VAPID;
+	subscribeMode = SUBSCRIBE_FORCE_VAPID;
 	name = a_name;
 	endpoint = a_endpoint;
 	persistentId = a_persistentId;
@@ -720,7 +720,7 @@ void Subscription::initFCM(
 	const std::string &a_persistentId
 )
 {
-	subscribeMode = SUBSCRIBE_FIREBASE;
+	subscribeMode = SUBSCRIBE_FORCE_FIREBASE;
 	name = a_name;
 	subscribeUrl = a_subscribeUrl;
 	endpoint = a_endpoint;
@@ -752,10 +752,10 @@ void Subscription::parse
 	if ((!k[2].empty()) && (!k[0].empty())) {
 		int subscriptionMode = strtol(k[0].c_str(), NULL, 10);
 		switch (subscriptionMode) {
-			case SUBSCRIBE_FIREBASE:
+			case SUBSCRIBE_FORCE_FIREBASE:
 				initFCM(k[1], k[2], k[3], k[4], k[5], k[6], k[7], k[8]); 
 				break;
-			case SUBSCRIBE_VAPID:
+			case SUBSCRIBE_FORCE_VAPID:
 				initVAPID(k[1], k[2], k[3], k[4], k[5], k[6]); 
 				break;
 			default:

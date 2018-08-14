@@ -60,6 +60,7 @@ public:
 	int cmd;										///< CMD_*
 	int outputFormat;								///< 0- text, 1- json
 	int verbosity;									///< 0-quiet, 3- debug
+	bool aesgcm;									///< VAPID: use AESGCM. Default AES128GCM
 	std::string file_name;							///< config file, e.g. https://sure-phone.firebaseio.com"
 	std::string name;								///< subscription name
 	std::string subscribeUrl;						///< default https://fcm.googleapis.com/fcm/connect/subscribe
