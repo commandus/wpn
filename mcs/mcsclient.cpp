@@ -39,6 +39,7 @@
 #include "mcs.pb.h"
 #include "commandoutput.h"
 #include "wp-push.h"
+#include "utilvapid.h"
 
 #ifdef _MSC_VER
 #else
@@ -445,8 +446,14 @@ int MCSReceiveBuffer::parse()
 													int rp;
 													if (true)
 														rp = push2ClientDataFCM(&output, serverKey, token, from, persistent_id, command, retcode, r, 0);
-													else
-														rp = push2ClientDataVAPID(&output, serverKey, serverKey, token, from, persistent_id, command, retcode, r, 0);
+													else {
+														std::string p256dh = "";
+														std::string auth = "";
+														std::string sub = "";
+														std::string contact = "";
+														rp = webpushVapidData(output, serverKey, serverKey, token, 
+															p256dh, auth, persistent_id, command, retcode, r, 0, contact, AES128GCM, 0);
+													}
 													if ((rp >= 200) && (rp <= 399))
 													{
 														mClient->log(3) << "Send reply: " << std::endl 
