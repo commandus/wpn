@@ -4,11 +4,11 @@ wpn
 
 [Project description](https://docs.google.com/document/d/19pM4g-hvx2MUVV2Ggljw1MMTg9tMCEH7aHYYKpJMaWk/edit?usp=sharing)
 
-## Print credentials
+## Print device identifiers and security tokens
 
-Check credentials:
+Check:
 ```
-./wpn -p -vvv
+./wpn --id -vvv
 app id      android id  security token	GCM token
 2ea0892f-.. 57468817..  2325..   d5DROBGRLmk:A..
 ```
@@ -172,7 +172,7 @@ with -v, -vv, -vvv, -vvvv options returns
 
 
 ```
-./wpn -l -vv
+./wpn -P -vv
 subscribeUrl                authorizedEntity	token
 https://fcm.googleapis.com	246829423295	    drq...
 
@@ -180,17 +180,17 @@ https://fcm.googleapis.com	246829423295	    drq...
 
 ## Subscribe
 
-Set -e (authorized-entity) and -k (server key):
+Set -e (authorized-entity) and -K (FCM server key):
 
 ```
-./wpn -s -e 246829423295 -k server_key
+./wpn -s -e 246829423295 -K server_key
 {
 	"token": "c9UC0WcwvyM:APA91bFlAcs7RbWVDPLW42nfL8RN8YYpe0zFnXcT0pMAJihu0WAOqGuoPujHYVJUHC0eRy5DTFepXvlaIyClHEpy6J6itEdT-QzD5SMCLt3HfBH_20LrWIuAXRrGLOWW8g9Y8aF1ikBc",
 	"pushSet": "eJpriwkjrcU:APA91bHS4Ohb5In3ssqr3nPWI_EtFbAHEYvxN3SX1Omct5hjy48CeyTCZw5bzxyST1Bhj4m0WynXoq7pmw3IM0JuAQ8poeJe99vFJSeYGKgXtut_2Cmyxwu_V6xrDUqp-k8HDaeN_5fy"
 }
 ```
 
-Optional server key (API key for web application) (-k) is used to send reply. Server key looks like "AI....1I" (~40 characters).
+Optional server key (API key for web application) (-K) is used to send reply. Server key looks like "AI....1I" (~40 characters).
 
 Value of authorized-entity is decimal number identifies subscription if FCM.
 
@@ -236,7 +236,7 @@ You need provide one or more recipient FCM token(s) up to 100 (limited by system
 
 Also you need provide:
 
-- server key (-k) to authorize send operation
+- FCM server key (-K) to authorize send operation
 
 Otherwise, you can provide -n option with name of subscripton (if you also subscribed). In this case subscripton entity and server key are obtained from this subscription:
 
@@ -254,21 +254,21 @@ After push wpn exits immediately.
 Sending to one recipient:
 
 ```
-./wpn -m -k "AIzaSyBfUt1N5aabh8pubYiBPKOq9OcIoHv_41I" -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" f22BfuvjjCc:APA91bHc4xzOyN5318sBkspPG9n2zBkP-jHl2EdJVKRHHv0njkplgPVe8s9MVkApTaWHkK9s9137gsPiWnmb_S9IF9h5LX3k8eg9jitNqs0xb7NK9BbPeC-nDw1SuCptZKTuEcKOvKpC
+./wpn -m -K "AIzaSyBfUt1N5aabh8pubYiBPKOq9OcIoHv_41I" -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" f22BfuvjjCc:APA91bHc4xzOyN5318sBkspPG9n2zBkP-jHl2EdJVKRHHv0njkplgPVe8s9MVkApTaWHkK9s9137gsPiWnmb_S9IF9h5LX3k8eg9jitNqs0xb7NK9BbPeC-nDw1SuCptZKTuEcKOvKpC
 ```
 
-In the -k option, it's better to specify an outdated server key, since it's shorter.
+In the -K option, it's better to specify an outdated server key, since it's shorter.
 
 Sending by the list of recipient tokens in a file or a web resource (-j option):
 
 ```
-./wpn -m -k "AIzaSyAyz-oVjsfRNK53XA6o9DVHN9ZNAaHOfxw" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" -j "https://ikfia.wpn.commandus.com/app/token?accesskey=2117177"
+./wpn -m -K "AIzaSyAyz-oVjsfRNK53XA6o9DVHN9ZNAaHOfxw" -e 246829423295 -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" -j "https://ikfia.wpn.commandus.com/app/token?accesskey=2117177"
 ```
 If the -j option is specified, the list is padded, that is, you can specify the recipient's FCM tokens in both the command line and the file (web resource).
 
 If you specify the -j option wpn 'll open the file. If it can not be opened for reading, or if it is empty, wpn tries to download web resource from the network.
 
-Sending using subcription name (-n option) instead of server key (option -k):
+Sending using subcription name (-n option) instead of FCM server key (option -K):
 
 ```
 ./wpn -m -n "ubuntu16" -t "Subject kkkk--111" -b "Body 2" -i "https://commandus.com/favicon.ico" -a "https://commandus.com" "d4rd_JZJ940:APA91bEGqtzfqZaohjke2dCqY8z5xJOMmkKud1SU646l2QlwBiZpzb9hTgTefvCrdhQ6-oR82SgjyYpF3kkcgGdMqmhZArMAb4G-D8N_ZYg0BDmgnx92AXKUUqFzCJwqwzTvOmqkjfFy" -vvv
@@ -304,8 +304,8 @@ wpn auto generate "default" WPN keys and keeps them in configuration file.
 
 By default wpn uses theese auto-generated WPN keys, of course you can override them by following three options:
 
--  --private-key VAPID private key
--  --public-key VAPID public key
+-  -p, --private-key VAPID private key
+-  -k, --public-key VAPID public key
 
 VAPID auth secret does not used for push.
 
@@ -390,7 +390,7 @@ produce JSON output:
 Check is a new generated VAPID keys are stored:
 
 ```
-./wpn -y -f json
+./wpn -y -o json
 ```
 
 ### Different configuration file name
@@ -422,7 +422,7 @@ FCM token must be second item in array.
 
 ~/.wpn text file keeps settings in lines:
 
-- Credentials
+- Identifiers and tokens
 - Keys
 - Subscription 1
 - ...
@@ -430,10 +430,10 @@ FCM token must be second item in array.
 
 Each line separated by one space.
 
-Credentials consists of
+Identifiers and tokens section consists of identifiers and security tokens:
 
 - appId Application-wide unique identifier UUID 16 bytes (128 bits) long e.g. 550e8400-e29b-41d4-a716-446655440000. See https://tools.ietf.org/html/rfc4122
-- androidId Android identifier assigned by Google service 64 bits long unsigned integer
+- androidId identifier assigned by Google service 64 bits long unsigned integer (a.k.a Android id)
 - token Security token 64 bits long unsigned integer
 - GCMToken GCM token string
 
@@ -593,6 +593,31 @@ If you want, install:
 sudo make install
 ```
 
+## Error codes
+
+- -1 Out of memory
+- -2 Invalid private key
+- -3 Invalid public key
+- -4 Error compute secret
+- -5 Error encode public key
+- -6 Error decrypt
+- -7 Error decrypt padding
+- -8 Error zero plain text
+- -9 Too short block
+- -10 Too short header
+- -11 Zero cipker text
+- -12 Error HKDF
+- -13 Invalid encryption header
+- -14 Invalid Crypto-key header
+- -15 Invalid rs
+- -16 Invalid salt
+- -17 Invalid dh
+- -18 Error encrypt
+- -19 Error encrypt padding
+- -20 Invalid auth secret
+- -21 Error generate keys
+- -22 Error decrypt truncated
+
 ## License
 
 This software is licensed under the MIT License:
@@ -621,7 +646,7 @@ This software depends on libraries which has differen licenses:
 ## Dialogs
 
 ```
-./wpn -v -s -a 1 -p https://fcm.googleapis.com -i 518511566414
+./wpn -v -s -a 1 -i 518511566414
 ```
 similar to request:
 

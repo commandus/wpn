@@ -428,6 +428,84 @@ static size_t write_string(void *contents, size_t size, size_t nmemb, void *user
 	return size * nmemb;
 }
 
+static std::string getECECErrorString
+(
+	int code
+)
+{
+	std::string r;
+	switch (code) {
+	case ECE_ERROR_OUT_OF_MEMORY:
+			r = "Out of memory";
+			break;
+	case ECE_ERROR_INVALID_PRIVATE_KEY:
+			r = "Invalid private key";
+			break;
+	case ECE_ERROR_INVALID_PUBLIC_KEY:
+			r = "Invalid public key";
+			break;
+	case ECE_ERROR_COMPUTE_SECRET:
+			r = "Error compute secret";
+			break;
+	case ECE_ERROR_ENCODE_PUBLIC_KEY:
+			r = "Error encode public key";
+			break;
+	case ECE_ERROR_DECRYPT:
+			r = "Error decrypt";
+			break;
+	case ECE_ERROR_DECRYPT_PADDING:
+			r = "Error decrypt padding";
+			break;
+	case ECE_ERROR_ZERO_PLAINTEXT:
+			r = "Error zero plain text";
+			break;
+	case ECE_ERROR_SHORT_BLOCK:
+			r = "Too short block";
+			break;
+	case ECE_ERROR_SHORT_HEADER:
+			r = "Too short header";
+			break;
+	case ECE_ERROR_ZERO_CIPHERTEXT:
+			r = "Zero cipker text";
+			break;
+	case ECE_ERROR_HKDF:
+			r = "Error HKDF";
+			break;
+	case ECE_ERROR_INVALID_ENCRYPTION_HEADER:
+			r = "Invalid encryption header";
+			break;
+	case ECE_ERROR_INVALID_CRYPTO_KEY_HEADER:
+			r = "Invalid Crypto-key header";
+			break;
+	case ECE_ERROR_INVALID_RS:
+			r = "Invalid rs";
+			break;
+	case ECE_ERROR_INVALID_SALT:
+			r = "Invalid salt";
+			break;
+	case ECE_ERROR_INVALID_DH:
+			r = "Invalid dh";
+			break;
+	case ECE_ERROR_ENCRYPT:
+			r = "Error encrypt";
+			break;
+	case ECE_ERROR_ENCRYPT_PADDING:
+			r = "Error encrypt padding";
+			break;
+	case ECE_ERROR_INVALID_AUTH_SECRET:
+			r = "Invalid auth secret";
+			break;
+	case ECE_ERROR_GENERATE_KEYS:
+			r = "Error generate keys";
+			break;
+	case ECE_ERROR_DECRYPT_TRUNCATED:
+			r = "Error decrypt truncated";
+			break;
+	default:
+		r = "";
+	}
+	return r;
+}
 /**
  * Send VAPID web push request using CURL library
  * @param retval return string
@@ -463,8 +541,10 @@ int webpushVapid(
 	} else {
 		code = WPCipher(cipherString, cryptoKeyHeader, encryptionHeader, p256dh, auth, body);
 	}
-	if (code)
+	if (code) {
+		retval = getECECErrorString(code);
 		return code;
+	}
 
 	if (expiration == 0)
 		expiration = time(NULL) + (12 * 60 * 60);

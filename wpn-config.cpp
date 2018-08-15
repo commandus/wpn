@@ -141,17 +141,17 @@ int WpnConfig::parseCmd
 )
 {
 	subscriptionMode = SUBSCRIBE_DB;
-	struct arg_lit *a_list = arg_lit0("l", "list", "List subscriptions");
+	struct arg_lit *a_list = arg_lit0("P", "list", "Print subscription list");
 	struct arg_lit *a_list_qrcode = arg_lit0("q", "qrcode", "QRCode list subscriptions");
 	struct arg_lit *a_invert_qrcode = arg_lit0("Q", "qrcode-inverted", "inverted QR code (white console)");
 	struct arg_str *a_list_email = arg_str0("M", "mailto", "<common name>", "e-mail list subscriptions to the person. Use with optional --subject --template-file ");
 	struct arg_lit *a_link_email = arg_lit0("E", "link", "list subscriptions link");
-	struct arg_lit *a_keys = arg_lit0("y", "keys", "Print keys");
-	struct arg_lit *a_credentials = arg_lit0("p", "credentials", "Print credentials");
+	struct arg_lit *a_keys = arg_lit0("y", "keys", "Print VAPID keys");
+	struct arg_lit *a_credentials = arg_lit0(NULL, "id", "Print device identifiers and security tokens");
 	struct arg_lit *a_subscribe_vapid = arg_lit0("s", "subscribe", "Subscribe with VAPID. Mandatory -u -n --private-key --public-key --auth-secret");
 	struct arg_lit *a_subscribe_fcm = arg_lit0("S", "subscribe-fcm", "Subscribe with FCM. Mandatory -e -n, optional -r, -k");
 	struct arg_lit *a_unsubscribe = arg_lit0("u", "unsubscribe", "Unsubscribe with -e");
-	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -k (FCM), --private-key, --public-key, --auth-secret (VAPID) or -n; execute -x. Or -t, -b, -i, -a");
+	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -k (FCM), -d, -a (VAPID) or -n; execute -x. Or -t, -b, -i, -a");
 	struct arg_str *a_sub = arg_str0(NULL, "sub", "<URL>", "sub link e.g. mailto://alice@acme.com");
 	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
 
@@ -160,25 +160,25 @@ int WpnConfig::parseCmd
 	struct arg_str *a_authorized_entity = arg_str0("e", "entity", "<entity-id>", "Push message sender identifier, usually decimal number");
 
 	// send options
-	struct arg_str *a_server_key = arg_str0("k", "key", "<server key>", "Server key to send");
+	struct arg_str *a_server_key = arg_str0("K", "fcm-key", "<key>", "FCM server key to send");
 	struct arg_str *a_recipient_tokens = arg_strn(NULL, NULL, "<account#>", 0, 100, "Recipient token.");
 	struct arg_str *a_recipient_token_file = arg_str0("j", "json", "<file name or URL>", "Recipient token JSON file e.g. [[1,\"token\",..");
 
 	// notification options
 	struct arg_str *a_subject = arg_str0("t", "subject", "<Text>", "Subject (topic)");
 	struct arg_str *a_body = arg_str0("b", "body", "<Text>", "Body");
-	struct arg_str *a_icon = arg_str0("i", "icon", "<URI>", "http[s]:// icon address.");
-	struct arg_str *a_link = arg_str0("a", "link", "<URI>", "https:// action address.");
+	struct arg_str *a_icon = arg_str0("i", "icon", "<URL>", "http[s]:// icon address.");
+	struct arg_str *a_link = arg_str0("l", "link", "<URL>", "http[s]:// action address.");
 	struct arg_str *a_command = arg_str0("x", "execute", "<command line>", "e.g. ls");
 
 	// VAPID sender's options
 	struct arg_str *a_contact = arg_str0("f", "from", "<email>", "Sender's email e.g. mailto:alice@acme.com");
 	// VAPID subscriber's options
-	struct arg_str *a_p256dh = arg_str0("d", "p256dh", "<key>", "Recipient's endpoint p256dh");
-	struct arg_str *a_auth = arg_str0("a", "auth", "<key>", "Recipient's endpoint auth");
+	struct arg_str *a_p256dh = arg_str0("d", "p256dh", "<key>", "Recipient's p256dh public key");
+	struct arg_str *a_auth = arg_str0("a", "auth", "<secret>", "Recipient's auth secret");
 
 	// other options
-	struct arg_str *a_output = arg_str0("f", "format", "<text|json>", "Output format. Default text.");
+	struct arg_str *a_output = arg_str0("o", "format", "<text|json>", "Output format. Default text.");
 	struct arg_str *a_template_file = arg_str0(NULL, "template-file", "<file>", "e-mail HTML template file with $name $subject $body");
 	// output options
 	struct arg_str *a_output_lib_filenames = arg_strn(NULL, "plugin", "<file name>", 0, 100, "Output shared library file name or directory");
@@ -191,8 +191,8 @@ int WpnConfig::parseCmd
 	struct arg_str *a_endpoint = arg_str0(NULL, "fcm-endpoint", "<URL>", "Override FCM push service endpoint URL prefix.");
 
 	// override 'sender' VAPID keys
-	struct arg_str *a_vapid_private_key = arg_str0(NULL, "private-key", "<base64>", "Override VAPID private key.");
-	struct arg_str *a_vapid_public_key = arg_str0(NULL, "public-key", "<base64>", "Override VAPID public key");
+	struct arg_str *a_vapid_private_key = arg_str0("p", "private-key", "<base64>", "Override VAPID private key.");
+	struct arg_str *a_vapid_public_key = arg_str0("k", "public-key", "<base64>", "Override VAPID public key");
 	struct arg_str *a_vapid_auth_secret = arg_str0(NULL, "auth-secret", "<base64>", "Override VAPID auth secret");
 
 	// helper options
@@ -316,11 +316,11 @@ int WpnConfig::parseCmd
 	}
 	if (a_vapid_public_key->count) {
 		subscriptionMode = SUBSCRIBE_FORCE_VAPID;;
-		public_key = *a_vapid_private_key->sval;
+		public_key = *a_vapid_public_key->sval;
 	}
 	if (a_vapid_auth_secret->count) {
 		subscriptionMode = SUBSCRIBE_FORCE_VAPID;;
-		auth_secret = *a_vapid_auth_secret->sval;
+		vapid_recipient_auth = *a_vapid_auth_secret->sval;
 	}
 
 	if (a_contact->count) {
@@ -330,7 +330,7 @@ int WpnConfig::parseCmd
 		vapid_recipient_p256dh = *a_p256dh->sval;
 	}
 	if (a_auth->count) {
-		vapid_recipient_auth = *a_auth->sval;
+		auth_secret = *a_auth->sval;
 	}
 
 	if (a_notify_function_name->count)
@@ -371,8 +371,16 @@ int WpnConfig::parseCmd
 		{
 			if (a_name->count == 0)
 			{
-				if (a_vapid_private_key->count == 0) {
-					std::cerr << "-k=server_key, --private-key or -n=subscription_name missed. " << std::endl;
+				if ((a_recipient_tokens->count == 0) && (a_recipient_token_file->count == 0)) {
+					std::cerr << "Recipient endpoint missed. " << std::endl;
+					nerrors++;
+				}
+				if (a_p256dh->count == 0) {
+					std::cerr << "-d, --p256dh missed. " << std::endl;
+					nerrors++;
+				}
+				if (a_auth->count == 0) {
+					std::cerr << "-a, --auth missed. " << std::endl;
 					nerrors++;
 				}
 			}

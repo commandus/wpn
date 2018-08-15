@@ -312,6 +312,18 @@ int main(int argc, char** argv)
 					}
 					break;
 			}
+			json requestBody = {
+			{"notification", 
+				{
+					{ "title", config.subject },
+					{ "body", config.body },
+					{ "icon", config.icon },
+					{ "click_action", config.link }
+				}
+			}
+			};
+			std::string body = requestBody.dump();
+
 			// for VAPID only one endpoint not many
 			for (std::vector<std::string>::const_iterator it(config.recipientTokens.begin()); it != config.recipientTokens.end(); ++it)
 			{
@@ -326,8 +338,22 @@ int main(int argc, char** argv)
 								config.subject, config.body, config.icon, config.link, config.verbosity);
 							break;
 						case SUBSCRIBE_FORCE_VAPID:
-							r = webpushVapid(retval, wpnKeys.getPublicKey(), wpnKeys.getPrivateKey(), *it, config.public_key, config.auth_secret, 
-								config.body, config.sub, config.aesgcm ? AESGCM : AES128GCM);
+							if (config.verbosity > 3) {
+								std::cerr << "sender public key: " << wpnKeys.getPublicKey() << std::endl 
+									<< "sender private key: " << wpnKeys.getPrivateKey() << std::endl
+									<< "endpoint: " << *it << std::endl
+									<< "public key: " << config.vapid_recipient_p256dh << std::endl 
+									<< "auth secret: " << config.auth_secret << std::endl
+									<< "body: " << body << std::endl
+									<< "sub: " << config.sub << std::endl;
+							}
+							r = webpushVapid(retval, wpnKeys.getPublicKey(), wpnKeys.getPrivateKey(), *it, config.vapid_recipient_p256dh, config.auth_secret, 
+								body, config.sub, config.aesgcm ? AESGCM : AES128GCM);
+							if (config.verbosity > 3) {
+								std::string filename = "aesgcm.bin";
+								retval = webpushVapidCmd(wpnKeys.getPublicKey(), wpnKeys.getPrivateKey(), filename, *it, config.vapid_recipient_p256dh, config.auth_secret, 
+								body, config.sub, config.aesgcm ? AESGCM : AES128GCM);
+							}
 							break;
 					}
 				}
@@ -340,9 +366,8 @@ int main(int argc, char** argv)
 							r = push2ClientDataFCM(&retval, serverKey, token, *it, "", config.command, 0, "", config.verbosity);
 							break;
 						case SUBSCRIBE_FORCE_VAPID:
-							
 							r = webpushVapid(retval, wpnKeys.getPublicKey(), wpnKeys.getPrivateKey(), *it, config.vapid_recipient_p256dh, config.vapid_recipient_auth, 
-								config.body, config.sub, config.aesgcm ? AESGCM : AES128GCM);
+								body, config.sub, config.aesgcm ? AESGCM : AES128GCM);
 							break;
 					}
 				}
