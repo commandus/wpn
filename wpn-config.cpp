@@ -99,12 +99,16 @@ std::string WpnConfig::getDefaultFCMEndPoint()
 }
 
 WpnConfig::WpnConfig()
-	: errorcode(0), cmd(CMD_LISTEN), verbosity(0), file_name(getDefaultConfigFileName()), fcm_endpoint(""), name(""),
-	authorizedEntity(""), notifyFunctionName(DEF_FUNC_NOTIFY), invert_qrcode(false), command(""), cn(""),
-	private_key(""), public_key(""), auth_secret(""), sub("")
+	: errorcode(0), cmd(CMD_LISTEN), outputFormat(0), verbosity(0), aesgcm(false),
+	file_name(getDefaultConfigFileName()), name(""), subscribeUrl(""), fcm_endpoint(""), 
+	authorizedEntity(""), subscriptionMode(0), serverKey(""), recipientTokenFile(""), 
+	vapid_sender_contact(""), vapid_recipient_p256dh(""), vapid_recipient_auth(""),
+	private_key(""), public_key(""), auth_secret(""), sub(""),
+	subject(""), body(""), icon(""), link(""), command(""), 
+	notifyFunctionName(DEF_FUNC_NOTIFY), invert_qrcode(false), email_template(""), cn("")
 {
 }
-
+	
 WpnConfig::WpnConfig
 (
 	int argc,
@@ -146,7 +150,7 @@ int WpnConfig::parseCmd
 	struct arg_lit *a_credentials = arg_lit0("p", "credentials", "Print credentials");
 	struct arg_lit *a_subscribe_vapid = arg_lit0("s", "subscribe", "Subscribe with VAPID. Mandatory -u -n --private-key --public-key --auth-secret");
 	struct arg_lit *a_subscribe_fcm = arg_lit0("S", "subscribe-fcm", "Subscribe with FCM. Mandatory -e -n, optional -r, -k");
-	struct arg_lit *a_unsubscribe = arg_lit0("d", "unsubscribe", "Unsubscribe with -e");
+	struct arg_lit *a_unsubscribe = arg_lit0("u", "unsubscribe", "Unsubscribe with -e");
 	struct arg_lit *a_send = arg_lit0("m", "message", "Send message with -k (FCM), --private-key, --public-key, --auth-secret (VAPID) or -n; execute -x. Or -t, -b, -i, -a");
 	struct arg_str *a_sub = arg_str0(NULL, "sub", "<URL>", "sub link e.g. mailto://alice@acme.com");
 	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
@@ -159,10 +163,6 @@ int WpnConfig::parseCmd
 	struct arg_str *a_server_key = arg_str0("k", "key", "<server key>", "Server key to send");
 	struct arg_str *a_recipient_tokens = arg_strn(NULL, NULL, "<account#>", 0, 100, "Recipient token.");
 	struct arg_str *a_recipient_token_file = arg_str0("j", "json", "<file name or URL>", "Recipient token JSON file e.g. [[1,\"token\",..");
-	// VAPID recipient
-	struct arg_str *a_vapid_private_key = arg_str0(NULL, "private-key", "<VAPID private key>", "Override sender's VAPID private key.");
-	struct arg_str *a_vapid_public_key = arg_str0(NULL, "public-key", "<VAPID public key>", "Override sender's VAPID public key");
-	struct arg_str *a_vapid_auth_secret = arg_str0(NULL, "auth-secret", "<VAPID auth secret>", "Override sender's VAPID auth secret");
 
 	// notification options
 	struct arg_str *a_subject = arg_str0("t", "subject", "<Text>", "Subject (topic)");
@@ -170,37 +170,48 @@ int WpnConfig::parseCmd
 	struct arg_str *a_icon = arg_str0("i", "icon", "<URI>", "http[s]:// icon address.");
 	struct arg_str *a_link = arg_str0("a", "link", "<URI>", "https:// action address.");
 	struct arg_str *a_command = arg_str0("x", "execute", "<command line>", "e.g. ls");
+
+	// VAPID sender's options
+	struct arg_str *a_contact = arg_str0("f", "from", "<email>", "Sender's email e.g. mailto:alice@acme.com");
+	// VAPID subscriber's options
+	struct arg_str *a_p256dh = arg_str0("d", "p256dh", "<key>", "Recipient's endpoint p256dh");
+	struct arg_str *a_auth = arg_str0("a", "auth", "<key>", "Recipient's endpoint auth");
+
 	// other options
 	struct arg_str *a_output = arg_str0("f", "format", "<text|json>", "Output format. Default text.");
 	struct arg_str *a_template_file = arg_str0(NULL, "template-file", "<file>", "e-mail HTML template file with $name $subject $body");
 	// output options
 	struct arg_str *a_output_lib_filenames = arg_strn(NULL, "plugin", "<file name>", 0, 100, "Output shared library file name or directory");
 	struct arg_str *a_notify_function_name = arg_str0(NULL, "plugin-func", "<name>", "Output function name. Default " DEF_FUNC_NOTIFY);
-	
-	// output options
-	struct arg_lit *a_generatevapidkeys = arg_lit0(NULL, "generate-vapid-keys", "Generate VAPID keys pair");
-	//
+
+	// other
 	struct arg_lit *a_aesgcm = arg_lit0("1", "aesgcm", "Force AESGCM. Default AES128GCM");
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
 
-	struct arg_str *a_endpoint = arg_str0("u", "fcm-endpoint", "<URL>", "Override FCM push service endpoint URL prefix.");
+	struct arg_str *a_endpoint = arg_str0(NULL, "fcm-endpoint", "<URL>", "Override FCM push service endpoint URL prefix.");
+
+	// override 'sender' VAPID keys
+	struct arg_str *a_vapid_private_key = arg_str0(NULL, "private-key", "<base64>", "Override VAPID private key.");
+	struct arg_str *a_vapid_public_key = arg_str0(NULL, "public-key", "<base64>", "Override VAPID public key");
+	struct arg_str *a_vapid_auth_secret = arg_str0(NULL, "auth-secret", "<base64>", "Override VAPID auth secret");
+
+	// helper options
+	struct arg_lit *a_generatevapidkeys = arg_lit0(NULL, "generate-vapid-keys", "Generate VAPID keys");
+
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
 		a_list, a_list_qrcode, a_invert_qrcode, a_list_email, a_link_email, a_credentials, a_keys, 
-		a_subscribe_vapid, a_subscribe_fcm, a_unsubscribe, a_send,
-		a_sub,
-		a_name, a_subscribe_url, a_authorized_entity,
-		a_file_name,
+		a_subscribe_vapid, a_subscribe_fcm, a_unsubscribe, a_send, a_sub,
+		a_name, a_subscribe_url, a_authorized_entity, a_file_name,
 		a_server_key, a_subject, a_body, a_icon, a_link, a_command,
-		a_recipient_tokens, a_recipient_token_file,
-		a_vapid_private_key, a_vapid_public_key, a_vapid_auth_secret,
-		a_output, a_template_file,
+		a_contact, a_p256dh, a_auth,
+		a_recipient_tokens, a_recipient_token_file, a_output, a_template_file,
 		a_output_lib_filenames, a_notify_function_name,
-		a_generatevapidkeys,
-		a_aesgcm, a_verbosity,  
+		a_aesgcm, a_verbosity, a_vapid_private_key, a_vapid_public_key, a_vapid_auth_secret,
 		a_endpoint, 
+		a_generatevapidkeys,
 		a_help, a_end 
 	};
 
@@ -310,6 +321,16 @@ int WpnConfig::parseCmd
 	if (a_vapid_auth_secret->count) {
 		subscriptionMode = SUBSCRIBE_FORCE_VAPID;;
 		auth_secret = *a_vapid_auth_secret->sval;
+	}
+
+	if (a_contact->count) {
+		vapid_sender_contact = *a_contact->sval;
+	}
+	if (a_p256dh->count) {
+		vapid_recipient_p256dh = *a_p256dh->sval;
+	}
+	if (a_auth->count) {
+		vapid_recipient_auth = *a_auth->sval;
 	}
 
 	if (a_notify_function_name->count)

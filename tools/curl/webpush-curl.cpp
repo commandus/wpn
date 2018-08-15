@@ -39,12 +39,12 @@ int main(int argc, char **argv)
 
 	struct arg_str *a_public_key = arg_str1("k", "public", "<key>", "VAPID public key");
 	struct arg_str *a_private_key = arg_str1("p", "private", "<key>", "VAPID private key");
-	struct arg_str *a_endpoint = arg_str1("e", "endpoint", "<URL>", "Recipient's endpoint URL");
+	struct arg_str *a_endpoint = arg_str1(NULL, NULL, "<URL>", "Recipient's endpoint URL");
 	struct arg_str *a_p256dh = arg_str1("d", "p256dh", "<key>", "Recipient's endpoint p256dh");
 	struct arg_str *a_auth = arg_str1("a", "auth", "<key>", "Recipient's endpoint auth");
 
 	struct arg_str *a_contact = arg_str0("f", "from", "<email>", "Sender's email e.g. mailto:alice@acme.com");
-	struct arg_str *a_curl_file = arg_str0("o", "curl", "<file>", "Print curl command. File keeps ciphered data.");
+	struct arg_str *a_curl_file = arg_str0("o", "curl", "<file>", "Print curl command. File keeps encoded data.");
 	
 	struct arg_lit *a_aesgcm = arg_lit0("1", "aesgcm", "Force AESGCM. Default AES128GCM");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");

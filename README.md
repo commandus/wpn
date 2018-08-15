@@ -199,7 +199,7 @@ Value of authorized-entity is decimal number identifies subscription if FCM.
 Specify subscription endpoint (-e):
 
 ```
-./wpn -d -e 246829423295
+./wpn -u -e 246829423295
 {
 	"token": "c9UC0WcwvyM:APA91bFlAcs7RbWVDPLW42nfL8RN8YYpe0zFnXcT0pMAJihu0WAOqGuoPujHYVJUHC0eRy5DTFepXvlaIyClHEpy6J6itEdT-QzD5SMCLt3HfBH_20LrWIuAXRrGLOWW8g9Y8aF1ikBc",
 	"pushSet": "eJpriwkjrcU:APA91bHS4Ohb5In3ssqr3nPWI_EtFbAHEYvxN3SX1Omct5hjy48CeyTCZw5bzxyST1Bhj4m0WynXoq7pmw3IM0JuAQ8poeJe99vFJSeYGKgXtut_2Cmyxwu_V6xrDUqp-k8HDaeN_5fy"
@@ -209,7 +209,7 @@ Specify subscription endpoint (-e):
 ## Unsubscribe all
 
 ```
-./wpn -d
+./wpn -u
 ```
 
 ## Client push message
@@ -244,10 +244,10 @@ Otherwise, you can provide -n option with name of subscripton (if you also subsc
 
 Message composed of:
 
-- Subject (-t option)
-- Body (-b option)
-- Icon (-i option)
-- Action URL (-a option)
+- Subject (-t option) mandatory
+- Body (-b option) mandatory
+- Icon (-i option) optional
+- Action URL and caption(-l, -c options) optional
 
 After push wpn exits immediately.
 
@@ -278,13 +278,41 @@ Option -u "https://ikfia-wpn.firebaseio.com" is not required.
 
 ### Client push message using VAPID
 
-Send notification with -m option.
+Send notification with -m option requires options to set
 
-By default uses auto-generated WPN keys, you can override them by following three options:
+- message subject and body, optional icon and action link
+- WPN keys to authorize push operation
+- Recipient's endpoint URL, [ECDH public key](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman) and auth 
 
-- --private-key VAPID private key
-- --public-key VAPID public key
-- --auth-secret VAPID private key
+Message composed of:
+
+- Subject (-t option), mandatory
+- Body (-b option), mandatory
+- Icon (-i option), optional
+- Action URL and caption(-l, -c options), both optional
+
+Except message itself options can be stored in subscription. 
+
+If you created subscription earlier, you can provide -n option with name of subscripton to set WPN keys and recipient endpoint.
+In this case endpoint and WPN keys are obtained from this subscription:
+
+- subscription name (-n)
+
+If not you need set all required options as described below.
+
+wpn auto generate "default" WPN keys and keeps them in configuration file.
+
+By default wpn uses theese auto-generated WPN keys, of course you can override them by following three options:
+
+-  --private-key VAPID private key
+-  --public-key VAPID public key
+
+VAPID auth secret does not used for push.
+
+
+- -d, --p256dh Recipient's endpoint p256dh
+- -a, --auth Recipient's endpoint auth
+
 
 Print default WPN keys with use -y, --keys option.
 
@@ -296,10 +324,6 @@ Also you need provide:
 
 - --private-key
 - --public-key
-
-Otherwise, you can provide -n option with name of subscripton (if you also subscribed). In this case subscripton entity and server key are obtained from this subscription:
-
-- subscription name (-n)
 
 Message composed of:
 
@@ -450,10 +474,9 @@ Sender:
 
 Recipient:
 
-- -e, --endpoint Recipient's endpoint
 - -d, --p256dh Recipient's endpoint p256dh
 - -a, --auth Recipient's endpoint auth
-
+- Recipient's endpoint URL
 
 Optional:
 
@@ -469,7 +492,7 @@ Firefox:
 
 Send using AES GCM:
 ```
-./webpush-curl -t Title -b body -i https://commandus.com/favicon.ico -f mailto:andrei.i.i.ivanov@commandus.com -l https://commandus.com/ -c "Visit site" -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk -e https://updates.push.services.mozilla.com/wpush/v2/gAAAAABbZ7cIJuyrIqApNuZd0AVjSSrYk5Cef5cI29-g8iRpHvFZzvqO6bI0ymUcf1tJpvg0lCIF7GxAbU7yg7EMXUh6c4MKaFPsSEsLzC7Mlb1JyIAMz5Wf0orVg15A2OD9dBCCUwbol78DdinNpwz-ExA67dH7InfiUDeYZS6QmVNXaPhzpGo -d BBpYsgvCmjRZTlwQ__nWoeaLwuqxVc9Eg-GSloPxQdvVxapVybJKJMns8IMkYQUDiLBrnXp-qFugkPBq3fOncvY -a 4SgZbJVmKUP56tJ39wcWPw
+./webpush-curl -t Title -b body -i https://commandus.com/favicon.ico -f mailto:andrei.i.i.ivanov@commandus.com -l https://commandus.com/ -c "Visit site" -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk -a 4SgZbJVmKUP56tJ39wcWPw https://updates.push.services.mozilla.com/wpush/v2/gAAAAABbZ7cIJuyrIqApNuZd0AVjSSrYk5Cef5cI29-g8iRpHvFZzvqO6bI0ymUcf1tJpvg0lCIF7GxAbU7yg7EMXUh6c4MKaFPsSEsLzC7Mlb1JyIAMz5Wf0orVg15A2OD9dBCCUwbol78DdinNpwz-ExA67dH7InfiUDeYZS6QmVNXaPhzpGo -d BBpYsgvCmjRZTlwQ__nWoeaLwuqxVc9Eg-GSloPxQdvVxapVybJKJMns8IMkYQUDiLBrnXp-qFugkPBq3fOncvY
 ```
 
 Chrome:

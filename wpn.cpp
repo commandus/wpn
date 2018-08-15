@@ -340,7 +340,8 @@ int main(int argc, char** argv)
 							r = push2ClientDataFCM(&retval, serverKey, token, *it, "", config.command, 0, "", config.verbosity);
 							break;
 						case SUBSCRIBE_FORCE_VAPID:
-							r = webpushVapid(retval, wpnKeys.getPublicKey(), wpnKeys.getPrivateKey(), *it, config.public_key, config.auth_secret, 
+							
+							r = webpushVapid(retval, wpnKeys.getPublicKey(), wpnKeys.getPrivateKey(), *it, config.vapid_recipient_p256dh, config.vapid_recipient_auth, 
 								config.body, config.sub, config.aesgcm ? AESGCM : AES128GCM);
 							break;
 					}
