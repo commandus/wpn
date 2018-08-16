@@ -1,7 +1,19 @@
 SUBDIRS = .
 ACLOCAL_AMFLAGS = -I m4
 
+#	Libraries
+lib_LIBRARIES = \
+	libwpn.a
+lib_LTLIBRARIES = \
+	libwpn.la
+
+#	Binaries
+bin_PROGRAMS = \
+	wpn \
+	webpush-curl
+
 commoncppflags = -std=c++11 -O2 -I/usr/local/include -Imcs/gen -Ithird_party
+commonlibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl -lece -lnghttp2 -lglog -lunwind -lgrpc++ -lgrpc -lgpr -lprotobuf
 
 #
 #	Generate protobuf first, then grpc
@@ -20,16 +32,32 @@ nodist_wpn_SOURCES = $(gengrpcs)
 BUILT_SOURCES = $(gengrpcs)
 CLEANFILES = $(gengrpcs)
 
-#
-#	Binaries
-#
-bin_PROGRAMS = wpn webpush-curl
-
 QRHEADERS = third_party/nayuki/QR-Code-generator/BitBuffer.hpp third_party/nayuki/QR-Code-generator/QrCode.hpp third_party/nayuki/QR-Code-generator/QrSegment.hpp
 QRSOURCES = third_party/nayuki/QR-Code-generator/BitBuffer.cpp third_party/nayuki/QR-Code-generator/QrCode.cpp third_party/nayuki/QR-Code-generator/QrSegment.cpp
 
 ARGT3HEADERS = third_party/argtable3/argtable3.h
 ARGT3SOURCES = third_party/argtable3/argtable3.c
+
+wpn_lib_source = \
+	wp-storage-file.cpp \
+	wp-push.cpp wp-subscribe.cpp wp-connection.cpp \
+	sslfactory.cpp \
+	mcs/mcsclient.cpp \
+	utilstring.cpp params.cpp commandoutput.cpp \
+	utilqr.cpp $(QRSOURCES) \
+	utilvapid.cpp
+
+#
+#	libwpn.a
+#
+libwpn_a_SOURCES = $(wpn_lib_source)
+libwpn_a_CPPFLAGS = $(commoncppflags)
+
+#
+#	libwpn.la
+#
+libwpn_la_SOURCES = $(wpn_lib_source)
+libwpn_la_CPPFLAGS = $(commoncppflags)
 
 nobase_dist_include_HEADERS = \
 	platform.h \
@@ -47,22 +75,14 @@ nobase_dist_include_HEADERS = \
 	$(gengrpcs_h)
 common_src = $(ARGT3SOURCES)
 
-commonlibs = -L/usr/local/lib/ -lssl -lcrypto -lcurl -lece -lnghttp2 -lglog -lunwind -lgrpc++ -lgrpc -lgpr -lprotobuf
-
 #
 #	wpn
 #
 wpn_SOURCES= \
-	wpn-config.cpp wpn.cpp wp-storage-file.cpp \
-	wp-push.cpp wp-subscribe.cpp wp-connection.cpp \
-	sslfactory.cpp \
-	mcs/mcsclient.cpp \
-	utilstring.cpp params.cpp commandoutput.cpp \
-	utilqr.cpp $(QRSOURCES) \
-	utilvapid.cpp \
+	wpn-config.cpp wpn.cpp \
 	$(common_src)
 
-wpn_LDADD = $(commonlibs) -ldl
+wpn_LDADD = -lwpn $(commonlibs) -ldl
 wpn_CPPFLAGS = $(commoncppflags)
 
 #
