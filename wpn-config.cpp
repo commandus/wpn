@@ -397,6 +397,7 @@ int WpnConfig::parseCmd
 				std::cerr << "-b missed." << std::endl;
 				nerrors++;
 			}
+			/*
 			if (a_icon->count == 0)
 			{
 				std::cerr << "-i missed." << std::endl;
@@ -407,6 +408,7 @@ int WpnConfig::parseCmd
 				std::cerr << "-l missed." << std::endl;
 				nerrors++;
 			}
+			*/
 		}
 	}
 

@@ -10,28 +10,6 @@ std::string base64UrlEncode(
 );
 
 /**
- * Builds a signed Vapid token to include in the `Authorization` header. The token is null-terminated.
- */
-std::string vapid_build_token(
-	EC_KEY* key, 
-	const std::string &aud, 
-	time_t exp,
-	const std::string &sub
-);
-
-std::string extractURLProtoAddress(
-	const std::string &endpoint
-);
-
-std::string mkJWTHeader
-(
-	const std::string &aud,
-	const std::string &sub,
-	const std::string &privateKey,
-	time_t exp
-);
-
-/**
  * Helper function for testing
  * Print out "curl ..."  command line string
  * @param publicKey e.g. "BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A";

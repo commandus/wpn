@@ -334,12 +334,24 @@ Message composed of:
 
 After push wpn exits immediately.
 
-Sending to one recipient:
+Send:
 
 ```
-./wpn -m -t Subject -b Body -i "https://commandus.com/favicon.ico" -a "https://commandus.com" --private-key BVf3ez_0L3n23aYx0zrSuwQO_kQ5oAvWL5eaj6QXL0E --public-key BJNvbKtXtYE7PkHVLzXRoDR355kzxJxtLVVfveApgxcvk6gaf5EgGqtPHsU0y23tZ_VwN6Mlzp9p5dv6Zw89RlQ https://fcm.googleapis.com/fcm/send/eZl3bJGqkR0:APA91bESZ1KqT5NOqx01fqIy1u3p9Gj2sDNHC8M4QyjRo-ArnxpDACfEqHmqFOHnCG6BShJepufmpVs-98GXpF8GvBxVTynC0uux5HDKQWdajYzL2r6BZ0PTRjnEEgAmcku4B-n3c9EHJ_0COKJ62OTLJN8HkVwDKA
+ ./wpn -m -f "andrei.i.ivanov@gmail.com" -t "hi there" -b "body message" -i https://commandus.com/favicon.ico -l https://commandus.com/ -c "Visit site" -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk https://fcm.googleapis.com/fcm/send/fsvJsFvUpvE:APA91bFLUUr0Owxupb1AqRZ_DE5AfVta35Hm2SAbczaGEQF6PgtEbhI0_ZWArirhcbioKakGPPR5lq4plQBm6QJazCKTiuQvRE1ptidKLq6S2y7h_89spPRi_E9ncJS59A5knRnKSxRh1T6TzJKizW739bWAQm7KKg -d BK0nI6BHSAM7yhv-5TUybvgzUSePr95RUkvNwDw3D7EsG_p0XpbbXnnY7PcwVWv9-v-17dDvD1mK7n4LWXcgSnM -a yMBwZZsKcENvwyeAux8FVg -vvvv -1
+ ```
+
+## libraries
+
+- libwpn.a	static library
+- libwpn.so	shared library
+
+``
+#include "utilvapid.h"
 ```
 
+- std::string webpushVapidCmd();	Helper function for testing. Print out "curl ..."  command line string
+- int webpushVapid();		Push message
+- int webpushVapidData()	Push message data
 
 ## Service push message
 

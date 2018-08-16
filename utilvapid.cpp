@@ -181,7 +181,7 @@ static uint8_t* vapid_sign(
 /**
   * Builds JWT: a signed Vapid token to include in the `Authorization` header.
   */
-std::string vapid_build_token(
+static std::string vapid_build_token(
 	EC_KEY* key, 
 	const std::string &aud, 
 	time_t exp,
@@ -203,7 +203,7 @@ std::string vapid_build_token(
 	return token;
 }
 
-std::string extractURLProtoAddress(
+static std::string extractURLProtoAddress(
 	const std::string &endpoint
 )
 {
@@ -226,7 +226,7 @@ std::string extractURLProtoAddress(
 	return endpoint;
 }
 
-std::string mkJWTHeader
+static std::string mkJWTHeader
 (
 	const std::string &aud,
 	const std::string &sub,	///< contact
