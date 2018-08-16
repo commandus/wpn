@@ -15,11 +15,12 @@ bool add2Env
 	const std::string &v
 ) 
 {
+	/*
 	char *value = getenv(n.c_str());
     //---------------------------------------
 	size_t sz = strlen(value) + v.size() + n.size() + delimiter.size() + 2;
 	char *newval = (char *) malloc(sz + 2);
-	if(!newval)
+	if (!newval)
 		return false;
 	strncpy(newval, n.c_str(), sz);
 	strncat(newval, "=", sz);
@@ -31,6 +32,8 @@ bool add2Env
 	std::cout << "=============" << std::endl;
 	bool r = putenv(newval) == 0;
 	free(newval);
+	*/
+	bool r = true;
 	return r;
 }
 
@@ -133,7 +136,7 @@ int CommandOutput::exec
 
 	// Set up members of the STARTUPINFO structure. 
 	// This structure specifies the STDIN and STDOUT handles for redirection.
-	STARTUPINFO siStartInfo;
+	STARTUPINFOA siStartInfo;
 	ZeroMemory(&siStartInfo, sizeof(STARTUPINFO));
 	siStartInfo.cb = sizeof(STARTUPINFO);
 	siStartInfo.hStdError = g_hChildStd_OUT_Wr;

@@ -235,7 +235,12 @@ int WpnConfig::parseCmd
 	if (file_name.find(".js") != std::string::npos) {
 		std::ifstream strm(file_name);
 		json j;
-		strm >> j;
+		try {
+			strm >> j;
+		}
+		catch (...) {
+			std::cerr << "Error parse " << file_name << std::endl;
+		}
 		fromJson(j);
 		strm.close();
 	} else
@@ -615,6 +620,9 @@ bool WpnConfig::fromJson(const json &value)
 		wpnKeys = new WpnKeys(value["keys"]);
 		subscriptions = new Subscriptions(value["subscriptions"]);
 	} catch(...) {
+		androidCredentials = new AndroidCredentials();
+		wpnKeys = new WpnKeys();
+		subscriptions = new Subscriptions();
 		return false;
 	}
 	return true;

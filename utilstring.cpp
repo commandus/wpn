@@ -370,8 +370,8 @@ size_t filesInPath
 )
 {
 	HANDLE hFind;
-	WIN32_FIND_DATA data;
-	hFind = FindFirstFile(path.c_str(), &data);
+	WIN32_FIND_DATAA data;
+	hFind = FindFirstFileA(path.c_str(), &data);
 	if (hFind == INVALID_HANDLE_VALUE)
 		return 0;
 	size_t c = 0;
@@ -383,7 +383,7 @@ size_t filesInPath
 			retval->push_back(std::string());
 			c++;
 		}
-	} while (FindNextFile(hFind, &data));
+	} while (FindNextFileA(hFind, &data));
 	FindClose(hFind);
 	return c;
 }

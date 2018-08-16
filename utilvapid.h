@@ -4,7 +4,19 @@
 #define AESGCM 		0
 #define AES128GCM	1
 
-std::string base64UrlEncode(
+// MathFuncsDll.h
+#ifdef _MSC_VER
+#ifdef DLL_EXPORTS
+#define EXPORT __declspec(dllexport) 
+#else
+#define EXPORT __declspec(dllimport) 
+#endif
+#else
+#define EXPORT
+#endif
+
+
+EXPORT std::string base64UrlEncode(
 	const void *data,
 	size_t size
 );
@@ -22,7 +34,7 @@ std::string base64UrlEncode(
  * @param contact mailto:
  * @param contentEncoding AESGCM or AES128GCM
  */
-std::string webpushVapidCmd(
+EXPORT std::string webpushVapidCmd(
 	const std::string &publicKey,
 	const std::string &privateKey,
 	const std::string &filename,
@@ -48,7 +60,7 @@ std::string webpushVapidCmd(
  * @param contentEncoding AESGCM or AES128GCM
  * @return >0- HTTP code, <0- error code
  */
-int webpushVapid(
+EXPORT int webpushVapid(
 	std::string &retval,
 	const std::string &publicKey,
 	const std::string &privateKey,
@@ -79,7 +91,7 @@ int webpushVapid(
  * @param expiration expiration time unix epoch seconds, default 0- now + 12 hours
  * @return 200-299- success, <0- error
 */
-int webpushVapidData
+EXPORT int webpushVapidData
 (
 	std::string &retval,
 	const std::string &publicKey,
