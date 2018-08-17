@@ -5,7 +5,7 @@ ACLOCAL_AMFLAGS = -I m4
 lib_LIBRARIES = \
 	libwpn.a
 lib_LTLIBRARIES = \
-	libwpn.la
+	libwpn.la libwpnapi.la
 
 #	Binaries
 bin_PROGRAMS = \
@@ -54,24 +54,30 @@ libwpn_a_SOURCES = $(wpn_lib_source)
 libwpn_a_CPPFLAGS = $(commoncppflags)
 
 #
-#	libwpn.la
+#	libwpn.la C++ shared library
 #
 libwpn_la_SOURCES = $(wpn_lib_source)
 libwpn_la_CPPFLAGS = $(commoncppflags)
+libwpn_la_LDFLAGS = -version-info 0:2:0
+
+#
+#	libwpnapi.la C shared library (Delphi compatible)
+#
+libwpnapi_la_SOURCES = $(wpn_lib_source) wpnapi.cpp
+libwpnapi_la_CPPFLAGS = $(commoncppflags)
+libwpnapi_la_LDFLAGS = -version-info 0:2:0
 
 nobase_dist_include_HEADERS = \
 	platform.h \
-	wpn-config.h wpn.h wpn-notify.h \
+	wpn-config.h wpn.h wpn-notify.h utilvapid.h \
 	wp-storage-file.h wp-subscribe.h wp-connection.h wp-push.h \
-	sslfactory.h \
-	utilstring.h commandoutput.h \
+	wpnapi.h sslfactory.h utilstring.h commandoutput.h \
 	mcs/mcsclient.h \
 	onullstream.hpp \
 	third_party/nlohmann/json.hpp \
 	third_party/sole/sole.hpp \
 	utilqr.h $(QRHEADERS) \
 	$(ARGT3HEADERS) \
-	utilvapid.h \
 	$(gengrpcs_h)
 common_src = $(ARGT3SOURCES)
 

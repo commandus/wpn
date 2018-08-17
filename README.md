@@ -336,22 +336,56 @@ After push wpn exits immediately.
 
 Send:
 
+Chrome:
 ```
  ./wpn -m -f "andrei.i.ivanov@gmail.com" -t "hi there" -b "body message" -i https://commandus.com/favicon.ico -l https://commandus.com/ -c "Visit site" -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk https://fcm.googleapis.com/fcm/send/fsvJsFvUpvE:APA91bFLUUr0Owxupb1AqRZ_DE5AfVta35Hm2SAbczaGEQF6PgtEbhI0_ZWArirhcbioKakGPPR5lq4plQBm6QJazCKTiuQvRE1ptidKLq6S2y7h_89spPRi_E9ncJS59A5knRnKSxRh1T6TzJKizW739bWAQm7KKg -d BK0nI6BHSAM7yhv-5TUybvgzUSePr95RUkvNwDw3D7EsG_p0XpbbXnnY7PcwVWv9-v-17dDvD1mK7n4LWXcgSnM -a yMBwZZsKcENvwyeAux8FVg -vvvv -1
+ ```
+
+ Opera:
+```
+ ./wpn -m -f "andrei.i.ivanov@gmail.com" -t "hi there" -b "body message" -i https://commandus.com/favicon.ico -l https://commandus.com/ -c "Visit site" -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk https://fcm.googleapis.com/fcm/send/eVlrA0npluI:APA91bH5XkiU654FC9WWRKoBHhxUeUJBfedhCxyiK78VbOgnVgd_Jb4USMMYNrTwgykuK_uZlG4n8GnEUJLi-SNTBdwHvXesNBpVX2mp5Vae2iTRbxWTkgntuzcrVvlAghnZLf9EWrGQlHt20jO5y2kuP60Rrp3hSQ -d BHVRcPq9Mf8Ci2T3YwknrvSB2r-0qypk_lJ7nU75S2GraxJnPQlFfaQPzy6Tt-BY2DkghwhZbmPEEErWxVzTHPE -a Hx5DZb93lE98ub6KYRdveg 
  ```
 
 ## libraries
 
 - libwpn.a	static library
-- libwpn.so	shared library
+- libwpn.so	C++ shared library
+- libwpnapi.so	C shared library
 
-``
+C++
+
+- std::string webpushVapidCmd();	// Helper function for testing. Print out "curl ..."  command line string
+- int webpushVapid();				// Push message
+- int webpushVapidData()			// Push message data
+
+```
 #include "utilvapid.h"
 ```
 
-- std::string webpushVapidCmd();	Helper function for testing. Print out "curl ..."  command line string
-- int webpushVapid();		Push message
-- int webpushVapidData()	Push message data
+C
+
+- size_t webpushVapidCmdC();	// Helper function for testing. Print out "curl ..."  command line string
+- int webpushVapidC();			// Push message
+- int webpushVapidDataC()		// Push message data
+
+```
+#include "wpnapi.h"
+```
+
+EXPORT int webpushVapidC(
+	char* retval,
+	size_t retvalsize,
+	const char*publicKey,
+	const char*privateKey,
+	const char*endpoint,
+	const char*p256dh,
+	const char*auth,
+	const char*body,
+	const char*contact,
+	int contentEncoding,
+	time_t expiration = 0
+);
+
 
 ## Service push message
 
