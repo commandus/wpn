@@ -6,7 +6,7 @@
 
 // MathFuncsDll.h
 #ifdef _MSC_VER
-#ifdef DLL_EXPORTS
+#ifdef EXPORT_CPP_DLL
 #define EXPORT __declspec(dllexport) 
 #else
 #define EXPORT __declspec(dllimport) 
@@ -14,7 +14,6 @@
 #else
 #define EXPORT
 #endif
-
 
 EXPORT std::string base64UrlEncode(
 	const void *data,

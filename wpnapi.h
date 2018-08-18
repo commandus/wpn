@@ -8,7 +8,7 @@ extern "C" {
 #define AES128GCM	1
 
 #ifdef _MSC_VER
-#ifdef DLL_EXPORTS
+#ifdef EXPORT_C_DLL
 #define EXPORT __declspec(dllexport) 
 #else
 #define EXPORT __declspec(dllimport) 
