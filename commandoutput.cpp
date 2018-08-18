@@ -180,7 +180,7 @@ int CommandOutput::exec
 	char buffer[BUFSIZE];
 	for (;;)
 	{
-		DWORD dwRead, dwWritten;
+		DWORD dwRead;
 		bool bSuccess = ReadFile(g_hChildStd_OUT_Rd, buffer, BUFSIZE, &dwRead, NULL);
 		if (!bSuccess || dwRead == 0) 
 			break;

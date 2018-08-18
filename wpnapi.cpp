@@ -1,7 +1,7 @@
 #include <string>
 #include <string.h>
+#include "wpnapi.h"
 #include "utilvapid.h"
-
 /**
  * Helper function for testing
  * Print out "curl ..."  command line string
@@ -18,19 +18,19 @@
  * @param contentEncoding AESGCM or AES128GCM
  * @return required buffer size
  */
-size_t webpushVapidCmdC(
+EXPORTDLL size_t webpushVapidCmdC(
 	char* retval,
 	size_t retvalsize,
-	const char *publicKey,
-	const char *privateKey,
-	const char *filename,
-	const char *endpoint,
-	const char *p256dh,
-	const char *auth,
-	const char *body,
-	const char *contact,
+	const char* publicKey,
+	const char* privateKey,
+	const char* filename,
+	const char* endpoint,
+	const char* p256dh,
+	const char* auth,
+	const char* body,
+	const char* contact,
 	int contentEncoding,
-	time_t expiration = 0
+	time_t expiration
 )
 {
 	std::string r = webpushVapidCmd(
@@ -45,7 +45,8 @@ size_t webpushVapidCmdC(
 		contentEncoding,
 		expiration
 	);
-	if (retvalsize > 0) {
+
+	if ((retvalsize > 0) && retval) {
 		size_t sz = (r.size() < retvalsize) ? r.size() : retvalsize;
 		memmove(retval, r.c_str(), sz);
 		if (sz < retvalsize) {
@@ -53,7 +54,7 @@ size_t webpushVapidCmdC(
 			retval[sz] = '\0';
 		}
 	}
-	return retvalsize;
+	return r.size();
 }
 
 /**
@@ -70,7 +71,7 @@ size_t webpushVapidCmdC(
  * @param contentEncoding AESGCM or AES128GCM
  * @return >0- HTTP code, <0- error code
  */
-int webpushVapidC(
+EXPORTDLL int webpushVapidC(
 	char* retval,
 	size_t retvalsize,
 	const char *publicKey,
@@ -81,7 +82,7 @@ int webpushVapidC(
 	const char *body,
 	const char *contact,
 	int contentEncoding,
-	time_t expiration = 0
+	time_t expiration
 )
 {
 	std::string r;
@@ -127,7 +128,7 @@ int webpushVapidC(
  * @param expiration expiration time unix epoch seconds, default 0- now + 12 hours
  * @return 200-299- success, <0- error
 */
-int webpushVapidDataC
+EXPORTDLL int webpushVapidDataC
 (
 	char* retval,
 	size_t retvalsize,
@@ -144,7 +145,7 @@ int webpushVapidDataC
 	int verbosity,
   	const char *contact,
 	int contentEncoding,
-	time_t expiration = 0
+	time_t expiration
 )
 {
 	std::string r;

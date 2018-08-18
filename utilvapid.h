@@ -1,3 +1,6 @@
+#ifndef UTILVAPID_H
+#define UTILVAPID_H 1
+
 #include <string>
 #include <ece/keys.h>
 
@@ -7,15 +10,15 @@
 // MathFuncsDll.h
 #ifdef _MSC_VER
 #ifdef EXPORT_CPP_DLL
-#define EXPORT __declspec(dllexport) 
+#define EXPORTDLL extern "C" __declspec(dllexport) 
 #else
-#define EXPORT __declspec(dllimport) 
+#define EXPORTDLL
 #endif
 #else
-#define EXPORT
+#define EXPORTDLL
 #endif
 
-EXPORT std::string base64UrlEncode(
+EXPORTDLL std::string base64UrlEncode(
 	const void *data,
 	size_t size
 );
@@ -33,7 +36,7 @@ EXPORT std::string base64UrlEncode(
  * @param contact mailto:
  * @param contentEncoding AESGCM or AES128GCM
  */
-EXPORT std::string webpushVapidCmd(
+EXPORTDLL std::string webpushVapidCmd(
 	const std::string &publicKey,
 	const std::string &privateKey,
 	const std::string &filename,
@@ -59,7 +62,7 @@ EXPORT std::string webpushVapidCmd(
  * @param contentEncoding AESGCM or AES128GCM
  * @return >0- HTTP code, <0- error code
  */
-EXPORT int webpushVapid(
+EXPORTDLL int webpushVapid(
 	std::string &retval,
 	const std::string &publicKey,
 	const std::string &privateKey,
@@ -90,7 +93,7 @@ EXPORT int webpushVapid(
  * @param expiration expiration time unix epoch seconds, default 0- now + 12 hours
  * @return 200-299- success, <0- error
 */
-EXPORT int webpushVapidData
+EXPORTDLL int webpushVapidData
 (
 	std::string &retval,
 	const std::string &publicKey,
@@ -109,3 +112,4 @@ EXPORT int webpushVapidData
 	int contentEncoding,
 	time_t expiration = 0
 );
+#endif

@@ -9,12 +9,12 @@ extern "C" {
 
 #ifdef _MSC_VER
 #ifdef EXPORT_C_DLL
-#define EXPORT __declspec(dllexport) 
+#define EXPORTDLL extern "C" __declspec(dllexport)
 #else
-#define EXPORT __declspec(dllimport) 
+#define EXPORTDLL
 #endif
 #else
-#define EXPORT
+#define EXPORTDLL
 #endif
 
 /**
@@ -33,7 +33,7 @@ extern "C" {
  * @param contentEncoding AESGCM or AES128GCM
  * @return required buffer size
  */
-EXPORT size_t webpushVapidCmdC(
+EXPORTDLL size_t webpushVapidCmdC(
 	char* retval,
 	size_t retvalsize,
 	const char*publicKey,
@@ -62,7 +62,7 @@ EXPORT size_t webpushVapidCmdC(
  * @param contentEncoding AESGCM or AES128GCM
  * @return >0- HTTP code, <0- error code
  */
-EXPORT int webpushVapidC(
+EXPORTDLL int webpushVapidC(
 	char* retval,
 	size_t retvalsize,
 	const char*publicKey,
@@ -95,7 +95,7 @@ EXPORT int webpushVapidC(
  * @param expiration expiration time unix epoch seconds, default 0- now + 12 hours
  * @return 200-299- success, <0- error
 */
-EXPORT int webpushVapidDataC
+EXPORTDLL int webpushVapidDataC
 (
 	char* retval,
 	size_t retvalsize,

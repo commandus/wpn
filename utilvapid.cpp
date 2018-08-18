@@ -18,7 +18,7 @@
 
 using json = nlohmann::json;
 
-std::string base64UrlEncode(
+EXPORTDLL std::string base64UrlEncode(
 	const void *data,
 	size_t size
 ) {
@@ -368,7 +368,7 @@ static int WPCipher128(
  * @param contentEncoding AESGCM or AES128GCM
  * @param expiration 0- 12 hours from now
 */
-std::string webpushVapidCmd(
+EXPORTDLL std::string webpushVapidCmd(
 	const std::string &publicKey,
 	const std::string &privateKey,
 	const std::string &filename,
@@ -519,7 +519,7 @@ static std::string getECECErrorString
  * @param contentEncoding AESGCM or AES128GCM
  * @param expiration 0- 12 hours from now
 */
-int webpushVapid(
+EXPORTDLL int webpushVapid(
 	std::string &retval,
 	const std::string &publicKey,
 	const std::string &privateKey,
@@ -613,7 +613,7 @@ int webpushVapid(
  * @param expiration expiration time unix epoch seconds, default 0- now + 12 hours
  * @return 200-299- success, <0- error
 */
-int webpushVapidData
+EXPORTDLL int webpushVapidData
 (
 	std::string &retval,
 	const std::string &publicKey,
