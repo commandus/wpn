@@ -207,7 +207,6 @@ json AndroidCredentials::toJson(
 
 WpnKeys::WpnKeys()
 {
-	generate();
 }
 
 WpnKeys::WpnKeys (

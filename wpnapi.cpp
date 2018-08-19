@@ -2,6 +2,8 @@
 #include <string.h>
 #include "wpnapi.h"
 #include "utilvapid.h"
+#include "wp-storage-file.h"
+
 /**
  * Helper function for testing
  * Print out "curl ..."  command line string
@@ -174,4 +176,53 @@ EXPORTDLL int webpushVapidDataC
 		}
 	}
 	return c;
+}
+
+/**
+ * Generate VAPID keys
+ * @param privateKey e.g. "_93..";
+ * @param privateKeySize 32 * 2
+ * @param publicKey return 32 * 2 "BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A";
+ * @param publicKeySize 65 * 2
+ * @param authSecret recipient key auth
+ * @param authSecretSize 16 * 2
+ */
+EXPORTDLL void generateVAPIDKeysC
+(
+	char* privateKey,
+	size_t privateKeySize,
+	char* publicKey,
+	size_t publicKeySize,
+	char* authSecret,
+	size_t authSecretSize
+)
+{
+	WpnKeys k;
+	k.generate();
+	std::string p = k.getPrivateKey();
+	size_t sz = p.size();
+	if (privateKey && (privateKeySize >= sz)) {
+		memmove(privateKey, p.c_str(), sz);
+		if (privateKeySize > sz) {
+			privateKey[sz] = '\0';
+		}
+	}
+
+	p = k.getPublicKey();
+	sz = p.size();
+	if (publicKey && (publicKeySize >= sz)) {
+		memmove(publicKey, p.c_str(), sz);
+		if (publicKeySize > sz) {
+			publicKey[sz] = '\0';
+		}
+	}
+
+	p = k.getAuthSecret();
+	sz = p.size();
+	if (authSecret && (authSecretSize >= sz)) {
+		memmove(authSecret, p.c_str(), sz);
+		if (authSecretSize > sz) {
+			authSecret[sz] = '\0';
+		}
+	}
 }

@@ -116,6 +116,25 @@ EXPORTDLL int webpushVapidDataC
 	time_t expiration = 0
 );
 
+/**
+ * Generate VAPID keys
+ * @param privateKey e.g. "_93..";
+ * @param privateKeySize 32 * 2
+ * @param publicKey return 32 * 2 "BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A";
+ * @param publicKeySize 65 * 2
+ * @param authSecret recipient key auth
+ * @param authSecretSize 16 * 2
+ */
+EXPORTDLL void generateVAPIDKeysC
+(
+	char* privateKey,
+	size_t privateKeySize,
+	char* publicKey,
+	size_t publicKeySize,
+	char* authSecret,
+	size_t authSecretSize
+);
+
 #ifdef __cplusplus
 }
 #endif
