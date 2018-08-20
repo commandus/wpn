@@ -20,12 +20,6 @@
 #include <stdint.h>
 #include <fstream>
 #include <sstream>
-#include <curl/curl.h>
-#include <google/protobuf/text_format.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#include <google/protobuf/io/zero_copy_stream_impl.h>
-#include <google/protobuf/io/coded_stream.h>
-
 #include <ece.h>
 
 #include "platform.h"
@@ -34,12 +28,14 @@
 #include "mcsclient.h"
 #include "utilstring.h"
 #include "sslfactory.h"
-#include "android_checkin.pb.h"
-#include "checkin.pb.h"
-#include "mcs.pb.h"
 #include "commandoutput.h"
 #include "wp-push.h"
+
 #include "utilvapid.h"
+#include <google/protobuf/text_format.h>
+#include <google/protobuf/io/zero_copy_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/io/coded_stream.h>
 
 #ifdef _MSC_VER
 #else
@@ -74,20 +70,17 @@ enum MCSIqStanzaExtension {
   kStreamAck = 13,
 };
 
-using namespace checkin_proto;
 using namespace mcs_proto;
 using namespace google::protobuf::io;
 
 #define MCS_PORT		443
 
 static const std::string REGISTER_URL("https://android.clients.google.com/c2dm/register3");
-static const std::string CHECKIN_URL("https://android.clients.google.com/checkin");
 static const std::string MCS_HOST("mtalk.google.com");
 static const std::string DEF_CHROME_VER("63.0.3234.0");
 
 static const uint8_t kMCSVersion = 41;
 
-static const std::string HDR_CONTENT_TYPE("Content-Type: ");
 static const std::string HDR_AUTHORIZATION("Authorization : ");
 
 
@@ -99,7 +92,7 @@ static const char *IQTYPE_NAMES[] =
 //----------------------------- MCSReceiveBuffer -----------------------------
 
 MCSReceiveBuffer::MCSReceiveBuffer()
-	: mClient(NULL), mVersion(0), state(STATE_VERSION), buffer("")
+	: mClient(NULL), state(STATE_VERSION), buffer("")
 {
 }
 
@@ -116,8 +109,8 @@ int MCSReceiveBuffer::process()
 	{
 		if (state == STATE_VERSION)
 		{
-			mVersion = (uint8_t) buffer[0];
-			mClient->log(3) << "MCS version: " << (int) mVersion << std::endl;
+			uint8_t version = (uint8_t) buffer[0]; // last known is 38
+			mClient->log(3) << "MCS version: " << (int) version << std::endl;
 			buffer.erase(0, 1);
 			sz--;
 			state = STATE_TAG;
@@ -531,40 +524,7 @@ void MCSReceiveBuffer::put(const void *buf, int size)
 	buffer.append(std::string((char*) buf, size));
 }
 
-uint8_t MCSReceiveBuffer::getVersion()
-{
-	return mVersion;
-}
-
 //----------------------------- MCSClient helpers -----------------------------
-
-/**
- * @param androidId 0- before register
- * @param securityToken 0- before register
- */
-static std::string mkCheckinRequest(
-	uint64_t androidId, 
-	uint64_t securityToken
-)
-{
-	AndroidCheckinRequest req;
-	req.set_user_serial_number(0);
-	req.set_version(3);
-	if (androidId)
-		req.set_id(androidId);
-	if (securityToken)
-		req.set_security_token(securityToken);
-	AndroidCheckinProto* checkIn = req.mutable_checkin();
-	ChromeBuildProto *chrome = checkIn->mutable_chrome_build();
-	checkIn->set_type(DEVICE_CHROME_BROWSER);
-	chrome->set_platform(ChromeBuildProto_Platform_PLATFORM_LINUX);
-	*chrome->mutable_chrome_version() = DEF_CHROME_VER;
-	chrome->set_channel(ChromeBuildProto_Channel_CHANNEL_DEV);
-	
-	std::string r;
-	req.SerializeToString(&r);
-	return r;
-}
 
 static MessageLite * mkPing()
 {
@@ -648,129 +608,11 @@ static MessageLite *mkLoginRequest
 	return req;
 }
 
-/**
-  * @brief CURL write callback
-  */
-static size_t write_string(void *contents, size_t size, size_t nmemb, void *userp)
-{
-	if (userp)
-		((std::string*)userp)->append((char*)contents, size * nmemb);
-	return size * nmemb;
-}
-
-static size_t write_header(char* buffer, size_t size, size_t nitems, void *userp) {
-	size_t sz = size * nitems;
-	((std::string*)userp)->append((char*)buffer, sz);
-	return sz;
-}
-
-static const char *CURL_TYP_NAMES[7] = {
-	"INFO",
-	"HEADER IN",
-	"HEADER OUT",
-	"DATA IN",
-	"DATA OUT",
-	"SSL DATA IN",
-	"SSL DATA OUT"
-};
-
-static int curl_trace
-(
-	CURL *handle, 
-	curl_infotype typ,
-	char *data, 
-	size_t size,
-	void *userp
-)
-{
-	if (typ >= 0 && typ < 7)
-		std::cerr << CURL_TYP_NAMES[typ] << ": " << std::endl;
-	std::string s(data, size);
-	if (typ > 2)
-		s = hexString(s);
-	std::cerr << s << std::endl;
-	return 0;
-}
-
 //----------------------------- MCSClient -----------------------------
-
-/**
-  * POST data, return received data in retval
-  * @return 200-299 success, otherwise error code. retval contains error description
-  */
-int MCSClient::curlPost
-(
-	const std::string &url,
-	const std::string &contentType,
-	const std::string &content,
-	std::string *retval
-)
-{
-	CURL *curl = curl_easy_init();
-	if (!curl)
-		return CURLE_FAILED_INIT; 
-	CURLcode res;
-	
-	
-	struct curl_slist *chunk = NULL;
-	chunk = curl_slist_append(chunk, (HDR_CONTENT_TYPE + contentType).c_str());
-	std::stringstream ss;
-	ss << HDR_AUTHORIZATION << "AidLogin " 
-		<< mConfig->androidCredentials->getAndroidId() << ":" 
-		<< mConfig->androidCredentials->getSecurityToken();
-	if (hasIdNToken())
-		curl_slist_append(chunk, ss.str().c_str());
-	
-	curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
-	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-
-	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, content.size());
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, content.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_string);
-	if (retval)
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA, retval);
-
-	std::string debugHeaders;
-	
-	if (mConfig->verbosity > 3)
-	{
-		curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, curl_trace);
-		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-		
-		curl_easy_setopt(curl, CURLOPT_HEADERDATA, &debugHeaders);
-		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &write_header);
-	}
-
-    res = curl_easy_perform(curl);
-
-	if (mConfig->verbosity > 2) {
-		log(3) << debugHeaders << std::endl;
-	}
-
-	int http_code;
-
-    if (res != CURLE_OK)
-	{
-		if (retval)
-			*retval = curl_easy_strerror(res);
-		http_code = - res;
-	}
-	else
-	{
-		curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &http_code);
-	}
-	curl_easy_cleanup(curl);
-	return http_code;
-}
 
 void MCSClient::init()
 {
-	mStream = &mBuffer; 
-	mStream->setClient(this);
+	mStream.setClient(this);
 }
 
 MCSClient::MCSClient()
@@ -825,8 +667,8 @@ int readLoop(MCSClient *client)
 		if (r > 0) 
 		{
 			// mClient->log(3) << "Received " << r << " bytes: " << std::endl << hexString(std::string((char *) buffer, r)) << std::endl;
-			client->mStream->put(buffer, r);
-			if (size_t c = client->mStream->process())
+			client->mStream.put(buffer, r);
+			if (size_t c = client->mStream.process())
 			{
 				client->log(3) << "Processed " << c << " messages" << std::endl;
 			}
@@ -848,11 +690,15 @@ int MCSClient::connect()
 	int r;
 	if (mConfig->androidCredentials->getAndroidId() == 0)
 	{
-		r = checkIn();
+		uint64_t androidId = mConfig->androidCredentials->getAndroidId();
+		uint64_t securityToken = mConfig->androidCredentials->getSecurityToken();
+		r = checkIn(&androidId, &securityToken, mConfig->verbosity);
 		if (r < 200 || r >= 300)
 		{
 			return ERR_NO_ANDROID_ID_N_TOKEN;
 		}
+		mConfig->androidCredentials->setAndroidId(androidId);
+		mConfig->androidCredentials->setSecurityToken(securityToken);
 	}
 	if (mConfig->androidCredentials->getGCMToken().empty())
 	{
@@ -901,59 +747,6 @@ std::ostream::pos_type MCSClient::write()
 	if (!mConfig)
 		return 0;
 	return mConfig->write();
-}
-
-int MCSClient::checkIn()
-{
-	if (!mConfig->androidCredentials)
-		return ERR_NO_CREDS;
-	uint64_t androidId = mConfig->androidCredentials->getAndroidId();
-	uint64_t securityToken = mConfig->androidCredentials->getSecurityToken();
-	std::string protobuf = mkCheckinRequest(androidId, securityToken);
-	if (mConfig->verbosity > 2)
-	{
-		log(3) << "Send to " << CHECKIN_URL 
-			<< " checkin: " << std::endl
-			<< hexString(protobuf) << std::endl;
-	}
-
-	std::string retval;
-	int r = curlPost(CHECKIN_URL, "application/x-protobuffer", protobuf, &retval);
-	if (mConfig->verbosity > 1)
-	{
-		log(3) << "Check in " << CHECKIN_URL 
-			<< " android id: " << mConfig->androidCredentials->getAndroidId()
-			<< " app id: " << mConfig->androidCredentials->getAppId()
-			<< " security token: " << mConfig->androidCredentials->getSecurityToken()
-			<< " security token: " << mConfig->androidCredentials->getSecurityToken() 
-			<< " return code: " << r 
-			<< " value: " << std::endl << std::endl << retval << std::endl;
-	}
-	if (r < 200 || r >= 300)
-		return r;
-	
-	AndroidCheckinResponse resp;
-	bool cr = resp.ParseFromString(retval);
-	// Whether statistics were recorded properly.
-	if (!cr)
-		return -r;
-	
-	if (mConfig->androidCredentials)
-	{
-		uint64_t androidId = resp.android_id();
-		uint64_t securityToken = resp.security_token();
-		mConfig->androidCredentials->setAndroidId(androidId);
-		mConfig->androidCredentials->setSecurityToken(securityToken);
-		if (androidId && securityToken)
-		{
-			if (mConfig->verbosity > 2)
-			{
-				log(3) << "Credentials assigned, android id:  " << androidId 
-					<< ", security token: " << securityToken << std::endl;
-			}
-		}
-	}
-	return r;
 }
 
 std::string MCSClient::getAppId()
@@ -1057,8 +850,17 @@ int MCSClient::registerDevice()
 		<< "&device=" << mConfig->androidCredentials->getAndroidId()
 		<< "&sender=" << rkb64;
 
-	int r = curlPost(REGISTER_URL, "application/x-www-form-urlencoded", formData.str(), &retval);
-
+	std::string aidlogin;
+	if (hasIdNToken()) {
+		std::stringstream ss;
+		ss << HDR_AUTHORIZATION << "AidLogin "
+			<< mConfig->androidCredentials->getAndroidId() << ":"
+			<< mConfig->androidCredentials->getSecurityToken();
+		aidlogin = ss.str();
+	}
+	else 
+		aidlogin = "";
+	int r = curlPost(&retval, NULL, REGISTER_URL, "application/x-www-form-urlencoded", formData.str(), aidlogin, mConfig->verbosity);
 	// retval: token=xxx
 
 	if (mConfig->verbosity > 2)

@@ -55,7 +55,6 @@ class MCSReceiveBuffer
 {
 private:
 	MCSClient *mClient;
-	uint8_t mVersion;	// last known is 38
 	enum PROTO_STATE state;
 	int parse();
 	MessageLite *createMessage(uint8_t tag);
@@ -66,25 +65,16 @@ public:
 	// Return 0 if incomplplete	and is not parcelable
 	int process();
 	void put(const void *buf, int size);
-	uint8_t getVersion();
 };
 
 class MCSClient
 {
 private:
 	onullstream onullstrm;
-	MCSReceiveBuffer mBuffer;
 	SSLFactory mSSLFactory;
 	int mSocket;
 	WpnConfig *mConfig;	// config.wpnKeys, config.androidCredentials
 	
-	int curlPost(
-		const std::string &url,
-		const std::string &contentType,
-		const std::string &content,
-		std::string *retval
-	);
-	int checkIn();
 	std::string getAppId();
 	/// obtain GCM token
  	int registerDevice();
@@ -92,7 +82,7 @@ private:
 	void init();
 public:
 	bool mStop;
-	MCSReceiveBuffer *mStream;
+	MCSReceiveBuffer mStream;
 	SSL *mSsl;
 
 	MCSClient();
@@ -104,14 +94,11 @@ public:
 	WpnConfig *getConfig();
 	~MCSClient();
 
-	uint64_t getAndroidId();
-    uint64_t getSecurityToken();
 	bool hasIdNToken();
 
 	std::ostream::pos_type write();
 
 	int logIn();
-
 	int connect();
 	void stop();
 	int sendVersion();

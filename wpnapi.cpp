@@ -226,3 +226,14 @@ EXPORTDLL void generateVAPIDKeysC
 		}
 	}
 }
+
+EXPORTDLL int checkInC(
+	uint64_t *androidId,
+	uint64_t *securityToken,
+	int verbosity
+) {
+	return checkIn(androidId,
+		securityToken,
+		verbosity
+	);
+}

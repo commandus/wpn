@@ -135,6 +135,12 @@ EXPORTDLL void generateVAPIDKeysC
 	size_t authSecretSize
 );
 
+EXPORTDLL int checkInC(
+	uint64_t *androidId,
+	uint64_t *securityToken,
+	int verbosity
+);
+
 #ifdef __cplusplus
 }
 #endif

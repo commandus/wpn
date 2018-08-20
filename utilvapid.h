@@ -18,6 +18,29 @@
 #define EXPORTDLL
 #endif
 
+#define ERR_WRONG_PARAM				-1
+
+/**
+  * POST data, return received data in retval
+  * @return 200-299 success, otherwise error code. retval contains error description
+  */
+int curlPost
+(
+	std::string *retval,
+	std::string *debugHeaders,
+	const std::string &url,
+	const std::string &contentType,
+	const std::string &content,
+	const std::string &extraHeader,
+	int verbosity
+);
+
+EXPORTDLL int checkIn(
+	uint64_t *androidId,
+	uint64_t *securityToken,
+	int verbosity
+);
+
 EXPORTDLL std::string base64UrlEncode(
 	const void *data,
 	size_t size

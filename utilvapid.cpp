@@ -16,7 +16,14 @@
 
 #include "nlohmann/json.hpp"
 
+#include "android_checkin.pb.h"
+#include "checkin.pb.h"
+
+#include "utilstring.h"
+
 using json = nlohmann::json;
+
+using namespace checkin_proto;
 
 EXPORTDLL std::string base64UrlEncode(
 	const void *data,
@@ -648,4 +655,163 @@ EXPORTDLL int webpushVapidData
 	};
 	return webpushVapid(retval, publicKey, privateKey, endpoint, p256dh, auth,
 		requestBody.dump(), contact, contentEncoding, expiration);
+}
+
+//-------------------------------------------------------------
+
+static const std::string DEF_CHROME_VER("63.0.3234.0");
+
+/**
+ * @param androidId 0- before register
+ * @param securityToken 0- before register
+ */
+static std::string mkCheckinRequest(
+	uint64_t androidId,
+	uint64_t securityToken
+)
+{
+	AndroidCheckinRequest req;
+	req.set_user_serial_number(0);
+	req.set_version(3);
+	if (androidId)
+		req.set_id(androidId);
+	if (securityToken)
+		req.set_security_token(securityToken);
+	AndroidCheckinProto* checkIn = req.mutable_checkin();
+	ChromeBuildProto *chrome = checkIn->mutable_chrome_build();
+	checkIn->set_type(DEVICE_CHROME_BROWSER);
+	chrome->set_platform(ChromeBuildProto_Platform_PLATFORM_LINUX);
+	*chrome->mutable_chrome_version() = DEF_CHROME_VER;
+	chrome->set_channel(ChromeBuildProto_Channel_CHANNEL_DEV);
+
+	std::string r;
+	req.SerializeToString(&r);
+	return r;
+}
+
+/**
+  * @brief CURL write callback
+  */
+static size_t write_header(char* buffer, size_t size, size_t nitems, void *userp) {
+	size_t sz = size * nitems;
+	((std::string*)userp)->append((char*)buffer, sz);
+	return sz;
+}
+
+static const char *CURL_TYP_NAMES[7] = {
+	"INFO",
+	"HEADER IN",
+	"HEADER OUT",
+	"DATA IN",
+	"DATA OUT",
+	"SSL DATA IN",
+	"SSL DATA OUT"
+};
+
+static int curl_trace
+(
+	CURL *handle,
+	curl_infotype typ,
+	char *data,
+	size_t size,
+	void *userp
+)
+{
+	if (typ >= 0 && typ < 7)
+		std::cerr << CURL_TYP_NAMES[typ] << ": " << std::endl;
+	std::string s(data, size);
+	if (typ > 2)
+		s = hexString(s);
+	std::cerr << s << std::endl;
+	return 0;
+}
+
+static const std::string HDR_CONTENT_TYPE("Content-Type: ");
+
+/**
+  * POST data, return received data in retval
+  * @return 200-299 success, otherwise error code. retval contains error description
+  */
+int curlPost
+(
+	std::string *retval,
+	std::string *debugHeaders,
+	const std::string &url,
+	const std::string &contentType,
+	const std::string &content,
+	const std::string &extraHeader,
+	int verbosity
+)
+{
+	CURL *curl = curl_easy_init();
+	if (!curl)
+		return CURLE_FAILED_INIT;
+	CURLcode res;
+	struct curl_slist *chunk = NULL;
+	chunk = curl_slist_append(chunk, (HDR_CONTENT_TYPE + contentType).c_str());
+	if (!extraHeader.empty())
+		curl_slist_append(chunk, extraHeader.c_str());
+	curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+
+	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, content.size());
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, content.c_str());
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_string);
+	if (retval)
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, retval);
+	if (verbosity > 3)
+	{
+		curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, curl_trace);
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+		if (debugHeaders)
+			curl_easy_setopt(curl, CURLOPT_HEADERDATA, debugHeaders);
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &write_header);
+	}
+
+	res = curl_easy_perform(curl);
+
+	int http_code;
+	if (res != CURLE_OK)
+	{
+		if (retval)
+			*retval = curl_easy_strerror(res);
+		http_code = -res;
+	}
+	else
+	{
+		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+	}
+	curl_easy_cleanup(curl);
+	return http_code;
+}
+
+static const std::string CHECKIN_URL("https://android.clients.google.com/checkin");
+
+EXPORTDLL int checkIn(
+	uint64_t *androidId,
+	uint64_t *securityToken,
+	int verbosity
+)
+{
+	if ((!androidId) || (!securityToken))
+		return ERR_WRONG_PARAM;
+	std::string protobuf = mkCheckinRequest(*androidId, *securityToken);
+	std::string retval;
+	int r = curlPost(&retval, NULL, CHECKIN_URL, "application/x-protobuffer", protobuf, "", verbosity);
+	if (r < 200 || r >= 300)
+		return r;
+
+	AndroidCheckinResponse resp;
+	bool cr = resp.ParseFromString(retval);
+	// Whether statistics were recorded properly.
+	if (!cr)
+		return -r;
+	*androidId = resp.android_id();
+	*securityToken = resp.security_token();
+	return r;
 }
