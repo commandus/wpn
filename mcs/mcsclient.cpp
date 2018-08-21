@@ -75,14 +75,10 @@ using namespace google::protobuf::io;
 
 #define MCS_PORT		443
 
-static const std::string REGISTER_URL("https://android.clients.google.com/c2dm/register3");
 static const std::string MCS_HOST("mtalk.google.com");
 static const std::string DEF_CHROME_VER("63.0.3234.0");
 
 static const uint8_t kMCSVersion = 41;
-
-static const std::string HDR_AUTHORIZATION("Authorization : ");
-
 
 static const char *IQTYPE_NAMES[] = 
 {
@@ -704,9 +700,16 @@ int MCSClient::connect()
 	{
 		for (int i = 0; i < 5; i++) 
 		{
-			r = registerDevice();
+			std::string gcmToken;
+			r = registerDevice(&gcmToken,
+				mConfig->androidCredentials->getAndroidId(),
+				mConfig->androidCredentials->getSecurityToken(),
+				getAppId(),
+				mConfig->verbosity
+			);
 			if (r >= 200 && r < 300)
 			{
+				mConfig->androidCredentials->setGCMToken(gcmToken);
 				break;
 			}
 			sleep(1);
@@ -754,144 +757,6 @@ std::string MCSClient::getAppId()
 	std::stringstream r;
 	r << "wp:com.commandus.wpn#" << mConfig->androidCredentials->getAppId();
 	return r.str();
-}
-
-const uint8_t REGISTER_SERVER_KEY[] = 
-{
-	0x04,
-	0x33,
-	0x94,
-	0xf7,
-	0xdf,
-	0xa1,
-	0xeb,
-	0xb1,
-	0xdc,
-	0x03,
-	0xa2,
-	0x5e,
-	0x15,
-	0x71,
-	0xdb,
-	0x48,
-	0xd3,
-	0x2e,
-	0xed,
-	0xed,
-	0xb2,
-	0x34,
-	0xdb,
-	0xb7,
-	0x47,
-	0x3a,
-	0x0c,
-	0x8f,
-	0xc4,
-	0xcc,
-	0xe1,
-	0x6f,
-	0x3c,
-	0x8c,
-	0x84,
-	0xdf,
-	0xab,
-	0xb6,
-	0x66,
-	0x3e,
-	0xf2,
-	0x0c,
-	0xd4,
-	0x8b,
-	0xfe,
-	0xe3,
-	0xf9,
-	0x76,
-	0x2f,
-	0x14,
-	0x1c,
-	0x63,
-	0x08,
-	0x6a,
-	0x6f,
-	0x2d,
-	0xb1,
-	0x1a,
-	0x95,
-	0xb0,
-	0xce,
-	0x37,
-	0xc0,
-	0x9c,
-	0x6e
-};
-
-static std::string base64encode
-(
-	const void *source,
-	size_t size
-)
-{
-	size_t requiredSize =  ece_base64url_encode(source, size, ECE_BASE64URL_OMIT_PADDING, NULL, 0);
-	std::string r(requiredSize, '\0');
-	ece_base64url_encode(source, size, ECE_BASE64URL_OMIT_PADDING, (char *) r.c_str(), r.size());
-	return r;
-}
-
-/**
- * obtain GCM token
- */
-int MCSClient::registerDevice()
-{
-	std::string retval;
-	std::stringstream formData;
-	std::string rkb64 = base64encode(REGISTER_SERVER_KEY, sizeof(REGISTER_SERVER_KEY));
-	formData << "app=org.chromium.linux" 
-		<< "&X-subtype=" << escapeURLString(getAppId()) 
-		<< "&device=" << mConfig->androidCredentials->getAndroidId()
-		<< "&sender=" << rkb64;
-
-	std::string aidlogin;
-	if (hasIdNToken()) {
-		std::stringstream ss;
-		ss << HDR_AUTHORIZATION << "AidLogin "
-			<< mConfig->androidCredentials->getAndroidId() << ":"
-			<< mConfig->androidCredentials->getSecurityToken();
-		aidlogin = ss.str();
-	}
-	else 
-		aidlogin = "";
-	int r = curlPost(&retval, NULL, REGISTER_URL, "application/x-www-form-urlencoded", formData.str(), aidlogin, mConfig->verbosity);
-	// retval: token=xxx
-
-	if (mConfig->verbosity > 2)
-	{
-		log(3) << "Register " << REGISTER_URL 
-			<< " return code: " << r 
-			<< " value: " << retval << std::endl;
-	}
-	if (r < 200 || r >= 300)
-		return r;
-
-	std::size_t p = retval.find("=", 0);
-	if (p == std::string::npos)
-		return ERR_REGISTER_VAL;
-	std::string k = retval.substr(0, p);
-	std::string v = retval.substr(p + 1);
-	if (k == "token") 
-	{
-		mConfig->androidCredentials->setGCMToken(v);
-		if (mConfig->verbosity > 1)
-			log(3) << "GCM token: " << v << std::endl;
-	}
-	else
-	{
-		if (mConfig->verbosity > 0)
-		{
-			log(3) << k << ": " << v << std::endl;
-		}
-		r = ERR_REGISTER_FAIL;
-	}
-	return r;
 }
 
 std::ostream &MCSClient::log

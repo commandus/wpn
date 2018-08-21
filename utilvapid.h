@@ -18,7 +18,14 @@
 #define EXPORTDLL
 #endif
 
-#define ERR_WRONG_PARAM				-1
+#define ERR_WRONG_PARAM				-11
+#define ERR_REGISTER_VAL			-12	// Error registering
+#define ERR_REGISTER_FAIL			-13
+
+std::string base64UrlEncode(
+	const void *data,
+	size_t size
+);
 
 /**
   * POST data, return received data in retval
@@ -41,9 +48,15 @@ EXPORTDLL int checkIn(
 	int verbosity
 );
 
-EXPORTDLL std::string base64UrlEncode(
-	const void *data,
-	size_t size
+/**
+ * Register device and obtain GCM token
+ */
+EXPORTDLL int registerDevice(
+	std::string *retGCMToken,
+	uint64_t androidId,
+	uint64_t securityToken,
+	const std::string &appId,
+	int verbosity
 );
 
 /**
@@ -135,4 +148,5 @@ EXPORTDLL int webpushVapidData
 	int contentEncoding,
 	time_t expiration = 0
 );
+
 #endif

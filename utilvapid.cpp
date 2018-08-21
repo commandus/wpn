@@ -25,7 +25,7 @@ using json = nlohmann::json;
 
 using namespace checkin_proto;
 
-EXPORTDLL std::string base64UrlEncode(
+std::string base64UrlEncode(
 	const void *data,
 	size_t size
 ) {
@@ -813,5 +813,66 @@ EXPORTDLL int checkIn(
 		return -r;
 	*androidId = resp.android_id();
 	*securityToken = resp.security_token();
+	return r;
+}
+
+static const std::string REGISTER_URL("https://android.clients.google.com/c2dm/register3");
+
+static const std::string HDR_AUTHORIZATION("Authorization : ");
+
+const uint8_t REGISTER_SERVER_KEY[] =
+{
+	0x04, 0x33, 0x94, 0xf7, 0xdf, 0xa1, 0xeb, 0xb1, 0xdc, 0x03,
+	0xa2, 0x5e, 0x15, 0x71, 0xdb, 0x48, 0xd3, 0x2e, 0xed, 0xed,
+	0xb2, 0x34, 0xdb, 0xb7, 0x47, 0x3a, 0x0c, 0x8f, 0xc4, 0xcc,
+	0xe1, 0x6f, 0x3c, 0x8c, 0x84, 0xdf, 0xab, 0xb6, 0x66, 0x3e,
+	0xf2, 0x0c, 0xd4, 0x8b, 0xfe, 0xe3, 0xf9, 0x76, 0x2f, 0x14,
+	0x1c, 0x63, 0x08, 0x6a, 0x6f, 0x2d, 0xb1, 0x1a, 0x95, 0xb0,
+	0xce, 0x37, 0xc0, 0x9c, 0x6e
+};
+
+/**
+ * Register device and obtain GCM token
+ */
+EXPORTDLL int registerDevice(
+	std::string *retGCMToken,
+	uint64_t androidId,
+	uint64_t securityToken,
+	const std::string &appId,
+	int verbosity
+)
+{
+	std::stringstream formData;
+	std::string rkb64 = base64UrlEncode(REGISTER_SERVER_KEY, sizeof(REGISTER_SERVER_KEY));
+	formData << "app=org.chromium.linux"
+		<< "&X-subtype=" << escapeURLString(appId)
+		<< "&device=" << androidId
+		<< "&sender=" << rkb64;
+	std::stringstream ss;
+	ss << HDR_AUTHORIZATION << "AidLogin "
+		<< androidId << ":"
+		<< securityToken;
+	std::string aidlogin = ss.str();
+	std::string retval;
+	int r = curlPost(&retval, NULL, REGISTER_URL, "application/x-www-form-urlencoded", formData.str(), aidlogin, verbosity);
+	// retval: token=xxx
+	if (r < 200 || r >= 300)
+		return r;
+
+	std::size_t p = retval.find("=", 0);
+	if (p == std::string::npos)
+		return ERR_REGISTER_VAL;
+	std::string k = retval.substr(0, p);
+	std::string v = retval.substr(p + 1);
+	if (k == "token")
+	{
+		if (retGCMToken)
+			*retGCMToken = v;
+	}
+	else
+	{
+		r = ERR_REGISTER_FAIL;
+	}
+
 	return r;
 }

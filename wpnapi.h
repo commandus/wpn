@@ -141,6 +141,18 @@ EXPORTDLL int checkInC(
 	int verbosity
 );
 
+/**
+ * Register device and obtain GCM token
+ */
+EXPORTDLL int registerDeviceC(
+	char* retGCMToken,
+	size_t GCMTokenSize,
+	uint64_t androidId,
+	uint64_t securityToken,
+	const char* appId,
+	int verbosity
+);
+
 #ifdef __cplusplus
 }
 #endif

@@ -237,3 +237,32 @@ EXPORTDLL int checkInC(
 		verbosity
 	);
 }
+
+/**
+ * Register device and obtain GCM token
+ */
+EXPORTDLL int registerDeviceC(
+	char* retGCMToken,
+	size_t GCMTokenSize,
+	uint64_t androidId,
+	uint64_t securityToken,
+	const char* appId,
+	int verbosity
+)
+{
+	std::string t;
+	int r = registerDevice(&t, androidId, securityToken, std::string(appId), verbosity);
+	if (r < 200 || r >= 300) {
+		if (retGCMToken)
+			retGCMToken[0] = '\0';
+		return r;
+	}
+	size_t sz = t.size();
+	if (retGCMToken && (GCMTokenSize >= sz)) {
+		memmove(retGCMToken, t.c_str(), sz);
+		if (GCMTokenSize > sz) {
+			retGCMToken[sz] = '\0';
+		}
+	}
+	return r;
+}

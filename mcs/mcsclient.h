@@ -31,16 +31,14 @@
 #include "sslfactory.h"
 #include "onullstream.hpp"
 
-#define ERR_NO_CONFIG				-1
-#define ERR_NO_KEYS					-2
-#define ERR_NO_CREDS				-3
-#define ERR_NO_ANDROID_ID_N_TOKEN	-4
-#define ERR_NO_FCM_TOKEN			-5
-#define ERR_CHECKIN					-6
-#define ERR_REGISTER_VAL			-7	// Error registering
-#define ERR_REGISTER_FAIL			-8
-#define ERR_NO_CONNECT				-9
-#define ERR_MEM						-10
+#define ERR_NO_CONFIG				-21
+#define ERR_NO_KEYS					-22
+#define ERR_NO_CREDS				-23
+#define ERR_NO_ANDROID_ID_N_TOKEN	-24
+#define ERR_NO_FCM_TOKEN			-25
+#define ERR_CHECKIN					-26
+#define ERR_NO_CONNECT				-27
+#define ERR_MEM						-28
 
 enum PROTO_STATE {
 	STATE_VERSION = 0,
@@ -67,6 +65,9 @@ public:
 	void put(const void *buf, int size);
 };
 
+/// obtain GCM token
+int registerDevice();
+
 class MCSClient
 {
 private:
@@ -76,8 +77,6 @@ private:
 	WpnConfig *mConfig;	// config.wpnKeys, config.androidCredentials
 	
 	std::string getAppId();
-	/// obtain GCM token
- 	int registerDevice();
 	// std::vector<std::string> mPersistentIds;
 	void init();
 public:
