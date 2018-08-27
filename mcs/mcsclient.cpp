@@ -24,6 +24,13 @@
 
 #include "platform.h"
 #include "nlohmann/json.hpp"
+
+#include <google/protobuf/message.h>
+#include <google/protobuf/text_format.h>
+#include <google/protobuf/io/zero_copy_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/io/coded_stream.h>
+
 #include "mcs.pb.h"
 #include "mcsclient.h"
 #include "utilstring.h"
@@ -32,10 +39,8 @@
 #include "wp-push.h"
 
 #include "utilvapid.h"
-#include <google/protobuf/text_format.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#include <google/protobuf/io/zero_copy_stream_impl.h>
-#include <google/protobuf/io/coded_stream.h>
+#include "utilrecv.h"
+#include "params.h"
 
 #ifdef _MSC_VER
 #else
@@ -44,7 +49,7 @@
 using json = nlohmann::json;
 
 // MCS Message tags.
-enum MCSProtoTag 
+enum MCSProtoTag
 {
 	kHeartbeatPingTag       = 0,
 	kHeartbeatAckTag        = 1,
@@ -85,6 +90,73 @@ static const char *IQTYPE_NAMES[] =
 	"GET", "SET", "RESULT", "IQ_ERROR"
 };
 
+static MessageLite *mkPing()
+{
+	HeartbeatPing *req = new HeartbeatPing();
+	// req->set_status(0);
+	return req;
+}
+
+static MessageLite *mkAck
+(
+	const std::string &persistent_id
+)
+{
+	IqStanza *req = new IqStanza();
+	if (!req)
+		return NULL;
+	req->set_type(mcs_proto::IqStanza::SET);
+	req->set_id("");
+	req->set_persistent_id(persistent_id);
+	req->mutable_extension()->set_id(kStreamAck);
+	req->mutable_extension()->set_data("");
+	return req;
+}
+
+/**
+ * @param androidId 0- before register
+ * @param securityToken 0- before register
+ */
+static MessageLite *mkLoginRequest
+(
+	uint64_t androidId,
+	uint64_t securityToken,
+	const std::vector<std::string> &persistentIds
+)
+{
+	LoginRequest *req = new LoginRequest();
+	req->set_adaptive_heartbeat(false);
+	req->set_auth_service(LoginRequest_AuthService_ANDROID_ID);
+	std::stringstream st;
+	st << securityToken;
+	req->set_auth_token(st.str());
+
+	req->set_id("chrome-" + DEF_CHROME_VER);
+	req->set_domain("mcs.android.com");
+
+	std::stringstream sh;
+	sh << std::hex << androidId;
+	std::string haid = sh.str();
+	std::stringstream ss;
+	ss << androidId;
+	std::string said = ss.str();
+
+	req->set_device_id("android-" + haid);
+	req->set_network_type(1);
+	req->set_resource(said);
+	req->set_user(said);
+	req->set_use_rmq2(true);
+	auto sc = req->mutable_setting();
+	Setting *s = sc->Add();
+	*s->mutable_name() = "new_vc";
+	*s->mutable_value() = "1";
+	for (std::vector<std::string>::const_iterator it(persistentIds.begin()); it != persistentIds.end(); ++it)
+	{
+		*req->add_received_persistent_id() = *it;
+	}
+	return req;
+}
+
 //----------------------------- MCSReceiveBuffer -----------------------------
 
 MCSReceiveBuffer::MCSReceiveBuffer()
@@ -95,6 +167,482 @@ MCSReceiveBuffer::MCSReceiveBuffer()
 void MCSReceiveBuffer::setClient(MCSClient *client)
 {
 	mClient = client;
+}
+
+static void logMessage
+(
+	enum MCSProtoTag tag,
+	MessageLite *message,
+	int verbosity,
+	std::ostream *log
+) {
+	switch (tag)
+	{
+	case kLoginResponseTag:
+	{
+		LoginResponse* r = (LoginResponse*)message;
+		if (log && (verbosity >= 1))
+			*log << "Login " << r->id() << " ";
+		if (r->has_error())
+		{
+			if (log && (verbosity >= 0))
+				*log << "error " << r->error().code();
+			if (r->error().has_message())
+			{
+				if (log && (verbosity >= 0))
+					*log << ": " << r->error().message() << " ";
+			}
+		}
+		for (int i = 0; i < r->setting_size(); i++)
+		{
+			if (log && (verbosity >= 2))
+				*log << "setting " << i << ":" << r->setting(i).name() << r->setting(i).value() << std::endl;
+		}
+		if (r->has_server_timestamp())
+		{
+			time_t t = r->server_timestamp() / 1000;
+			struct tm *tm = localtime(&t);
+			if (log && (verbosity >= 2))
+				*log << "server time " << std::asctime(tm) << std::endl;
+		}
+
+		if (r->has_heartbeat_config())
+		{
+			if (log && (verbosity >= 2))
+				*log << " has heart beat config" << std::endl;
+		}
+	}
+	break;
+	case kHeartbeatAckTag:
+	{
+		HeartbeatAck* r = (HeartbeatAck*)message;
+		if (log && (verbosity >= 2))
+			*log << " HeartbeatAck " << std::endl;
+		if (r->has_last_stream_id_received())
+		{
+			if (log && (verbosity >= 2))
+				*log << " last_stream_id_received: " << r->last_stream_id_received() << " ";
+		}
+		if (r->has_status())
+		{
+			if (log && (verbosity >= 2))
+				*log << " status: " << r->status() << " ";
+		}
+		if (r->has_stream_id())
+		{
+			if (log && (verbosity >= 2))
+				*log << " stream_id: " << r->stream_id() << " ";
+		}
+	}
+	break;
+	case kBindAccountResponseTag:
+	{
+	}
+	break;
+	case kIqStanzaTag:
+	{
+		IqStanza* r = (IqStanza*)message;
+		if (log && (verbosity >= 3))
+			*log << "IqStanza " << IQTYPE_NAMES[r->type()] << " " << r->id() << " ";
+		if (r->has_rmq_id())
+			if (log && (verbosity >= 3))
+				*log << " rmq_id: " << r->rmq_id();
+		if (r->has_from())
+			if (log && (verbosity >= 3))
+				*log << " from: " << r->from();
+		if (r->has_to())
+			if (log && (verbosity >= 3))
+				*log << " to: " << r->to();
+		if (r->has_error())
+		{
+			if (log && (verbosity >= 3))
+				*log << " error: ";
+			if (r->error().has_code())
+				if (log && (verbosity >= 3))
+					*log << " code: " << r->error().code();
+			if (r->error().has_extension())
+			{
+				if (log && (verbosity >= 3))
+					*log << " extension: ";
+				if (r->error().extension().has_id())
+					if (log && (verbosity >= 3))
+						*log << " id: " << r->error().extension().id();
+				if (r->error().extension().has_data())
+					if (log && (verbosity >= 3))
+						*log << " data: " << r->error().extension().data();
+			}
+		}
+		if (r->has_extension())
+		{
+			if (log && (verbosity >= 3))
+				*log << " extension: ";
+			if (r->error().extension().has_id())
+				if (log && (verbosity >= 3))
+					*log << " id: " << r->error().extension().id();
+			if (r->error().extension().has_data())
+				if (log && (verbosity >= 3))
+					*log << " data " << r->error().extension().data();
+		}
+		if (r->has_persistent_id())
+			if (log && (verbosity >= 3))
+				*log << " persistent_id: " << r->persistent_id();
+		if (r->has_stream_id())
+			if (log && (verbosity >= 3))
+				*log << " stream_id: " << r->stream_id();
+		if (r->has_last_stream_id_received())
+			if (log && (verbosity >= 3))
+				*log << " last_stream_id_received: " << r->last_stream_id_received();
+		if (r->has_account_id())
+			if (log && (verbosity >= 3))
+				*log << " account_id: " << r->account_id();
+		if (r->has_status())
+			if (log && (verbosity >= 3))
+				*log << " status: " << r->status();
+		if (log && (verbosity >= 3))
+			*log << std::endl;
+	}
+	break;
+	case kDataMessageStanzaTag:
+	{
+		DataMessageStanza* r = (DataMessageStanza*)message;
+		std::string cryptoKeyHeader;
+		std::string encryptionHeader;
+		std::string persistent_id;
+		std::string from;
+		std::string subtype;
+		int64_t sent;
+
+		if (log && (verbosity >= 3))
+			*log << "DataMessageStanza" << std::endl;
+		for (int a = 0; a < r->app_data_size(); a++)
+		{
+			if (log && (verbosity >= 3))
+				*log << " app_data key: " << r->app_data(a).key()
+				<< " data: " << r->app_data(a).value() << std::endl;
+			if (r->app_data(a).key() == "crypto-key")
+				cryptoKeyHeader = r->app_data(a).value();
+			if (r->app_data(a).key() == "encryption")
+				encryptionHeader = r->app_data(a).value();
+			if (r->app_data(a).key() == "subtype")
+				subtype = r->app_data(a).value();
+		}
+		if (r->has_id())
+			if (log && (verbosity >= 3))
+				*log << " id: " << r->id();
+		if (r->has_category())
+			if (log && (verbosity >= 3))
+				*log << " category: " << r->category();
+		if (r->has_device_user_id())
+			if (log && (verbosity >= 3))
+				*log << " device_user_id: " << r->device_user_id();
+		if (r->has_from())
+		{
+			from = r->from();
+			if (log && (verbosity >= 3))
+				*log << " from: " << r->from();
+		}
+		else
+		{
+			from = "";
+		}
+		if (r->has_persistent_id())
+		{
+			persistent_id = r->persistent_id();
+			if (log && (verbosity >= 3))
+				*log << " persistent_id: " << r->persistent_id();
+		}
+		else
+		{
+			persistent_id = "";
+		}
+		if (r->has_token()) {
+			if (log && (verbosity >= 3))
+				*log << " token: " << r->token();
+		}
+		if (r->has_from_trusted_server())
+			if (log && (verbosity >= 3))
+				*log << " from_trusted_server: " << r->from_trusted_server();
+		if (r->has_immediate_ack())
+			if (log && (verbosity >= 3))
+				*log << " immediate_ack: " << r->immediate_ack();
+		if (r->has_last_stream_id_received())
+			if (log && (verbosity >= 3))
+				*log << " last_stream_id_received: " << r->last_stream_id_received();
+		if (r->has_queued())
+			if (log && (verbosity >= 3))
+				*log << " queued: " << r->queued();
+		if (log && (verbosity >= 3))
+			*log << std::endl;
+		if (r->has_raw_data())
+		{
+			if (log && (verbosity >= 3))
+				*log << " raw_data: " << hexString(r->raw_data());
+			std::string d;
+		}
+		if (r->has_reg_id())
+			if (log && (verbosity >= 3))
+				*log << " reg_id: " << r->reg_id();
+		if (r->has_sent())
+		{
+			sent = r->sent();
+			if (log && (verbosity >= 3))
+				*log << " sent: " << r->sent();
+		}
+		if (r->has_status())
+			if (log && (verbosity >= 3))
+				*log << " status: " << r->status();
+		if (r->has_stream_id())
+			if (log && (verbosity >= 3))
+				*log << " stream_id: " << r->stream_id();
+		if (r->has_to())
+			if (log && (verbosity >= 3))
+				*log << " to: " << r->to();
+		if (r->has_token())
+			if (log && (verbosity >= 3))
+				*log << " token: " << r->token();
+		if (r->has_ttl())
+			if (log && (verbosity >= 3))
+				*log << " ttl: " << r->ttl();
+		if (log && (verbosity >= 3))
+			*log << std::endl;
+	}
+	break;
+	default:
+		break;
+	}
+}
+
+/**
+ * Decode string
+ * @see https://tools.ietf.org/html/draft-ietf-webpush-encryption-03
+ */
+static int decode
+(
+	std::string &retval,
+	const uint8_t *privateKeyArray,
+	const uint8_t *authSecretArray,
+	const std::string &source,
+	const std::string &cryptoKeyHeader,
+	const std::string &encryptionHeader
+)
+{
+	uint32_t rs = 0;
+	uint8_t salt[ECE_SALT_LENGTH];
+	uint8_t rawSenderPubKey[ECE_WEBPUSH_PUBLIC_KEY_LENGTH];
+	int err = ece_webpush_aesgcm_headers_extract_params1(cryptoKeyHeader.c_str(), encryptionHeader.c_str(),
+		salt, ECE_SALT_LENGTH, rawSenderPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH, &rs);
+	if (err != ECE_OK)
+	{
+		std::string m;
+		switch (err) {
+		case ECE_ERROR_INVALID_ENCRYPTION_HEADER:
+			m = "Invalid encryption: " + encryptionHeader;
+			break;
+		case ECE_ERROR_INVALID_CRYPTO_KEY_HEADER:
+			m = "Invalid crypto-key: " + cryptoKeyHeader;
+			break;
+		default:
+			m = "";
+			break;
+		}
+		return err;
+	}
+	size_t outSize = ece_aes128gcm_plaintext_max_length((const uint8_t*)source.c_str(), source.size());
+	if (outSize == 0)
+	{
+		return ERR_MEM;
+	}
+	else
+	{
+		if (outSize < 4096)
+			outSize = 4096;
+		retval = std::string(outSize, '\0');
+		ece_webpush_aesgcm_decrypt(
+			privateKeyArray, ECE_WEBPUSH_PRIVATE_KEY_LENGTH,
+			authSecretArray, ECE_WEBPUSH_AUTH_SECRET_LENGTH,
+			(const uint8_t *)&salt, ECE_SALT_LENGTH,
+			(const uint8_t *)&rawSenderPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH,
+			rs,
+			(const uint8_t *)source.c_str(), source.size(),
+			(uint8_t *)retval.c_str(), &outSize);
+		retval.resize(outSize);
+	}
+	return 0;
+}
+
+static void doSmth
+(
+	enum MCSProtoTag tag,
+	MessageLite *message,
+	MCSClient *client
+) {
+	switch (tag)
+	{
+	case kLoginResponseTag:
+		break;
+	case kHeartbeatAckTag:
+		break;
+	case kBindAccountResponseTag:
+		break;
+	case kIqStanzaTag:
+		break;
+	case kDataMessageStanzaTag:
+	{
+		DataMessageStanza* r = (DataMessageStanza*)message;
+		std::string cryptoKeyHeader;
+		std::string encryptionHeader;
+		std::string persistent_id;
+		std::string from;
+		std::string subtype;
+		int64_t sent;
+		MessageLite *messageAck = mkAck(persistent_id);
+		if (messageAck) {
+			int r = client->sendTag(kIqStanzaTag, messageAck);
+			delete messageAck;
+		}
+		if (r->has_raw_data())
+		{
+			std::string d;
+			int dr = decode(d, 
+				client->getConfig()->wpnKeys->getPrivateKeyArray(), client->getConfig()->wpnKeys->getAuthSecretArray(), r->raw_data(), cryptoKeyHeader, encryptionHeader);
+			if (dr == 0)
+			{
+				std::string appName;
+				std::string appId;
+				size_t start_pos = subtype.find("#");
+				if (start_pos == std::string::npos)
+				{
+					appName = subtype;
+					appId = "";
+				}
+				else
+				{
+					appName = subtype.substr(0, start_pos);
+					appId = subtype.substr(start_pos + 1);
+				}
+				NotifyMessage notification;
+				if (!persistent_id.empty())
+				{
+					if (!client->getConfig()->setPersistentId(notification.authorizedEntity, persistent_id))
+					{
+					}
+
+				}
+				int mt = client->parseJSONNotifyMessage(notification, d);
+				switch (mt) {
+					case 0:
+						client->notifyAll(persistent_id, from, appName, appId, sent, notification);
+						break;
+					case 1:
+					{
+						std::string serverKey;
+						std::string token;
+						std::string persistent_id;
+						std::string command;
+						int code;
+						std::string output;
+
+						if (client->parseJSONCommandOutput(serverKey, token, persistent_id, command, &code, output, notification.data))
+						{
+							if (persistent_id.empty())
+							{
+								CommandOutput co;
+								std::stringstream ss;
+								int retcode = co.exec(&ss, command);
+								if (retcode)
+								{
+								}
+								std::string r = ss.str();
+								if (r.size() == 0)
+								{
+								}
+								// send response
+								std::string output;
+								int rp;
+								if (true)
+									rp = push2ClientDataFCM(&output, serverKey, token, from, persistent_id, command, retcode, r, 0);
+								else {
+									std::string p256dh = "";
+									std::string auth = "";
+									std::string sub = "";
+									std::string contact = "";
+									rp = webpushVapidData(output, serverKey, serverKey, token,
+										p256dh, auth, persistent_id, command, retcode, r, 0, contact, AES128GCM, 0);
+								}
+								if ((rp >= 200) && (rp <= 399))
+								{
+								}
+							}
+						}
+					}
+					break;
+				default:
+					break;
+				}
+			}
+		}
+	}
+	break;
+	default:
+		break;
+	}
+}
+
+int nextMessage(
+	enum MCSProtoTag *retTag,
+	MessageLite *retMessage,
+	std::string &buffer,
+	int verbosity,
+	std::ostream *log
+)
+{
+	std::stringstream ss(buffer);
+	IstreamInputStream rawInput(&ss);
+	CodedInputStream codedInput(&rawInput);
+	// tag number, size, message
+	uint8_t tag;
+	bool r = codedInput.ReadRaw(&tag, 1);	// 1 byte long
+	if (!r) {
+		retMessage = NULL;
+		return 0;
+	}
+
+	uint32_t msgSize;
+	r = codedInput.ReadVarint32(&msgSize);
+	if (!r) {
+		retMessage = NULL;
+		return 0;
+	}
+
+	if (log && (verbosity >= 1))
+		*log << "<<<  Tag " << (int)tag << " size " << msgSize << "  >>>" << std::endl;
+
+	*retTag = (enum MCSProtoTag) tag;
+	google::protobuf::io::CodedInputStream::Limit limit = codedInput.PushLimit(msgSize);
+	retMessage = createMessage(tag);
+	if (retMessage)
+	{
+		r = retMessage->ParsePartialFromCodedStream(&codedInput);
+		if (!r)
+			return 0;
+		r = codedInput.ConsumedEntireMessage();
+		std::string d;
+		retMessage->SerializeToString(&d);
+		if (log && (verbosity >= 1))
+			*log << "Tag: " << (int) tag << " size: " << msgSize << ": " << hexString(d) << std::endl;
+	}
+	else
+	{
+		r = codedInput.Skip(msgSize);
+	}
+	int sz = codedInput.CurrentPosition();
+	codedInput.ConsumedEntireMessage();
+	codedInput.PopLimit(limit);
+	if (sz)
+	{
+		buffer.erase(0, sz);
+	}
+	return sz;
 }
 
 int MCSReceiveBuffer::process()
@@ -111,16 +659,22 @@ int MCSReceiveBuffer::process()
 			sz--;
 			state = STATE_TAG;
 		} else {
-			sz = parse();
-			if (sz <= 0)
-				break;
+			MessageLite *m;
+			enum MCSProtoTag tag;
+			sz = nextMessage(&tag, m, buffer,
+				mClient->getConfig()->verbosity, &std::cerr);
+			if (!m)
+				continue;
+			logMessage(tag, m, mClient->getConfig()->verbosity, &std::cerr);
+			doSmth(tag, m, mClient);
+			delete m;
 			count++;
 		}
 	}
 	return count;
 }
 
-MessageLite *MCSReceiveBuffer::createMessage(uint8_t tag)
+MessageLite *createMessage(uint8_t tag)
 {
 	MessageLite *r = NULL;
 	switch(tag)
@@ -172,436 +726,9 @@ MessageLite *MCSReceiveBuffer::createMessage(uint8_t tag)
 	return r;
 }
 
-int MCSReceiveBuffer::parse()
-{
-	std::stringstream ss(buffer);
-	IstreamInputStream rawInput(&ss);
-	CodedInputStream codedInput(&rawInput);
-	int c = 0;
-	int sz = 0;
-	while (true)
-	{
-		// tag number, size, message
-		uint8_t tag;
-		bool r = codedInput.ReadRaw(&tag, 1);	// 1 byte long
-		if (!r)
-			break;
-		uint32_t msgSize;
-		r = codedInput.ReadVarint32(&msgSize);
-		if (!r)
-			break;
-
-		mClient->log(3) << "<<<  Tag " << (int) tag << " size " << msgSize << "  >>>" << std::endl;
-
-		google::protobuf::io::CodedInputStream::Limit limit = codedInput.PushLimit(msgSize);
-		MessageLite *message = createMessage(tag);
-		if (message)
-		{
-			r = message->ParsePartialFromCodedStream(&codedInput);
-			if (!r)
-				break;
-			r = codedInput.ConsumedEntireMessage();
-			std::string d;
-			message->SerializeToString(&d);
-			mClient->log(3) << "Tag: " << (int) tag << " size: " << msgSize << ": " << hexString(d) << std::endl;
-			switch (tag)
-			{
-				case kLoginResponseTag:
-				{
-					LoginResponse* r = (LoginResponse*) message;
-					mClient->log(3) << "Login " << r->id() << " ";
-					if (r->has_error())
-					{
-						mClient->log(3) << "error " << r->error().code();
-						if (r->error().has_message())
-						{
-							mClient->log(3) << ": " << r->error().message() << " ";
-						}
-					}
-					for (int i = 0; i < r->setting_size(); i++)
-					{
-						mClient->log(3) << "setting " << i << ":" << r->setting(i).name() << r->setting(i).value() << std::endl;
-					}
-					if (r->has_server_timestamp())
-					{
-						time_t t = r->server_timestamp()/1000;
-						struct tm *tm = localtime(&t);
-						mClient->log(3) << "server time " <<  std::asctime(tm) << std::endl;
-					}
-					
-					if (r->has_heartbeat_config())
-					{
-						mClient->log(3) << " has heart beat config" << std::endl;
-					}
-				}
-					break;
-				case kHeartbeatAckTag:
-				{
-					HeartbeatAck* r = (HeartbeatAck*) message;
-					mClient->log(3) << " HeartbeatAck " << std::endl;
-					if (r->has_last_stream_id_received())
-					{
-						mClient->log(3) << " last_stream_id_received: " << r->last_stream_id_received() << " ";
-					}
-					if (r->has_status())
-					{
-						mClient->log(3) << " status: " << r->status() << " ";
-					}
-					if (r->has_stream_id())
-					{
-						mClient->log(3) << " stream_id: " << r->stream_id() << " ";
-					}
-				}
-					break;
-				case kBindAccountResponseTag:
-					{
-					}
-					break;
-				case kIqStanzaTag:
-				{
-					IqStanza* r = (IqStanza*) message;
-					mClient->log(3) << "IqStanza " << IQTYPE_NAMES[r->type()] << " " << r->id() << " ";
-					if (r->has_rmq_id())
-						mClient->log(3) << " rmq_id: " << r->rmq_id();
-					if (r->has_from())
-						mClient->log(3) << " from: " << r->from();
-					if (r->has_to())
-						mClient->log(3) << " to: " << r->to();
-					if (r->has_error())
-					{
-						mClient->log(3) << " error: ";
-						if (r->error().has_code())
-							mClient->log(3) << " code: " << r->error().code();
-						if (r->error().has_extension())
-						{
-							mClient->log(3) << " extension: ";
-							if (r->error().extension().has_id())
-								mClient->log(3) << " id: " << r->error().extension().id();
-							if (r->error().extension().has_data())
-								mClient->log(3) << " data: " << r->error().extension().data();
-						}
-					}
-					if (r->has_extension())
-					{
-						mClient->log(3) << " extension: ";
-						if (r->error().extension().has_id())
-							mClient->log(3) << " id: " << r->error().extension().id();
-						if (r->error().extension().has_data())
-							mClient->log(3) << " data " << r->error().extension().data();
-					}
-					if (r->has_persistent_id())
-						mClient->log(3) << " persistent_id: " << r->persistent_id();
-					if (r->has_stream_id())
-						mClient->log(3) << " stream_id: " << r->stream_id();
-					if (r->has_last_stream_id_received())
-						mClient->log(3) << " last_stream_id_received: " << r->last_stream_id_received();
-					if (r->has_account_id())
-						mClient->log(3) << " account_id: " << r->account_id();
-  					if (r->has_status())
-						mClient->log(3) << " status: " << r->status();
-					mClient->log(3) << std::endl;
-				}
-					break;
-				case kDataMessageStanzaTag:
-				{
-					DataMessageStanza* r = (DataMessageStanza*) message;
-					std::string cryptoKeyHeader;
-					std::string encryptionHeader;
-					std::string persistent_id;
-					std::string from;
-					std::string subtype;
-					int64_t sent;
-					
-					mClient->log(3) << "DataMessageStanza" << std::endl;
-					for (int a = 0; a < r->app_data_size(); a++)
-					{
-						mClient->log(3) << " app_data key: " << r->app_data(a).key() 
-						<< " data: " << r->app_data(a).value() << std::endl;
-						if (r->app_data(a).key() == "crypto-key")
-							cryptoKeyHeader = r->app_data(a).value();
-						if (r->app_data(a).key() == "encryption")
-							encryptionHeader = r->app_data(a).value();
-						if (r->app_data(a).key() == "subtype")
-							subtype = r->app_data(a).value();
-					}
-					if (r->has_id())
-						mClient->log(3) << " id: " << r->id();
-					if (r->has_category())
-						mClient->log(3) << " category: " << r->category();
-					if (r->has_device_user_id())
-						mClient->log(3) << " device_user_id: " << r->device_user_id();
-					if (r->has_from())
-					{
-						from = r->from();
-						mClient->log(3) << " from: " << r->from();
-					}
-					else
-					{
-						from = "";
-					}
-					if (r->has_persistent_id())
-					{
-						persistent_id = r->persistent_id();
-						mClient->log(3) << " persistent_id: " << r->persistent_id();
-					}
-					else 
-					{
-						persistent_id = "";
-					}
-					if (r->has_token()) {
-						mClient->log(3) << " token: " << r->token();
-					}
-					if (r->has_from_trusted_server())
-						mClient->log(3) << " from_trusted_server: " << r->from_trusted_server();
-					if (r->has_immediate_ack())
-						mClient->log(3) << " immediate_ack: " << r->immediate_ack();
-					if (r->has_last_stream_id_received())
-						mClient->log(3) << " last_stream_id_received: " << r->last_stream_id_received();
-					if (r->has_queued())
-						mClient->log(3) << " queued: " << r->queued();
-					mClient->log(3) << std::endl;
-					mClient->sendDataAck(from, persistent_id);
-					if (r->has_raw_data())
-					{
-						mClient->log(3) << " raw_data: " << hexString(r->raw_data());
-						if (mClient)
-						{
-							std::string d;
-							int dr = mClient->decode(d, r->raw_data(), cryptoKeyHeader, encryptionHeader);
-							if (dr == 0)
-							{
-								mClient->log(3) << " data size " << d.size() << " :" << std::endl << d << std::endl;
-								//
-								std::string appName;
-								std::string appId;
-							    size_t start_pos = subtype.find("#");
-								if (start_pos == std::string::npos) 
-								{
-									appName = subtype;
-									appId = "";
-								}
-								else
-								{
-									appName = subtype.substr(0, start_pos);
-									appId = subtype.substr(start_pos + 1);
-								}
-								NotifyMessage notification;
-								if (!persistent_id.empty())
-								{
-									if (mClient->getConfig()->setPersistentId(notification.authorizedEntity, persistent_id)) 
-									{
-										mClient->log(3) << " set persistent id " << persistent_id;
-									}
-									else
-									{
-										mClient->log(0) << " Error save persistent id " << persistent_id << ", entity: " << notification.authorizedEntity;
-									}
-									
-								}
-								int mt = mClient->parseJSONNotifyMessage(notification, d);
-								switch (mt) {
-									case 0:
-										mClient->log(3) << "Subscription authorized entity " << notification.authorizedEntity << " set persistent id to " << persistent_id << std::endl;
-										mClient->notifyAll(persistent_id, from, appName, appId, sent, notification);
-										break;
-									case 1:
-										{
-											std::string serverKey;
-											std::string token;
-											std::string persistent_id;
-											std::string command;
-											int code;
-											std::string output;
-
-											if (mClient->parseJSONCommandOutput(serverKey, token, persistent_id, command, &code, output, notification.data))
-											{
-												if (persistent_id.empty())
-												{
-													mClient->log(3) << " Command: " << command << std::endl;
-													CommandOutput co;
-													std::stringstream ss;
-													int retcode = co.exec(&ss, command);
-													if (retcode)
-													{
-														mClient->log(3) << " Error " << retcode << " execute command: " << command;
-													}
-													std::string r = ss.str();
-													if (r.size() == 0)
-													{
-														mClient->log(3) << "Command " << command << " return nothing";
-													}
-													// send response
-													std::string output;
-													int rp;
-													if (true)
-														rp = push2ClientDataFCM(&output, serverKey, token, from, persistent_id, command, retcode, r, 0);
-													else {
-														std::string p256dh = "";
-														std::string auth = "";
-														std::string sub = "";
-														std::string contact = "";
-														rp = webpushVapidData(output, serverKey, serverKey, token, 
-															p256dh, auth, persistent_id, command, retcode, r, 0, contact, AES128GCM, 0);
-													}
-													if ((rp >= 200) && (rp <= 399))
-													{
-														mClient->log(3) << "Send reply: " << std::endl 
-														<< r << std::endl <<
-														" to command " << command << " successfull";
-													}
-													else
-													{
-														mClient->log(3) << "Error send reply: " << std::endl
-														<< r << std::endl << " to command " << command << " rp" << ": " << output;
-													}
-												}
-												else
-												{
-													mClient->log(3) << "Command already responded ";
-												}
-											}
-											else
-											{
-												mClient->log(3) << " can not parse data field in the message " << notification.data;
-											}
-										}
-										break;
-									default:
-										mClient->log(3) << " Unknown message received " << dr;
-								}
-							}
-							else
-							{
-								mClient->log(3) << " error decode data " << dr;
-							}
-						}
-					}
-					if (r->has_reg_id())
-						mClient->log(3) << " reg_id: " << r->reg_id();
-					if (r->has_sent())
-					{
-						sent = r->sent();
-						mClient->log(3) << " sent: " << r->sent();
-					}
-					if (r->has_status())
-						mClient->log(3) << " status: " << r->status();
-					if (r->has_stream_id())
-						mClient->log(3) << " stream_id: " << r->stream_id();
-					if (r->has_to())
-						mClient->log(3) << " to: " << r->to();
-					if (r->has_token())
-						mClient->log(3) << " token: " << r->token();
-					if (r->has_ttl())
-						mClient->log(3) << " ttl: " << r->ttl();
-					mClient->log(3) << std::endl;
-				}
-					break;
-				default:
-					break;
-			}
-		}
-		else
-		{
-			r = codedInput.Skip(msgSize);
-		}
-		sz = codedInput.CurrentPosition();
-		codedInput.ConsumedEntireMessage();
-		codedInput.PopLimit(limit);
-	}
-	if (sz)
-	{
-		buffer.erase(0, sz);
-	}
-	return c;
-}
-
 void MCSReceiveBuffer::put(const void *buf, int size)
 {
 	buffer.append(std::string((char*) buf, size));
-}
-
-//----------------------------- MCSClient helpers -----------------------------
-
-static MessageLite * mkPing()
-{
-	HeartbeatPing *req = new HeartbeatPing();
-	// req->set_status(0);
-	return req;
-}
-
-static MessageLite * mkAck
-(
-	const std::string &persistent_id
-)
-{
-	IqStanza *req = new IqStanza();
-	req->set_type(mcs_proto::IqStanza::SET);
-	req->set_id("");
-	req->mutable_extension()->set_id(kSelectiveAck);
-	
-	mcs_proto::SelectiveAck selective_ack;
-	selective_ack.add_id(persistent_id);
-	req->mutable_extension()->set_data(selective_ack.SerializeAsString());
-	return req;
-}
-
-static MessageLite * mkAck2
-(
-	const std::string &persistent_id
-)
-{
-	IqStanza *req = new IqStanza();
-	req->set_type(mcs_proto::IqStanza::SET);
-	req->set_id("");
-	req->set_persistent_id(persistent_id);
-	req->mutable_extension()->set_id(kStreamAck);
-	req->mutable_extension()->set_data("");
-	// req->set_last_stream_id_received(2);
-	return req;
-}
-
-/**
- * @param androidId 0- before register
- * @param securityToken 0- before register
- */
-static MessageLite *mkLoginRequest
-(
-	uint64_t androidId,
-	uint64_t securityToken,
-	const std::vector<std::string> &persistentIds
-)
-{
-	LoginRequest *req = new LoginRequest();
-	req->set_adaptive_heartbeat(false);
-	req->set_auth_service(LoginRequest_AuthService_ANDROID_ID);
-	std::stringstream st;
-	st << securityToken;
-	req->set_auth_token(st.str());
-
-	req->set_id("chrome-" + DEF_CHROME_VER);
-	req->set_domain("mcs.android.com");
-
-	std::stringstream sh;
-	sh << std::hex << androidId;
-	std::string haid = sh.str();
-	std::stringstream ss;
-	ss << androidId;
-	std::string said = ss.str();
-
-	req->set_device_id("android-" + haid);
-	req->set_network_type(1);
-	req->set_resource(said);
-	req->set_user(said);
-	req->set_use_rmq2(true);
-	auto sc = req->mutable_setting();
-	Setting *s = sc->Add();
-	*s->mutable_name() = "new_vc";
-	*s->mutable_value() = "1";
-	for (std::vector<std::string>::const_iterator it(persistentIds.begin()); it != persistentIds.end(); ++it)
-	{
-		*req->add_received_persistent_id() = *it;
-	}
-	return req;
 }
 
 //----------------------------- MCSClient -----------------------------
@@ -798,15 +925,15 @@ int MCSClient::logIn()
 			log(3) << *it << std::endl;
 		}
 	}
-	MessageLite *l =  mkLoginRequest(androidId, securityToken, persistentIds);
-	if (!l)
+	MessageLite *messageLogin =  mkLoginRequest(androidId, securityToken, persistentIds);
+	if (!messageLogin)
 		return ERR_MEM;
 
 	sendVersion();
 
-	sendTag(kLoginRequestTag, l);
+	sendTag(kLoginRequestTag, messageLogin);
 
-	delete l;
+	delete messageLogin;
 	int r = 0;
 	return r;
 }
@@ -826,34 +953,9 @@ int MCSClient::sendTag
 	const MessageLite *msg
 )
 {
-	std::stringstream ss;
-	OstreamOutputStream *rawOutput = new OstreamOutputStream(&ss);
-	CodedOutputStream *codedOutput = new CodedOutputStream(rawOutput);
-	codedOutput->WriteRaw(&tag, 1);
-	int sz = msg->ByteSize();
-	codedOutput->WriteVarint32(sz);
-	msg->SerializeToCodedStream(codedOutput);
-	delete codedOutput;
-	delete rawOutput;
-	std::string s(ss.str());
-	log(3) << "Send tag: " << (int) tag << " (" << sz << " bytes) : " << hexString(s) << std::endl;
+	std::string s = tagNmessageToString(tag, msg);
+	log(3) << "Send tag: " << (int) tag << hexString(s) << std::endl;
 	return SSL_write(mSsl, s.c_str(), s.size());
-}
-
-int MCSClient::sendDataAck
-(
-	const std::string &from,
-	const std::string &persistent_id
-)
-{
-	log(3) << "ACK persistent_id: " << persistent_id << std::endl;
-	MessageLite *l =  mkAck2(persistent_id);
-	if (!l)
-		return -1;
-	// int r  = 0;
-	int r = sendTag(kIqStanzaTag, l);
-	delete l;
-	return r;
 }
 
 int MCSClient::ping()
@@ -885,76 +987,6 @@ void MCSClient::writeStream
 	}
 }
 
-int ece_webpush_aesgcm_headers_extract_params1
-(
-	const char* cryptoKeyHeader,
-	const char* encryptionHeader,
-	uint8_t* salt, size_t saltLen,
-	uint8_t* rawSenderPubKey,
-	size_t rawSenderPubKeyLen,
-	uint32_t* rs
-);
-
-/**
- * Decode string
- * @see https://tools.ietf.org/html/draft-ietf-webpush-encryption-03
- */
-int MCSClient::decode
-(
-	std::string &retval,
-	const std::string &source,
-	const std::string &cryptoKeyHeader,
-	const std::string &encryptionHeader
-)
-{
-	if (!mConfig->wpnKeys)
-		return ERR_NO_KEYS;
-	uint32_t rs = 0;
-	uint8_t salt[ECE_SALT_LENGTH];
-	uint8_t rawSenderPubKey[ECE_WEBPUSH_PUBLIC_KEY_LENGTH];
-	int err = ece_webpush_aesgcm_headers_extract_params1(cryptoKeyHeader.c_str(), encryptionHeader.c_str(),
-		salt, ECE_SALT_LENGTH, rawSenderPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH, &rs);
-	if (err != ECE_OK)
-	{
-		std::string m;
-		switch (err) {
-			case ECE_ERROR_INVALID_ENCRYPTION_HEADER:
-				m = "Invalid encryption: " + encryptionHeader;
-				break;
-			case ECE_ERROR_INVALID_CRYPTO_KEY_HEADER:
-				m = "Invalid crypto-key: " + cryptoKeyHeader;
-				break;
-			default:
-				m = "";
-				break;
-		}
-		log(3) << "Decode error " << err << ", " << m << std::endl;
-		return err;
-	}
-	size_t outSize = ece_aes128gcm_plaintext_max_length((const uint8_t*) source.c_str(), source.size());
-	if (outSize == 0)
-	{
-		log(3) << "Decode error: calculated size is zero. Coded data size: " << source.size() << " bytes." << std::endl;
-		return ERR_MEM;
-	}
-	else
-	{
-		if (outSize < 4096)
-			outSize = 4096;
-		retval = std::string(outSize, '\0');
-		ece_webpush_aesgcm_decrypt(
-			mConfig->wpnKeys->getPrivateKeyArray(), ECE_WEBPUSH_PRIVATE_KEY_LENGTH,
-			mConfig->wpnKeys->getAuthSecretArray(), ECE_WEBPUSH_AUTH_SECRET_LENGTH,
-			(const uint8_t *) &salt, ECE_SALT_LENGTH,
-			(const uint8_t *) &rawSenderPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH,
-			rs,
-			(const uint8_t *) source.c_str(), source.size(), 
-			(uint8_t *) retval.c_str(), &outSize);
-		retval.resize(outSize);
-	}
-	return 0;
-}
-
 void MCSClient::mkNotifyMessage
 (
 	NotifyMessage &retval,
@@ -973,7 +1005,6 @@ void MCSClient::mkNotifyMessage
 	retval.link = click_action;
 	retval.data = data;
 }
-
 
 /**
  * Parse command

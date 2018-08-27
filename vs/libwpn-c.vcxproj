@@ -176,6 +176,7 @@
     <ClCompile Include="..\third_party\nayuki\QR-Code-generator\QrCode.cpp" />
     <ClCompile Include="..\third_party\nayuki\QR-Code-generator\QrSegment.cpp" />
     <ClCompile Include="..\utilqr.cpp" />
+    <ClCompile Include="..\utilrecv.cpp" />
     <ClCompile Include="..\utilstring.cpp" />
     <ClCompile Include="..\utilvapid.cpp" />
     <ClCompile Include="..\wp-connection.cpp" />
@@ -193,6 +194,7 @@
     <ClInclude Include="..\platform.h" />
     <ClInclude Include="..\sslfactory.h" />
     <ClInclude Include="..\utilqr.h" />
+    <ClInclude Include="..\utilrecv.h" />
     <ClInclude Include="..\utilstring.h" />
     <ClInclude Include="..\utilvapid.h" />
     <ClInclude Include="..\wp-connection.h" />
@@ -201,6 +203,7 @@
     <ClInclude Include="..\wp-subscribe.h" />
     <ClInclude Include="..\wpn-notify.h" />
     <ClInclude Include="..\wpnapi.h" />
+    <ClInclude Include="params.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

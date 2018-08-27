@@ -141,6 +141,7 @@
     <ClCompile Include="..\third_party\nayuki\QR-Code-generator\QrCode.cpp" />
     <ClCompile Include="..\third_party\nayuki\QR-Code-generator\QrSegment.cpp" />
     <ClCompile Include="..\utilqr.cpp" />
+    <ClCompile Include="..\utilrecv.cpp" />
     <ClCompile Include="..\utilstring.cpp" />
     <ClCompile Include="..\utilvapid.cpp" />
     <ClCompile Include="..\wp-connection.cpp" />
@@ -153,6 +154,7 @@
   <ItemGroup>
     <ClInclude Include="..\commandoutput.h" />
     <ClInclude Include="..\config.h" />
+    <ClInclude Include="params.h" />
     <CustomBuild Include="..\mcs\gen\mcs.pb.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">protoc -I ../mcs --cpp_out=../mcs/gen ../mcs/mcs.proto ../mcs/android_checkin.proto ../mcs/checkin.proto</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">protoc -I ../mcs --cpp_out=../mcs/gen ../mcs/mcs.proto ../mcs/android_checkin.proto ../mcs/checkin.proto</Command>
@@ -173,6 +175,7 @@
     <ClInclude Include="..\third_party\nlohmann\json.hpp" />
     <ClInclude Include="..\third_party\sole\sole.hpp" />
     <ClInclude Include="..\utilqr.h" />
+    <ClInclude Include="..\utilrecv.h" />
     <ClInclude Include="..\utilstring.h" />
     <ClInclude Include="..\utilvapid.h" />
     <ClInclude Include="..\wp-connection.h" />

@@ -49,13 +49,20 @@ using namespace google::protobuf;
 
 class MCSClient;
 
+MessageLite *createMessage(uint8_t tag);
+
+int parse(
+	std::string &buffer,
+	int verbosity,
+	std::ostream *log
+
+);
+
 class MCSReceiveBuffer
 {
 private:
 	MCSClient *mClient;
 	enum PROTO_STATE state;
-	int parse();
-	MessageLite *createMessage(uint8_t tag);
 public:
 	std::string buffer;
 	MCSReceiveBuffer();
@@ -106,11 +113,6 @@ public:
 		uint8_t tag,
 		const MessageLite *msg
 	);
-	int sendDataAck
-	(
-		const std::string &from,
-		const std::string &persistent_id
-	);
 
 	int ping();
 
@@ -119,6 +121,7 @@ public:
 	(
 		int level
 	);
+
 	int decode
 	(
 		std::string &retval,

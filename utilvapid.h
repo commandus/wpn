@@ -9,7 +9,7 @@
 
 // MathFuncsDll.h
 #ifdef _MSC_VER
-#ifdef EXPORT_CPP_DLL
+#ifdef EXPORT_C_DLL
 #define EXPORTDLL extern "C" __declspec(dllexport) 
 #else
 #define EXPORTDLL
@@ -18,45 +18,9 @@
 #define EXPORTDLL
 #endif
 
-#define ERR_WRONG_PARAM				-11
-#define ERR_REGISTER_VAL			-12	// Error registering
-#define ERR_REGISTER_FAIL			-13
-
 std::string base64UrlEncode(
 	const void *data,
 	size_t size
-);
-
-/**
-  * POST data, return received data in retval
-  * @return 200-299 success, otherwise error code. retval contains error description
-  */
-int curlPost
-(
-	std::string *retval,
-	std::string *debugHeaders,
-	const std::string &url,
-	const std::string &contentType,
-	const std::string &content,
-	const std::string &extraHeader,
-	int verbosity
-);
-
-EXPORTDLL int checkIn(
-	uint64_t *androidId,
-	uint64_t *securityToken,
-	int verbosity
-);
-
-/**
- * Register device and obtain GCM token
- */
-EXPORTDLL int registerDevice(
-	std::string *retGCMToken,
-	uint64_t androidId,
-	uint64_t securityToken,
-	const std::string &appId,
-	int verbosity
 );
 
 /**

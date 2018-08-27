@@ -2,6 +2,7 @@
 #include <string.h>
 #include "wpnapi.h"
 #include "utilvapid.h"
+#include "utilrecv.h"
 #include "wp-storage-file.h"
 
 /**
