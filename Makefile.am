@@ -45,7 +45,7 @@ wpn_lib_source = \
 	mcs/mcsclient.cpp \
 	utilstring.cpp params.cpp commandoutput.cpp \
 	utilqr.cpp $(QRSOURCES) \
-	utilvapid.cpp
+	utilvapid.cpp utilrecv.cpp
 
 #
 #	libwpn.a
@@ -69,9 +69,9 @@ libwpnapi_la_LDFLAGS = -version-info 0:2:0
 
 nobase_dist_include_HEADERS = \
 	platform.h \
-	wpn-config.h wpn.h wpn-notify.h utilvapid.h \
+	wpn-config.h wpn.h wpn-notify.h utilvapid.h utilrecv.h \
 	wp-storage-file.h wp-subscribe.h wp-connection.h wp-push.h \
-	wpnapi.h sslfactory.h utilstring.h commandoutput.h \
+	wpnapi.h sslfactory.h utilstring.h commandoutput.h params.h \
 	mcs/mcsclient.h \
 	onullstream.hpp \
 	third_party/nlohmann/json.hpp \
