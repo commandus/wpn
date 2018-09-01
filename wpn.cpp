@@ -35,6 +35,7 @@
 #include <argtable3/argtable3.h>
 #include <curl/curl.h>
 
+#include "platform.h"
 #include "wpn.h"
 #include "wp-storage-file.h"
 #include "wp-subscribe.h"
@@ -44,6 +45,7 @@
 #include "utilqr.h"
 #include "utilstring.h"
 #include "utilvapid.h"
+#include "utilrecv.h"
 
 #define ERR_WSA		-1
 
@@ -412,6 +414,46 @@ int main(int argc, char** argv)
 				{
 				}
 				MCSClient client(&config);
+
+				// check in
+				if (config.androidCredentials->getAndroidId() == 0)
+				{
+					uint64_t androidId = config.androidCredentials->getAndroidId();
+					uint64_t securityToken = config.androidCredentials->getSecurityToken();
+					int r = checkIn(&androidId, &securityToken, config.verbosity);
+					if (r < 200 || r >= 300)
+					{
+						return ERR_NO_ANDROID_ID_N_TOKEN;
+					}
+					config.androidCredentials->setAndroidId(androidId);
+					config.androidCredentials->setSecurityToken(securityToken);
+				}
+				// register
+				if (config.androidCredentials->getGCMToken().empty())
+				{
+					int r;
+					for (int i = 0; i < 5; i++)
+					{
+						std::string gcmToken;
+						r = registerDevice(&gcmToken,
+							config.androidCredentials->getAndroidId(),
+							config.androidCredentials->getSecurityToken(),
+							config.androidCredentials->getAppId(),
+							config.verbosity
+						);
+						if (r >= 200 && r < 300)
+						{
+							config.androidCredentials->setGCMToken(gcmToken);
+							break;
+						}
+						sleep(1);
+					}
+					if (r < 200 || r >= 300)
+					{
+						return ERR_NO_FCM_TOKEN;
+					}
+				}
+
 				client.connect();
 				std::cerr << "Listen" << std::endl
 				<< "Enter q to quit" << std::endl

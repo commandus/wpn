@@ -49,46 +49,29 @@ using namespace google::protobuf;
 
 class MCSClient;
 
-MessageLite *createMessage(uint8_t tag);
-
-int parse(
-	std::string &buffer,
-	int verbosity,
-	std::ostream *log
-
-);
-
 class MCSReceiveBuffer
 {
 private:
-	MCSClient *mClient;
-	enum PROTO_STATE state;
 public:
 	std::string buffer;
 	MCSReceiveBuffer();
-	void setClient(MCSClient *client);
-	// Return 0 if incomplplete	and is not parcelable
-	int process();
+	// Return 0 if incomplete and is not parcelable
 	void put(const void *buf, int size);
 };
-
-/// obtain GCM token
-int registerDevice();
 
 class MCSClient
 {
 private:
+	enum PROTO_STATE state;
 	onullstream onullstrm;
 	SSLFactory mSSLFactory;
 	int mSocket;
 	WpnConfig *mConfig;	// config.wpnKeys, config.androidCredentials
 	
-	std::string getAppId();
 	// std::vector<std::string> mPersistentIds;
-	void init();
+	MCSReceiveBuffer mStream;
 public:
 	bool mStop;
-	MCSReceiveBuffer mStream;
 	SSL *mSsl;
 
 	MCSClient();
@@ -103,6 +86,9 @@ public:
 	bool hasIdNToken();
 
 	std::ostream::pos_type write();
+
+	// Return 0 if incomplete and is not parcelable
+	void put(const void *buf, int size);
 
 	int logIn();
 	int connect();
@@ -121,6 +107,8 @@ public:
 	(
 		int level
 	);
+
+	int process();
 
 	int decode
 	(

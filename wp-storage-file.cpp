@@ -124,9 +124,9 @@ void AndroidCredentials::read
 	parse(keys, delimiter);
 }
 
-const std::string &AndroidCredentials::getAppId() const
+const std::string AndroidCredentials::getAppId() const
 {
-	return mAppId;
+	return "wp:com.commandus.wpn#" + mAppId;
 }
 
 uint64_t AndroidCredentials::getAndroidId() const

@@ -371,7 +371,8 @@ size_t filesInPath
 {
 	HANDLE hFind;
 	WIN32_FIND_DATAA data;
-	hFind = FindFirstFileA(path.c_str(), &data);
+	std::string mask = path + "\\*" + suffix;
+	hFind = FindFirstFileA(mask.c_str(), &data);
 	if (hFind == INVALID_HANDLE_VALUE)
 		return 0;
 	size_t c = 0;
@@ -380,7 +381,7 @@ size_t filesInPath
 		std::string s(data.cFileName);
 		if (s.find(suffix) != std::string::npos)
 		{
-			retval->push_back(std::string());
+			retval->push_back(path + "\\" + s);
 			c++;
 		}
 	} while (FindNextFileA(hFind, &data));

@@ -37,6 +37,9 @@ int curlPost
 	int verbosity
 );
 
+/**
+  * Obtain device identifer and "password"
+  */
 EXPORTDLL int checkIn(
 	uint64_t *androidId,
 	uint64_t *securityToken,

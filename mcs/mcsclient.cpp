@@ -160,13 +160,8 @@ static MessageLite *mkLoginRequest
 //----------------------------- MCSReceiveBuffer -----------------------------
 
 MCSReceiveBuffer::MCSReceiveBuffer()
-	: mClient(NULL), state(STATE_VERSION), buffer("")
+	: buffer("")
 {
-}
-
-void MCSReceiveBuffer::setClient(MCSClient *client)
-{
-	mClient = client;
 }
 
 static void logMessage
@@ -531,6 +526,7 @@ static void doSmth
 				int mt = client->parseJSONNotifyMessage(notification, d);
 				switch (mt) {
 					case 0:
+						sent = 0;
 						client->notifyAll(persistent_id, from, appName, appId, sent, notification);
 						break;
 					case 1:
@@ -586,6 +582,61 @@ static void doSmth
 	default:
 		break;
 	}
+}
+
+static MessageLite *createMessage
+(
+	uint8_t tag
+)
+{
+	MessageLite *r = NULL;
+	switch (tag)
+	{
+	case kHeartbeatPingTag:
+		r = new HeartbeatPing();
+		break;
+	case kHeartbeatAckTag:
+		r = new HeartbeatAck();
+		break;
+	case kLoginRequestTag:
+		r = new LoginRequest();
+		break;
+	case kLoginResponseTag:
+		r = new LoginResponse();
+		break;
+	case kCloseTag:
+		r = new Close();
+		break;
+	case kMessageStanzaTag:
+		break;
+	case kPresenceStanzaTag:
+		break;
+	case kIqStanzaTag:
+		r = new IqStanza();
+		break;
+	case kDataMessageStanzaTag:
+		r = new DataMessageStanza();
+		break;
+	case kBatchPresenceStanzaTag:
+		break;
+	case kStreamErrorStanzaTag:
+		break;
+	case kHttpRequestTag:
+		break;
+	case kHttpResponseTag:
+		break;
+	case kBindAccountRequestTag:
+		break;
+	case kBindAccountResponseTag:
+		break;
+	case kTalkMetadataTag:
+		break;
+	case kNumProtoTypes:
+		break;
+	default:
+		break;
+	}
+	return r;
 }
 
 int nextMessage(
@@ -645,87 +696,6 @@ int nextMessage(
 	return sz;
 }
 
-int MCSReceiveBuffer::process()
-{
-	int sz = buffer.size();
-	int count = 0;
-	while (sz > 0)
-	{
-		if (state == STATE_VERSION)
-		{
-			uint8_t version = (uint8_t) buffer[0]; // last known is 38
-			mClient->log(3) << "MCS version: " << (int) version << std::endl;
-			buffer.erase(0, 1);
-			sz--;
-			state = STATE_TAG;
-		} else {
-			MessageLite *m;
-			enum MCSProtoTag tag;
-			sz = nextMessage(&tag, m, buffer,
-				mClient->getConfig()->verbosity, &std::cerr);
-			if (!m)
-				continue;
-			logMessage(tag, m, mClient->getConfig()->verbosity, &std::cerr);
-			doSmth(tag, m, mClient);
-			delete m;
-			count++;
-		}
-	}
-	return count;
-}
-
-MessageLite *createMessage(uint8_t tag)
-{
-	MessageLite *r = NULL;
-	switch(tag)
-	{
-	case kHeartbeatPingTag:
-		r = new HeartbeatPing();
-		break;
-	case kHeartbeatAckTag:
-		r = new HeartbeatAck();
-		break;
-	case kLoginRequestTag:
-		r = new LoginRequest();
-		break;
-	case kLoginResponseTag:
-		r = new LoginResponse();
-		break;
-	case kCloseTag:
-		r = new Close();
-		break;
-	case kMessageStanzaTag:
-		break;
-	case kPresenceStanzaTag:
-		break;
-	case kIqStanzaTag:
-		r = new IqStanza();
-		break;
-	case kDataMessageStanzaTag:
-		r = new DataMessageStanza();
-		break;
-	case kBatchPresenceStanzaTag:
-		break;
-	case kStreamErrorStanzaTag:
-			break;
-	case kHttpRequestTag:
-			break;
-	case kHttpResponseTag:
-			break;
-	case kBindAccountRequestTag:
-			break;
-	case kBindAccountResponseTag:
-			break;
-	case kTalkMetadataTag:
-			break;
-	case kNumProtoTypes:
-			break;
-	default:
-		break;
-	}
-	return r;
-}
-
 void MCSReceiveBuffer::put(const void *buf, int size)
 {
 	buffer.append(std::string((char*) buf, size));
@@ -733,23 +703,16 @@ void MCSReceiveBuffer::put(const void *buf, int size)
 
 //----------------------------- MCSClient -----------------------------
 
-void MCSClient::init()
-{
-	mStream.setClient(this);
-}
-
 MCSClient::MCSClient()
-	: mConfig(NULL)
+	: mConfig(NULL), state(STATE_VERSION)
 {
-	init();
 }
 
 MCSClient::MCSClient(
 	WpnConfig *config
 )
-	: mConfig(config)
+	: mConfig(config), state(STATE_VERSION)
 {
-	init();
 }
 
 WpnConfig * MCSClient::getConfig()
@@ -769,8 +732,8 @@ MCSClient::MCSClient
 (
 	const MCSClient& other
 )
+	: state(STATE_VERSION)
 {
-	init();
 	mConfig = other.mConfig;
 }
 
@@ -790,8 +753,8 @@ int readLoop(MCSClient *client)
 		if (r > 0) 
 		{
 			// mClient->log(3) << "Received " << r << " bytes: " << std::endl << hexString(std::string((char *) buffer, r)) << std::endl;
-			client->mStream.put(buffer, r);
-			if (size_t c = client->mStream.process())
+			client->put(buffer, r);
+			if (size_t c = client->process())
 			{
 				client->log(3) << "Processed " << c << " messages" << std::endl;
 			}
@@ -810,42 +773,6 @@ int MCSClient::connect()
 		return ERR_NO_KEYS;
 	if (!mConfig->androidCredentials)
 		return ERR_NO_CREDS;
-	int r;
-	if (mConfig->androidCredentials->getAndroidId() == 0)
-	{
-		uint64_t androidId = mConfig->androidCredentials->getAndroidId();
-		uint64_t securityToken = mConfig->androidCredentials->getSecurityToken();
-		r = checkIn(&androidId, &securityToken, mConfig->verbosity);
-		if (r < 200 || r >= 300)
-		{
-			return ERR_NO_ANDROID_ID_N_TOKEN;
-		}
-		mConfig->androidCredentials->setAndroidId(androidId);
-		mConfig->androidCredentials->setSecurityToken(securityToken);
-	}
-	if (mConfig->androidCredentials->getGCMToken().empty())
-	{
-		for (int i = 0; i < 5; i++) 
-		{
-			std::string gcmToken;
-			r = registerDevice(&gcmToken,
-				mConfig->androidCredentials->getAndroidId(),
-				mConfig->androidCredentials->getSecurityToken(),
-				getAppId(),
-				mConfig->verbosity
-			);
-			if (r >= 200 && r < 300)
-			{
-				mConfig->androidCredentials->setGCMToken(gcmToken);
-				break;
-			}
-			sleep(1);
-		}
-		if (r < 200 || r >= 300)
-		{
-			return ERR_NO_FCM_TOKEN;
-		}
-	}
 	
 	mSsl = mSSLFactory.open(&mSocket, MCS_HOST, MCS_PORT);
 	if (!mSsl)
@@ -877,13 +804,6 @@ std::ostream::pos_type MCSClient::write()
 	if (!mConfig)
 		return 0;
 	return mConfig->write();
-}
-
-std::string MCSClient::getAppId()
-{
-	std::stringstream r;
-	r << "wp:com.commandus.wpn#" << mConfig->androidCredentials->getAppId();
-	return r.str();
 }
 
 std::ostream &MCSClient::log
@@ -1185,4 +1105,40 @@ size_t MCSClient::notifyAll
 			c++;
 	}
 	return c;
+}
+
+// Return 0 if incomplete and is not parcelable
+void MCSClient::put(const void *buf, int size)
+{
+	return mStream.put(buf, size);
+}
+
+int MCSClient::process()
+{
+	int sz = mStream.buffer.size();
+	int count = 0;
+	while (sz > 0)
+	{
+		if (state == STATE_VERSION)
+		{
+			uint8_t version = (uint8_t) mStream.buffer[0]; // last known is 38
+			log(3) << "MCS version: " << (int)version << std::endl;
+			mStream.buffer.erase(0, 1);
+			sz--;
+			state = STATE_TAG;
+		}
+		else {
+			MessageLite *m = NULL;
+			enum MCSProtoTag tag;
+			sz = nextMessage(&tag, m, mStream.buffer,
+				getConfig()->verbosity, &std::cerr);
+			if (!m)
+				continue;
+			logMessage(tag, m, getConfig()->verbosity, &std::cerr);
+			doSmth(tag, m, this);
+			delete m;
+			count++;
+		}
+	}
+	return count;
 }

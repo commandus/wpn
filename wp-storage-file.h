@@ -72,7 +72,7 @@ public:
 	AndroidCredentials(
 		const json &value
 	);
-	const std::string &getAppId() const;
+	const std::string getAppId() const;
 	uint64_t getAndroidId() const;
 	uint64_t getSecurityToken() const;
 	const std::string &getGCMToken() const;
