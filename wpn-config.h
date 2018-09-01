@@ -113,7 +113,8 @@ public:
 	void unloadDesktopNotifyFuncs();
 	std::vector <std::string> notifyLibFileNames;
 	std::vector <SO_INSTANCE> notifyLibs;
-	std::vector <desktopNotifyFunc> desktopNotifyFuncs;
+	std::vector <OnNotifyFunc> onNotifyList;
+
 	bool setPersistentId(const std::string &authorizedEntity, const std::string &persistent_id);
 	void getPersistentIds(std::vector<std::string> &retval);
 

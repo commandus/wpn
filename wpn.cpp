@@ -97,6 +97,29 @@ void initWindows()
 }
 #endif
 
+bool onNotify(
+	void *env,
+	const std::string &persistent_id,
+	const std::string &from,				///< e.g. BDOU99-h67HcA6JeFXHbSNMu7e2yNNu3RzoMj8TM4W88jITfq7ZmPvIM1Iv-4_l2LxQcYwhqby2xGpWwzjfAnG4
+	const std::string &appName,
+	const std::string &appId,
+	int64_t sent,
+	const NotifyMessage *notification,
+	NotifyMessage *reply
+)
+{
+	size_t c = 0;
+	for (std::vector <OnNotifyFunc>::const_iterator it(((WpnConfig*) env)->onNotifyList.begin()); it != ((WpnConfig*)env)->onNotifyList.end(); ++it)
+	{
+		NotifyMessage response;
+		bool r = (*it) (env, persistent_id, from, appName, appId, sent, notification, &response);
+		if (r)
+			c++;
+	}
+	return c;
+
+}
+
 int main(int argc, char** argv)
 {
 	// Signal handler
@@ -413,7 +436,14 @@ int main(int argc, char** argv)
 				if (config.verbosity > 0)
 				{
 				}
-				MCSClient client(&config);
+				MCSClient client(
+					config.wpnKeys->getPrivateKeyArray(),
+					config.wpnKeys->getAuthSecretArray(),
+					config.androidCredentials->getAndroidId(),
+					config.androidCredentials->getSecurityToken(),
+					onNotify, &config,
+					config.verbosity
+				);
 
 				// check in
 				if (config.androidCredentials->getAndroidId() == 0)

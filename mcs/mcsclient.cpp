@@ -499,7 +499,7 @@ static void doSmth
 		{
 			std::string d;
 			int dr = decode(d, 
-				client->getConfig()->wpnKeys->getPrivateKeyArray(), client->getConfig()->wpnKeys->getAuthSecretArray(), r->raw_data(), cryptoKeyHeader, encryptionHeader);
+				client->privateKey, client->authSecret, r->raw_data(), cryptoKeyHeader, encryptionHeader);
 			if (dr == 0)
 			{
 				std::string appName;
@@ -518,16 +518,14 @@ static void doSmth
 				NotifyMessage notification;
 				if (!persistent_id.empty())
 				{
-					if (!client->getConfig()->setPersistentId(notification.authorizedEntity, persistent_id))
-					{
-					}
-
+					// TODO save persistent
+					// if (!client->getConfig()->setPersistentId(notification.authorizedEntity, persistent_id))
 				}
 				int mt = client->parseJSONNotifyMessage(notification, d);
 				switch (mt) {
 					case 0:
 						sent = 0;
-						client->notifyAll(persistent_id, from, appName, appId, sent, notification);
+						client->notify(persistent_id, from, appName, appId, sent, notification);
 						break;
 					case 1:
 					{
@@ -703,29 +701,24 @@ void MCSReceiveBuffer::put(const void *buf, int size)
 
 //----------------------------- MCSClient -----------------------------
 
-MCSClient::MCSClient()
-	: mConfig(NULL), state(STATE_VERSION)
-{
-}
-
 MCSClient::MCSClient(
-	WpnConfig *config
+	const uint8_t *privateKey,
+	const uint8_t *authSecret,
+	uint64_t androidId,
+	uint64_t securityToken,
+	OnNotifyFunc onNotify,
+	void *onNotifyEnv,
+	int verbosity
 )
-	: mConfig(config), state(STATE_VERSION)
+	: state(STATE_VERSION)
 {
-}
-
-WpnConfig * MCSClient::getConfig()
-{
-	return mConfig;
-}
-
-void MCSClient::setConfig
-(
-	WpnConfig *config
-)
-{
-	mConfig = config;
+	this->privateKey = privateKey;
+	this->authSecret = authSecret;
+	this->androidId = androidId;
+	this->securityToken = securityToken;
+	this->onNotify = onNotify;
+	this->onNotifyEnv = onNotifyEnv;
+	this->verbosity = verbosity;
 }
 
 MCSClient::MCSClient
@@ -734,7 +727,13 @@ MCSClient::MCSClient
 )
 	: state(STATE_VERSION)
 {
-	mConfig = other.mConfig;
+	this->privateKey = other.privateKey;
+	this->authSecret = other.authSecret;
+	this->androidId = other.androidId;
+	this->securityToken = other.securityToken;
+	this->onNotify = other.onNotify;
+	this->onNotifyEnv = other.onNotifyEnv;
+	this->verbosity = other.verbosity;
 }
 
 MCSClient::~MCSClient()
@@ -767,11 +766,9 @@ int readLoop(MCSClient *client)
 
 int MCSClient::connect()
 {
-	if (!mConfig)
-		return ERR_NO_CONFIG;
-	if (!mConfig->wpnKeys)
+	if ((!privateKey) || (!authSecret))
 		return ERR_NO_KEYS;
-	if (!mConfig->androidCredentials)
+	if ((!androidId) || (!securityToken))
 		return ERR_NO_CREDS;
 	
 	mSsl = mSSLFactory.open(&mSocket, MCS_HOST, MCS_PORT);
@@ -779,9 +776,9 @@ int MCSClient::connect()
 		return ERR_NO_CONNECT;
 	mStop = false;
 	
-	if (mConfig->verbosity > 1)
-		log(3) << "Android id: " << mConfig->androidCredentials->getAndroidId() 
-			<< " security token: " << mConfig->androidCredentials->getSecurityToken() << std::endl;
+	if (verbosity > 1)
+		log(3) << "Android id: " << androidId 
+			<< " security token: " << securityToken << std::endl;
 	std::thread listenerThread(readLoop, this);
 	listenerThread.detach();
 	return 0;
@@ -794,16 +791,7 @@ void MCSClient::stop()
 
 bool MCSClient::hasIdNToken()
 {
-	if (!mConfig->androidCredentials)
-		return false;
-	return (mConfig->androidCredentials->getAndroidId() && mConfig->androidCredentials->getSecurityToken());
-}
-
-std::ostream::pos_type MCSClient::write()
-{
-	if (!mConfig)
-		return 0;
-	return mConfig->write();
+	return ((!androidId) && (!securityToken));
 }
 
 std::ostream &MCSClient::log
@@ -811,7 +799,7 @@ std::ostream &MCSClient::log
 	int level
 )
 {
-	if (mConfig && (mConfig->verbosity >= level))
+	if (verbosity >= level)
 	{
 		return std::cerr;
 	}
@@ -823,21 +811,20 @@ std::ostream &MCSClient::log
 
 int MCSClient::logIn()
 {
-	if (!mConfig->androidCredentials)
+	if ((!androidId) || (!securityToken))
 		return ERR_NO_CREDS;
 	if (!mSsl)
 		return ERR_NO_CONNECT;
-	uint64_t androidId = mConfig->androidCredentials->getAndroidId();
-	uint64_t securityToken = mConfig->androidCredentials->getSecurityToken();
-	if (mConfig->verbosity > 2)
+	if (verbosity > 2)
 	{
 		log(3) << "Login to " << MCS_HOST << std::endl;
 	}
 
 	std::vector<std::string> persistentIds;
-	mConfig->getPersistentIds(persistentIds);
+	// TODO get persistent ids
+	// mConfig->getPersistentIds(persistentIds);
 	
-	if (mConfig->verbosity >= 3)
+	if (verbosity >= 3)
 	{
 		log(3) << "Saved persistent ids:" << std::endl;
 		for (std::vector<std::string>::const_iterator it(persistentIds.begin()); it != persistentIds.end(); ++it)
@@ -1086,7 +1073,7 @@ int MCSClient::parseJSONNotifyMessage
 	return r;
 }
 
-size_t MCSClient::notifyAll
+void MCSClient::notify
 (
 	const std::string &persistent_id,
 	const std::string &from,
@@ -1096,15 +1083,10 @@ size_t MCSClient::notifyAll
 	const NotifyMessage &notification
 ) const
 {
-	size_t c = 0;
-	for (std::vector <desktopNotifyFunc>::const_iterator it(mConfig->desktopNotifyFuncs.begin()); it != mConfig->desktopNotifyFuncs.end(); ++it)
-	{
+	if (onNotify) {
 		NotifyMessage response;
-		bool r = (*it)(persistent_id, from, appName, appId, sent, &notification, &response);
-		if (r)
-			c++;
+		onNotify(onNotifyEnv, persistent_id, from, appName, appId, sent, &notification, &response);
 	}
-	return c;
 }
 
 // Return 0 if incomplete and is not parcelable
@@ -1130,11 +1112,10 @@ int MCSClient::process()
 		else {
 			MessageLite *m = NULL;
 			enum MCSProtoTag tag;
-			sz = nextMessage(&tag, m, mStream.buffer,
-				getConfig()->verbosity, &std::cerr);
+			sz = nextMessage(&tag, m, mStream.buffer, verbosity, &std::cerr);
 			if (!m)
 				continue;
-			logMessage(tag, m, getConfig()->verbosity, &std::cerr);
+			logMessage(tag, m, verbosity, &std::cerr);
 			doSmth(tag, m, this);
 			delete m;
 			count++;

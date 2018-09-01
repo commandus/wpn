@@ -66,26 +66,34 @@ private:
 	onullstream onullstrm;
 	SSLFactory mSSLFactory;
 	int mSocket;
-	WpnConfig *mConfig;	// config.wpnKeys, config.androidCredentials
 	
 	// std::vector<std::string> mPersistentIds;
 	MCSReceiveBuffer mStream;
 public:
 	bool mStop;
 	SSL *mSsl;
+	const uint8_t *privateKey;
+	const uint8_t *authSecret;
+	uint64_t androidId;
+	uint64_t securityToken;
+	OnNotifyFunc onNotify;
+	void *onNotifyEnv;
+	int verbosity;
+	// const std::string gcmToken;
 
-	MCSClient();
 	MCSClient(
-		WpnConfig *config
+		const uint8_t *privateKey,
+		const uint8_t *authSecret,
+		uint64_t androidId,
+		uint64_t securityToken,
+		OnNotifyFunc onNotify, 
+		void *onNotifyEnv,
+		int verbosity
 	);
 	MCSClient(const MCSClient& other);
-	void setConfig(WpnConfig *config);
-	WpnConfig *getConfig();
 	~MCSClient();
 
 	bool hasIdNToken();
-
-	std::ostream::pos_type write();
 
 	// Return 0 if incomplete and is not parcelable
 	void put(const void *buf, int size);
@@ -158,7 +166,7 @@ public:
 		const std::string &json
 	);
 
-	size_t notifyAll
+	void notify
 	(
 		const std::string &persistent_id,
 		const std::string &from,

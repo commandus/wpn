@@ -47,8 +47,9 @@ typedef struct
 } NotifyMessage;
 
 // return true if has reply
-typedef bool (*desktopNotifyFunc)
+typedef bool (*OnNotifyFunc)
 (
+	void *env,
 	const std::string &persistent_id,
 	const std::string &from,				///< e.g. BDOU99-h67HcA6JeFXHbSNMu7e2yNNu3RzoMj8TM4W88jITfq7ZmPvIM1Iv-4_l2LxQcYwhqby2xGpWwzjfAnG4
 	const std::string &appName,

@@ -646,23 +646,23 @@ void unloadPlugin(SO_INSTANCE so)
 #endif
 }
 
-desktopNotifyFunc loadDesktopNotifyFunc
+OnNotifyFunc loadDesktopNotifyFunc
 (
 	SO_INSTANCE so,
 	const std::string &functionName
 )
 {
 #ifdef _MSC_VER
-	return (desktopNotifyFunc) GetProcAddress(so, functionName.c_str());
+	return (OnNotifyFunc) GetProcAddress(so, functionName.c_str());
 #else
-	return (desktopNotifyFunc) dlsym(so, functionName.c_str());
+	return (OnNotifyFunc) dlsym(so, functionName.c_str());
 #endif
 }
 
 size_t WpnConfig::loadDesktopNotifyFuncs()
 {
 	notifyLibs.clear();
-	desktopNotifyFuncs.clear();
+	onNotifyList.clear();
 	size_t r = 0;
 	for (std::vector <std::string>::const_iterator it(notifyLibFileNames.begin()); it != notifyLibFileNames.end(); ++it)
 	{
@@ -691,7 +691,7 @@ size_t WpnConfig::loadDesktopNotifyFuncs()
 				continue;
 			}
 			notifyLibs.push_back(so);
-			desktopNotifyFunc desktopNotify = loadDesktopNotifyFunc(so, notifyFunctionName);
+			OnNotifyFunc desktopNotify = loadDesktopNotifyFunc(so, notifyFunctionName);
 			if (!desktopNotify)
 			{
 				if (verbosity > 1)
@@ -704,7 +704,7 @@ size_t WpnConfig::loadDesktopNotifyFuncs()
 			{
 				std::cerr << "Shared library " << *it << " loaded successfully." << std::endl;
 			}
-			desktopNotifyFuncs.push_back(desktopNotify);
+			onNotifyList.push_back(desktopNotify);
 			r++;
 		}
 	}
