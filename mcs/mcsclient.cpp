@@ -485,7 +485,7 @@ static void doSmth
 		int64_t sent;
 		MessageLite *messageAck = mkAck(persistent_id);
 		if (messageAck) {
-			int r = client->sendTag(kIqStanzaTag, messageAck);
+			int r = client->send(kIqStanzaTag, messageAck);
 			delete messageAck;
 		}
 		if (r->has_raw_data())
@@ -698,7 +698,7 @@ MCSClient::MCSClient(
 	void *onNotifyEnv,
 	int verbosity
 )
-	: state(STATE_VERSION)
+	: state(STATE_VERSION), listenerThread(NULL)
 {
 	this->privateKey = privateKey;
 	this->authSecret = authSecret;
@@ -713,7 +713,7 @@ MCSClient::MCSClient
 (
 	const MCSClient& other
 )
-	: state(STATE_VERSION)
+	: state(STATE_VERSION), listenerThread(NULL)
 {
 	this->privateKey = other.privateKey;
 	this->authSecret = other.authSecret;
@@ -726,26 +726,21 @@ MCSClient::MCSClient
 
 MCSClient::~MCSClient()
 {
-	stop();
+	disconnect();
+}
+
+bool MCSClient::ready()
+{
+	return (!mStop) && (mSsl != NULL);
 }
 
 static int readLoop(MCSClient *client)
 {
-	unsigned char buffer[4096];
 	client->log(3) << "Listen loop started" << std::endl;
-	int r = client->logIn();
-	while (!client->mStop)
+	int r;
+	while ((r = client->read()) >= 0)
 	{
-		int r = SSL_read(client->mSsl, buffer, sizeof(buffer));
-		if (r > 0) 
-		{
-			// mClient->log(3) << "Received " << r << " bytes: " << std::endl << hexString(std::string((char *) buffer, r)) << std::endl;
-			client->put(buffer, r);
-			if (size_t c = client->process())
-			{
-				client->log(3) << "Processed " << c << " messages" << std::endl;
-			}
-		}
+		client->log(3) << "Read " << r << " byte(s)" << std::endl;
 		sleep(0);
 	}
 	client->log(3) << "Listen loop stopped" << std::endl;
@@ -763,18 +758,33 @@ int MCSClient::connect()
 	if (!mSsl)
 		return ERR_NO_CONNECT;
 	mStop = false;
-	
 	if (verbosity > 1)
 		log(3) << "Android id: " << androidId 
 			<< " security token: " << securityToken << std::endl;
-	std::thread listenerThread(readLoop, this);
-	listenerThread.detach();
-	return 0;
+	state = STATE_VERSION;
+	int r = logIn();
+	if (r == 0) {
+		listenerThread = new std::thread(readLoop, this);
+		listenerThread->detach();
+	}
+	return r;
 }
 
-void MCSClient::stop()
+void MCSClient::disconnect()
 {
 	mStop = true;
+	if (mSocket && mSsl)
+		mSSLFactory.close(mSocket, mSsl);
+	mSocket = 0;
+	mSsl = NULL;
+
+	if (listenerThread) {
+		if (listenerThread->joinable()) {
+			listenerThread->join();
+		}
+	}
+		
+	state = STATE_VERSION;
 }
 
 bool MCSClient::hasIdNToken()
@@ -797,6 +807,9 @@ std::ostream &MCSClient::log
 	}
 }
 
+/**
+  * Return 0- success, <0- error
+  */
 int MCSClient::logIn()
 {
 	if ((!androidId) || (!securityToken))
@@ -826,11 +839,10 @@ int MCSClient::logIn()
 
 	sendVersion();
 
-	sendTag(kLoginRequestTag, messageLogin);
+	send(kLoginRequestTag, messageLogin);
 
 	delete messageLogin;
-	int r = 0;
-	return r;
+	return 0;
 }
 
 int MCSClient::sendVersion()
@@ -842,7 +854,7 @@ int MCSClient::sendVersion()
 	return SSL_write(mSsl, r.c_str(), r.size());
 }
 
-int MCSClient::sendTag
+int MCSClient::send
 (
 	uint8_t tag,
 	const MessageLite *msg
@@ -859,27 +871,9 @@ int MCSClient::ping()
 	MessageLite *l =  mkPing();
 	if (!l)
 		return -1;
-	int r = sendTag(kHeartbeatPingTag, l);
+	int r = send(kHeartbeatPingTag, l);
 	delete l;
 	return r;
-}
-
-void MCSClient::writeStream
-(
-	std::istream &strm
-)
-{
-	std::string s;
-	while (!strm.eof())
-	{
-		strm >> s;
-		if ((s == "q") || (s == "quit"))
-			break;
-		if ((s == "p") || (s == "ping"))
-		{
-			ping();
-		}
-	}
 }
 
 void MCSClient::mkNotifyMessage
@@ -1110,4 +1104,22 @@ int MCSClient::process()
 		}
 	}
 	return count;
+}
+
+int MCSClient::read()
+{
+	if (!ready())
+		return ERR_DISCONNECTED;
+	unsigned char buffer[4096];
+	int r = SSL_read(mSsl, buffer, sizeof(buffer));
+	if (r > 0)
+	{
+		// mClient->log(3) << "Received " << r << " bytes: " << std::endl << hexString(std::string((char *) buffer, r)) << std::endl;
+		put(buffer, r);
+		if (size_t c = process())
+		{
+			log(3) << "Processed " << c << " messages" << std::endl;
+		}
+	}
+	return r;
 }

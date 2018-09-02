@@ -122,6 +122,23 @@ bool onNotify(
 	return c;
 }
 
+void readCommand(MCSClient *client, std::istream &strm)
+{
+	std::string s;
+	while (!strm.eof())
+	{
+		strm >> s;
+		if ((s == "q") || (s == "quit")) {
+			client->disconnect();
+			break;
+		}
+		if ((s == "p") || (s == "ping"))
+		{
+			client->ping();
+		}
+	}
+}
+
 int main(int argc, char** argv)
 {
 	// Signal handler
@@ -497,8 +514,9 @@ int main(int argc, char** argv)
 				std::cerr << "Listen" << std::endl
 				<< "Enter q to quit" << std::endl
 				<< "p: ping" << std::endl;
-				client.writeStream(std::cin);
-				client.stop();
+
+				readCommand(&client, std::cin);
+				client.disconnect();
 				config.unloadNotifyFuncs();
 			}
 	}

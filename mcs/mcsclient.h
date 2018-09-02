@@ -38,6 +38,7 @@
 #define ERR_CHECKIN					-26
 #define ERR_NO_CONNECT				-27
 #define ERR_MEM						-28
+#define ERR_DISCONNECTED			-29
 
 enum PROTO_STATE {
 	STATE_VERSION = 0,
@@ -54,9 +55,17 @@ private:
 	SSLFactory mSSLFactory;
 	int mSocket;
 	std::string mStream;
-public:
 	bool mStop;
 	SSL *mSsl;
+	bool hasIdNToken();
+	bool ready();
+	// Return 0 if incomplete and is not parcelable
+	void put(const void *buf, int size);
+	std::thread *listenerThread;
+	int process();
+	int logIn();
+	int sendVersion();
+public:
 	const uint8_t *privateKey;
 	const uint8_t *authSecret;
 	uint64_t androidId;
@@ -78,30 +87,20 @@ public:
 	MCSClient(const MCSClient& other);
 	~MCSClient();
 
-	bool hasIdNToken();
-
-	// Return 0 if incomplete and is not parcelable
-	void put(const void *buf, int size);
-
-	int logIn();
 	int connect();
-	void stop();
-	int sendVersion();
-	int sendTag
+	void disconnect();
+	int send
 	(
 		uint8_t tag,
 		const MessageLite *msg
 	);
-
-	int ping();
-
-	void writeStream(std::istream &strm);
 	std::ostream &log
 	(
 		int level
 	);
 
-	int process();
+	int ping();
+	int read();
 
 	static void mkNotifyMessage
 	(
