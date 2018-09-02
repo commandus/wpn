@@ -13,7 +13,7 @@ bin_PROGRAMS = \
 	webpush-curl
 
 commoncppflags = -std=c++11 -O2 -I/usr/local/include -Imcs/gen -Ithird_party
-commonlibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl -lece -lnghttp2 -lglog -lunwind -lgrpc++ -lgrpc -lgpr -lprotobuf
+commonlibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl -lece -lnghttp2 -lglog -lunwind -lprotobuf
 
 #
 #	Generate protobuf first, then grpc
@@ -109,7 +109,7 @@ configdir = $(datadir)
 dist_config_DATA = \
 	$(proto) \
 	vs/wpn.sln vs/libwpn-dynamic.vcxproj vs/libwpn-static.vcxproj vs/webpush-curl.vcxproj vs/wpn.vcxproj vs/dllmain.cpp \
-	CMakeLists.txt wpn.kdev4 \
+	CMakeLists.txt \
 	tools/mkcert tools/curl/README \
 	LICENSE COPYING CODE_OF_CONDUCT.md CONTRIBUTING.md HISTORY README.md \
-	autogen.sh .kdev_include_paths email-template.html incoming-call
+	autogen.sh email-template.html

@@ -94,7 +94,8 @@ message ClientEvent {
   // Network type is a value in net::NetworkChangeNotifier::ConnectionType.
   optional int32 network_type = 200;
   // Reserved for network_port.
-  reserved 201;
+// TODO Protobuf 2.6.1 (Ubuntu) does not support "reserved"
+//  reserved 201;
   optional uint64 time_connection_started_ms = 202;
   optional uint64 time_connection_ended_ms = 203;
   // Error code should be a net::Error value.
@@ -150,7 +151,8 @@ message LoginRequest {
   optional int64 status = 18;
 
   // 19, 20, and 21 are not currently populated by Chrome.
-  reserved 19, 20, 21;
+// TODO Protobuf 2.6.1 (Ubuntu) does not support "reserved"
+//  reserved 19, 20, 21;
 
   // Events recorded on the client after the last successful connection.
   repeated ClientEvent client_event = 22;
