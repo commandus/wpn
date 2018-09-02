@@ -741,7 +741,7 @@ MCSClient::~MCSClient()
 	stop();
 }
 
-int readLoop(MCSClient *client)
+static int readLoop(MCSClient *client)
 {
 	unsigned char buffer[4096];
 	client->log(3) << "Listen loop started" << std::endl;
@@ -1104,7 +1104,7 @@ int MCSClient::process()
 		if (state == STATE_VERSION)
 		{
 			uint8_t version = (uint8_t) mStream.buffer[0]; // last known is 38
-			log(3) << "MCS version: " << (int)version << std::endl;
+			log(3) << "MCS version: " << (int) version << std::endl;
 			mStream.buffer.erase(0, 1);
 			sz--;
 			state = STATE_TAG;

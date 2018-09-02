@@ -109,8 +109,8 @@ public:
 	std::istream::pos_type read(const std::string &fileName);
 	std::ostream::pos_type write() const;
 
-	size_t loadDesktopNotifyFuncs();
-	void unloadDesktopNotifyFuncs();
+	size_t loadNotifyFuncs();
+	void unloadNotifyFuncs();
 	std::vector <std::string> notifyLibFileNames;
 	std::vector <SO_INSTANCE> notifyLibs;
 	std::vector <OnNotifyFunc> onNotifyList;

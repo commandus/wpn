@@ -97,6 +97,9 @@ void initWindows()
 }
 #endif
 
+/**
+  * Call dynamically loaded functions to notify user
+  */
 bool onNotify(
 	void *env,
 	const std::string &persistent_id,
@@ -117,7 +120,6 @@ bool onNotify(
 			c++;
 	}
 	return c;
-
 }
 
 int main(int argc, char** argv)
@@ -432,7 +434,7 @@ int main(int argc, char** argv)
 			break;
 		default:
 			{
-				config.loadDesktopNotifyFuncs();
+				config.loadNotifyFuncs();
 				if (config.verbosity > 0)
 				{
 				}
@@ -485,12 +487,19 @@ int main(int argc, char** argv)
 				}
 
 				client.connect();
+				NotifyMessage notification, reply;
+				notification.title = "Started";
+				notification.body = "Hi there";
+				onNotify(
+					&config,
+					"", "", "", config.androidCredentials->getAppId(), 0, &notification, &reply);
+
 				std::cerr << "Listen" << std::endl
 				<< "Enter q to quit" << std::endl
 				<< "p: ping" << std::endl;
 				client.writeStream(std::cin);
 				client.stop();
-				config.unloadDesktopNotifyFuncs();
+				config.unloadNotifyFuncs();
 			}
 	}
 	config.save();

@@ -659,7 +659,7 @@ OnNotifyFunc loadDesktopNotifyFunc
 #endif
 }
 
-size_t WpnConfig::loadDesktopNotifyFuncs()
+size_t WpnConfig::loadNotifyFuncs()
 {
 	notifyLibs.clear();
 	onNotifyList.clear();
@@ -715,7 +715,7 @@ size_t WpnConfig::loadDesktopNotifyFuncs()
 	return r;
 }
 
-void WpnConfig::unloadDesktopNotifyFuncs()
+void WpnConfig::unloadNotifyFuncs()
 {
 	for (std::vector <SO_INSTANCE>::const_iterator it(notifyLibs.begin()); it != notifyLibs.end(); ++it)
 	{
