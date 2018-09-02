@@ -26,8 +26,7 @@
 
 #include <google/protobuf/message.h>
 
-#include "wpn-config.h"
-#include "wp-storage-file.h"
+#include "wpn-notify.h"
 #include "sslfactory.h"
 #include "onullstream.hpp"
 
@@ -47,18 +46,6 @@ enum PROTO_STATE {
 
 using namespace google::protobuf;
 
-class MCSClient;
-
-class MCSReceiveBuffer
-{
-private:
-public:
-	std::string buffer;
-	MCSReceiveBuffer();
-	// Return 0 if incomplete and is not parcelable
-	void put(const void *buf, int size);
-};
-
 class MCSClient
 {
 private:
@@ -66,9 +53,7 @@ private:
 	onullstream onullstrm;
 	SSLFactory mSSLFactory;
 	int mSocket;
-	
-	// std::vector<std::string> mPersistentIds;
-	MCSReceiveBuffer mStream;
+	std::string mStream;
 public:
 	bool mStop;
 	SSL *mSsl;
@@ -117,14 +102,6 @@ public:
 	);
 
 	int process();
-
-	int decode
-	(
-		std::string &retval,
-		const std::string &source,
-		const std::string &cryptoKeyHeader,
-		const std::string &encryptionHeader
-	);
 
 	static void mkNotifyMessage
 	(

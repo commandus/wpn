@@ -157,13 +157,6 @@ static MessageLite *mkLoginRequest
 	return req;
 }
 
-//----------------------------- MCSReceiveBuffer -----------------------------
-
-MCSReceiveBuffer::MCSReceiveBuffer()
-	: buffer("")
-{
-}
-
 static void logMessage
 (
 	enum MCSProtoTag tag,
@@ -637,7 +630,7 @@ static MessageLite *createMessage
 	return r;
 }
 
-int nextMessage(
+static int nextMessage(
 	enum MCSProtoTag *retTag,
 	MessageLite *retMessage,
 	std::string &buffer,
@@ -692,11 +685,6 @@ int nextMessage(
 		buffer.erase(0, sz);
 	}
 	return sz;
-}
-
-void MCSReceiveBuffer::put(const void *buf, int size)
-{
-	buffer.append(std::string((char*) buf, size));
 }
 
 //----------------------------- MCSClient -----------------------------
@@ -1092,27 +1080,27 @@ void MCSClient::notify
 // Return 0 if incomplete and is not parcelable
 void MCSClient::put(const void *buf, int size)
 {
-	return mStream.put(buf, size);
+	mStream.append(std::string((char*)buf, size));
 }
 
 int MCSClient::process()
 {
-	int sz = mStream.buffer.size();
+	int sz = mStream.size();
 	int count = 0;
 	while (sz > 0)
 	{
 		if (state == STATE_VERSION)
 		{
-			uint8_t version = (uint8_t) mStream.buffer[0]; // last known is 38
+			uint8_t version = (uint8_t) mStream[0]; // last known is 38
 			log(3) << "MCS version: " << (int) version << std::endl;
-			mStream.buffer.erase(0, 1);
+			mStream.erase(0, 1);
 			sz--;
 			state = STATE_TAG;
 		}
 		else {
 			MessageLite *m = NULL;
 			enum MCSProtoTag tag;
-			sz = nextMessage(&tag, m, mStream.buffer, verbosity, &std::cerr);
+			sz = nextMessage(&tag, m, mStream, verbosity, &std::cerr);
 			if (!m)
 				continue;
 			logMessage(tag, m, verbosity, &std::cerr);

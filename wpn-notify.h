@@ -1,3 +1,5 @@
+#ifndef WPN_NOTIFY_H
+#define WPN_NOTIFY_H
 /**
  * Copyright (c) 2018 Andrei Ivanov <andrei.i.ivanov@commandus.com>
  * 
@@ -72,3 +74,5 @@ bool desktopNotify
 	const NotifyMessage *notification,
 	NotifyMessage *reply
 );
+
+#endif
