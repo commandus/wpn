@@ -170,7 +170,6 @@ with -v, -vv, -vvv, -vvvv options returns
 - subscribeUrl
 - token
 
-
 ```
 ./wpn -P -vv
 subscribeUrl                authorizedEntity	token
@@ -557,29 +556,83 @@ curl -v -X POST -H "Content-Type: application/octet-stream" -H "Content-Encoding
 
 ## Build
 
+C++11 compliant compiler required.
+
+Check list:
+
+- Tools
+- Libraries
+
+See below how to install too,s and dependencies.
+
+After check completed, build:
+
 ```
+cd wpn
 ./autogen.sh
 ./configure
 make
 ```
 
-Dependencies
+If you want, install:
+
+```
+sudo make install
+```
+
+### Tools
+
+- Autoconf 2.63
+- CMake 3.1 or higher
+- Protobuf compiler (protoc)
+
+#### Ubuntu
+
+```
+sudo apt update
+sudo apt install autoconf libtool g++ cmake
+```
+
+### Dependencies
 
 - curl https://github.com/curl/curl
-- argtable3 https://github.com/argtable/argtable3 https://www.argtable.org/ BSD
+- argtable3 https://github.com/argtable/argtable3 https://www.argtable.org/ BSD (included in thirdparty/ )
 - openssl 1.1.0 https://github.com/openssl/openssl
 - nghttp2 https://github.com/nghttp2/nghttp2
 - ecec https://github.com/web-push-libs/ecec
 - JSON for Modern C++ https://nlohmann.github.io/json/	https://github.com/nlohmann/json
-- Sole- lightweight C++11 library to generate universally unique identificators https://github.com/r-lyeh/sole
+- Sole- lightweight C++11 library to generate universally unique identificators https://github.com/r-lyeh/sole (included in thirdparty/ )
 - glog https://github.com/google/glog
 - unwind https://github.com/libunwind/libunwind
-- JSON for Modern C++ 3.1.2 https://github.com/nlohmann/json
-- QR-Code-generator https://github.com/nayuki/QR-Code-generator
+- JSON for Modern C++ 3.1.2 https://github.com/nlohmann/json (included in thirdparty/ )
+- QR-Code-generator https://github.com/nayuki/QR-Code-generator (included in thirdparty/ )
+- Protobuf
+
+#### Install most of libs
+
+Before configure check libs, you can install it in Ubuntu:
+
+```
+sudo apt install libcurl4-openssl-dev libnghttp2-dev libunwind-dev libgoogle-glog-dev libprotobuf-dev protobuf-compiler
+```
+
+ecec, openssl must be installed from git repositories
+
+### curl
+
+Ubuntu:
+```
+sudo apt install libcurl4-openssl-dev
+```
 
 ### openssl
 
+ecec library requires OpenSSL version > 1.1.0, Ubuntu's repository has too old version.
+
+Install library from the tarball.
+
 ```
+cd lib
 wget -c https://github.com/openssl/openssl/archive/OpenSSL_1_1_0h.tar.gz
 tar xvfz OpenSSL_1_1_0h.tar.gz
 mv openssl-OpenSSL_1_1_0h openssl-1.1.0h
@@ -590,8 +643,19 @@ sudo make install
 sudo ldconfig
 openssl version
 ```
+OpenSSL by default installed in Ubuntu:
+
+- includes /usr/local/include/openssl
+- manuals /usr/local/share/man
+- html /usr/local/share/doc/openssl
+- libs /usr/local/lib
 
 ### nghttp2
+
+Ubuntu:
+```
+sudo apt install libnghttp2-dev
+```
 
 ```
 git clone git@github.com:nghttp2/nghttp2.git
@@ -605,9 +669,10 @@ sudo make install
 ### ecec
 
 ```
-git clone git@github.com:web-push-libs/ecec.git
-https://github.com/web-push-libs/ecec.git
+git clone https://github.com/web-push-libs/ecec.git
 cd ecec
+vi CMakerLists.txt
+	+ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 mkdir build
 cd build
 cmake -DOPENSSL_ROOT_DIR=/usr/local ..
@@ -617,26 +682,23 @@ cd ../include
 sudo cp -r * /usr/local/include
 ```
 
-## Tools
-
-- Autoconf 2.63
-- CMake 3.1 or higher
-
-## Building
-
-C++11 compliant compiler required.
+### libunwind
 
 ```
-cd wpn
-./autogen.sh
-./configure
-make
+sudo apt install libunwind-dev
 ```
 
-If you want, install:
+### libglog
 
 ```
-sudo make install
+sudo apt install libgoogle-glog-dev
+```
+
+
+### libprotobuf
+
+```
+sudo apt install libprotobuf-dev protobuf-compiler
 ```
 
 ## Error codes
@@ -735,6 +797,10 @@ curl -i -H "Accept:application/json" -H "Content-Type:application/json" -X POST 
 
 ### ECEC library
 
+Bugs:
+- Chrome padding bug
+- -fPic issue
+
 https://github.com/web-push-libs/ecec/issues/37
 
 MCS using '=' padding, e.g.
@@ -748,6 +814,14 @@ ece_webpush_aesgcm_headers_extract_params() return -13 error in this case.
 Solution:
 
 Line 182  added: || c == '=';
+
+Add line
+
+```
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+```
+into CMakeFile.txt
+
 
 ## Appendix 1. Configuring Postfix to relay e-mail to gmail smarthost using SMTP relay over SSL(not TLS)
 
