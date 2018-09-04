@@ -97,6 +97,16 @@ void initWindows()
 }
 #endif
 
+void onLog
+(
+	void *env,
+	int severity,
+	const std::string &message
+)
+{
+	std::cerr << message << std::endl;
+}
+
 /**
   * Call dynamically loaded functions to notify user
   */
@@ -460,7 +470,7 @@ int main(int argc, char** argv)
 					config.wpnKeys->getAuthSecretArray(),
 					config.androidCredentials->getAndroidId(),
 					config.androidCredentials->getSecurityToken(),
-					onNotify, &config,
+					onNotify, &config, onLog, &config,
 					config.verbosity
 				);
 
@@ -507,14 +517,10 @@ int main(int argc, char** argv)
 				NotifyMessage notification, reply;
 				notification.title = "Started";
 				notification.body = "Hi there";
-				onNotify(
-					&config,
-					"", "", "", config.androidCredentials->getAppId(), 0, &notification, &reply);
-
+				// onNotify(&config, "", "", "", config.androidCredentials->getAppId(), 0, &notification, &reply);
 				std::cerr << "Listen" << std::endl
 				<< "Enter q to quit" << std::endl
 				<< "p: ping" << std::endl;
-
 				readCommand(&client, std::cin);
 				client.disconnect();
 				config.unloadNotifyFuncs();

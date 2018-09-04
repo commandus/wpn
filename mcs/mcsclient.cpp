@@ -157,6 +157,47 @@ static MessageLite *mkLoginRequest
 	return req;
 }
 
+CallbackLogger::CallbackLogger(
+)
+	: verbosity(0), onLog(NULL), onLogEnv(NULL)
+{
+}
+
+void CallbackLogger::setCallback(
+	OnLogFunc aonLog,
+	void *aonLogEnv
+)
+{
+	this->onLog = aonLog;
+	this->onLogEnv = aonLogEnv;
+}
+
+int CallbackLogger::overflow(int c)
+{
+	if (c != EOF)
+	{
+		if (c != '\n')
+		{
+			buffer << c;
+		}
+		else
+		{
+			if (onLog)
+				onLog(onLogEnv, verbosity, buffer.str());
+			buffer.clear();
+		}
+	}
+	return c;
+}
+
+CallbackLogger &CallbackLogger::flush()
+{
+	if (onLog)
+		onLog(onLogEnv, verbosity, buffer.str());
+	buffer.clear();
+	return *this;
+}
+
 static void logMessage
 (
 	enum MCSProtoTag tag,
@@ -184,20 +225,20 @@ static void logMessage
 		for (int i = 0; i < r->setting_size(); i++)
 		{
 			if (log && (verbosity >= 2))
-				*log << "setting " << i << ":" << r->setting(i).name() << r->setting(i).value() << std::endl;
+				*log << "setting " << i << ":" << r->setting(i).name() << r->setting(i).value() << "\n";
 		}
 		if (r->has_server_timestamp())
 		{
 			time_t t = r->server_timestamp() / 1000;
 			struct tm *tm = localtime(&t);
 			if (log && (verbosity >= 2))
-				*log << "server time " << std::asctime(tm) << std::endl;
+				*log << "server time " << std::asctime(tm) << "\n";
 		}
 
 		if (r->has_heartbeat_config())
 		{
 			if (log && (verbosity >= 2))
-				*log << " has heart beat config" << std::endl;
+				*log << " has heart beat config" << "\n";
 		}
 	}
 	break;
@@ -205,7 +246,7 @@ static void logMessage
 	{
 		HeartbeatAck* r = (HeartbeatAck*)message;
 		if (log && (verbosity >= 2))
-			*log << " HeartbeatAck " << std::endl;
+			*log << " HeartbeatAck " << "\n";
 		if (r->has_last_stream_id_received())
 		{
 			if (log && (verbosity >= 2))
@@ -287,7 +328,7 @@ static void logMessage
 			if (log && (verbosity >= 3))
 				*log << " status: " << r->status();
 		if (log && (verbosity >= 3))
-			*log << std::endl;
+			*log << "\n";
 	}
 	break;
 	case kDataMessageStanzaTag:
@@ -301,12 +342,12 @@ static void logMessage
 		int64_t sent;
 
 		if (log && (verbosity >= 3))
-			*log << "DataMessageStanza" << std::endl;
+			*log << "DataMessageStanza" << "\n";
 		for (int a = 0; a < r->app_data_size(); a++)
 		{
 			if (log && (verbosity >= 3))
 				*log << " app_data key: " << r->app_data(a).key()
-				<< " data: " << r->app_data(a).value() << std::endl;
+				<< " data: " << r->app_data(a).value() << "\n";
 			if (r->app_data(a).key() == "crypto-key")
 				cryptoKeyHeader = r->app_data(a).value();
 			if (r->app_data(a).key() == "encryption")
@@ -360,7 +401,7 @@ static void logMessage
 			if (log && (verbosity >= 3))
 				*log << " queued: " << r->queued();
 		if (log && (verbosity >= 3))
-			*log << std::endl;
+			*log << "\n";
 		if (r->has_raw_data())
 		{
 			if (log && (verbosity >= 3))
@@ -392,7 +433,7 @@ static void logMessage
 			if (log && (verbosity >= 3))
 				*log << " ttl: " << r->ttl();
 		if (log && (verbosity >= 3))
-			*log << std::endl;
+			*log << "\n";
 	}
 	break;
 	default:
@@ -657,7 +698,7 @@ static int nextMessage(
 	}
 
 	if (log && (verbosity >= 1))
-		*log << "<<<  Tag " << (int)tag << " size " << msgSize << "  >>>" << std::endl;
+		*log << "<<<  Tag " << (int)tag << " size " << msgSize << "  >>>" << "\n";
 
 	*retTag = (enum MCSProtoTag) tag;
 	google::protobuf::io::CodedInputStream::Limit limit = codedInput.PushLimit(msgSize);
@@ -671,7 +712,7 @@ static int nextMessage(
 		std::string d;
 		retMessage->SerializeToString(&d);
 		if (log && (verbosity >= 1))
-			*log << "Tag: " << (int) tag << " size: " << msgSize << ": " << hexString(d) << std::endl;
+			*log << "Tag: " << (int) tag << " size: " << msgSize << ": " << hexString(d) << "\n";
 	}
 	else
 	{
@@ -696,6 +737,8 @@ MCSClient::MCSClient(
 	uint64_t securityToken,
 	OnNotifyFunc onNotify,
 	void *onNotifyEnv,
+	OnLogFunc onLog,
+	void *onLogEnv,
 	int verbosity
 )
 	: state(STATE_VERSION), listenerThread(NULL)
@@ -706,7 +749,10 @@ MCSClient::MCSClient(
 	this->securityToken = securityToken;
 	this->onNotify = onNotify;
 	this->onNotifyEnv = onNotifyEnv;
+	this->onLog = onLog;
+	this->onLogEnv = onLogEnv;
 	this->verbosity = verbosity;
+	log.setCallback(this->onLog, this->onLogEnv);
 }
 
 MCSClient::MCSClient
@@ -721,6 +767,8 @@ MCSClient::MCSClient
 	this->securityToken = other.securityToken;
 	this->onNotify = other.onNotify;
 	this->onNotifyEnv = other.onNotifyEnv;
+	this->onLog = other.onLog;
+	this->onLogEnv = other.onLogEnv;
 	this->verbosity = other.verbosity;
 }
 
@@ -736,14 +784,14 @@ bool MCSClient::ready()
 
 static int readLoop(MCSClient *client)
 {
-	client->log(3) << "Listen loop started" << std::endl;
+	client->log << severity(3) << "Listen loop started" << "\n";
 	int r;
 	while ((r = client->read()) >= 0)
 	{
-		client->log(3) << "Read " << r << " byte(s)" << std::endl;
+		client->log << severity(3) << "Read " << r << " byte(s)" << "\n";
 		sleep(0);
 	}
-	client->log(3) << "Listen loop stopped" << std::endl;
+	client->log << severity(3) << "Listen loop stopped" << "\n";
 	return 0;
 }
 
@@ -759,8 +807,8 @@ int MCSClient::connect()
 		return ERR_NO_CONNECT;
 	mStop = false;
 	if (verbosity > 1)
-		log(3) << "Android id: " << androidId 
-			<< " security token: " << securityToken << std::endl;
+		log << severity(3) << "Android id: " << androidId 
+			<< " security token: " << securityToken << "\n";
 	state = STATE_VERSION;
 	int r = logIn();
 	if (r == 0) {
@@ -792,21 +840,6 @@ bool MCSClient::hasIdNToken()
 	return ((!androidId) && (!securityToken));
 }
 
-std::ostream &MCSClient::log
-(
-	int level
-)
-{
-	if (verbosity >= level)
-	{
-		return std::cerr;
-	}
-	else
-	{
-		return onullstrm;
-	}
-}
-
 /**
   * Return 0- success, <0- error
   */
@@ -818,7 +851,7 @@ int MCSClient::logIn()
 		return ERR_NO_CONNECT;
 	if (verbosity > 2)
 	{
-		log(3) << "Login to " << MCS_HOST << std::endl;
+		log << severity(3) << "Login to " << MCS_HOST << "\n";
 	}
 
 	std::vector<std::string> persistentIds;
@@ -827,10 +860,10 @@ int MCSClient::logIn()
 	
 	if (verbosity >= 3)
 	{
-		log(3) << "Saved persistent ids:" << std::endl;
+		log << severity(3) << "Saved persistent ids:" << "\n";
 		for (std::vector<std::string>::const_iterator it(persistentIds.begin()); it != persistentIds.end(); ++it)
 		{
-			log(3) << *it << std::endl;
+			log << severity(3) << *it << "\n";
 		}
 	}
 	MessageLite *messageLogin =  mkLoginRequest(androidId, securityToken, persistentIds);
@@ -850,7 +883,7 @@ int MCSClient::sendVersion()
 	std::stringstream ss;
 	ss << kMCSVersion;
 	std::string r = ss.str();
-	log(3) << "Send version: " << hexString(r) << std::endl;
+	log << severity(3) << "Send version: " << hexString(r) << "\n";
 	return SSL_write(mSsl, r.c_str(), r.size());
 }
 
@@ -861,13 +894,13 @@ int MCSClient::send
 )
 {
 	std::string s = tagNmessageToString(tag, msg);
-	log(3) << "Send tag: " << (int) tag << hexString(s) << std::endl;
+	log << severity(3) << "Send tag: " << (int) tag << hexString(s) << "\n";
 	return SSL_write(mSsl, s.c_str(), s.size());
 }
 
 int MCSClient::ping()
 {
-	log(3) << "ping.." << std::endl;
+	log << severity(3) << "ping.." << "\n";
 	MessageLite *l =  mkPing();
 	if (!l)
 		return -1;
@@ -1086,7 +1119,7 @@ int MCSClient::process()
 		if (state == STATE_VERSION)
 		{
 			uint8_t version = (uint8_t) mStream[0]; // last known is 38
-			log(3) << "MCS version: " << (int) version << std::endl;
+			log << severity(3) << "MCS version: " << (int) version << "\n";
 			mStream.erase(0, 1);
 			sz--;
 			state = STATE_TAG;
@@ -1114,11 +1147,11 @@ int MCSClient::read()
 	int r = SSL_read(mSsl, buffer, sizeof(buffer));
 	if (r > 0)
 	{
-		// mClient->log(3) << "Received " << r << " bytes: " << std::endl << hexString(std::string((char *) buffer, r)) << std::endl;
+		// mClient->log << severity(3) << "Received " << r << " bytes: " << "\n" << hexString(std::string((char *) buffer, r)) << "\n";
 		put(buffer, r);
 		if (size_t c = process())
 		{
-			log(3) << "Processed " << c << " messages" << std::endl;
+			log << severity(3) << "Processed " << c << " messages" << "\n";
 		}
 	}
 	return r;

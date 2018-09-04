@@ -152,7 +152,9 @@ void doneSSLsocket
 #else
 	close(socket);
 #endif
-	SSL_free(ssl);
+	if (ssl)
+		SSL_free(ssl);
+	ssl = NULL;
 }
 
 SSLFactory::SSLFactory()

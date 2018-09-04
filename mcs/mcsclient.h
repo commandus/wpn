@@ -47,6 +47,49 @@ enum PROTO_STATE {
 
 using namespace google::protobuf;
 
+struct severity {
+	int value;
+	severity(int v)
+		: value(v)
+	{
+	}
+};
+
+/*
+struct flush {
+	flush()
+	{
+	}
+};
+*/
+
+class CallbackLogger : public std::streambuf
+{
+private:
+	int verbosity;
+	std::stringstream buffer;
+	OnLogFunc onLog;
+	void *onLogEnv;
+	CallbackLogger &flush();
+public:
+	CallbackLogger();
+	void setCallback(
+		OnLogFunc aonLog,
+		void *aonLogEnv
+	);
+	virtual int overflow(int c);
+	friend CallbackLogger& operator<<(CallbackLogger & out, severity const& v) {
+		out.verbosity = v.value;
+		return out;
+	}
+	template<typename T>
+	friend CallbackLogger& operator<<(CallbackLogger & out, T&& t) {
+		out << std::forward<T>(t);
+		return out;
+	}
+	
+};
+
 class MCSClient
 {
 private:
@@ -72,6 +115,8 @@ public:
 	uint64_t securityToken;
 	OnNotifyFunc onNotify;
 	void *onNotifyEnv;
+	OnLogFunc onLog;
+	void *onLogEnv;
 	int verbosity;
 	// const std::string gcmToken;
 
@@ -82,6 +127,8 @@ public:
 		uint64_t securityToken,
 		OnNotifyFunc onNotify, 
 		void *onNotifyEnv,
+		OnLogFunc onLog,
+		void *onLogEnv,
 		int verbosity
 	);
 	MCSClient(const MCSClient& other);
@@ -93,10 +140,6 @@ public:
 	(
 		uint8_t tag,
 		const MessageLite *msg
-	);
-	std::ostream &log
-	(
-		int level
 	);
 
 	int ping();
@@ -151,6 +194,8 @@ public:
 		int64_t sent,
 		const NotifyMessage &notification
 	) const;
+
+	CallbackLogger log;
 };
 
 #endif // MCSCLIENT_H

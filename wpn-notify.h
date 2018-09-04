@@ -62,6 +62,14 @@ typedef bool (*OnNotifyFunc)
 	NotifyMessage *reply
 );
 
+// return true if has reply
+typedef void(*OnLogFunc)
+(
+	void *env,
+	int severity,
+	const std::string &message
+);
+
 extern "C"
 bool desktopNotify
 (

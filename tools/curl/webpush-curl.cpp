@@ -33,13 +33,13 @@ int main(int argc, char **argv)
 	struct arg_str *a_body = arg_str1("b", "body", "<text>", "Push notification body");
 	struct arg_str *a_icon = arg_str1("i", "icon", "<URL>", "Push notification icon URL");
 	struct arg_str *a_action_link = arg_str1("l", "action-link", "<URL>", "Push notification action link URL");
-	struct arg_str *a_action_title = arg_str1("c", "action-caption", "<URL>", "Push notification action caption on click URL");
+	struct arg_str *a_action_title = arg_str1("c", "action-caption", "<text>", "Push notification action caption on click URL");
 
 	struct arg_str *a_public_key = arg_str1("k", "public", "<key>", "VAPID public key");
 	struct arg_str *a_private_key = arg_str1("p", "private", "<key>", "VAPID private key");
 	struct arg_str *a_endpoint = arg_str1(NULL, NULL, "<URL>", "Recipient's endpoint URL");
-	struct arg_str *a_p256dh = arg_str1("d", "p256dh", "<key>", "Recipient's endpoint p256dh");
-	struct arg_str *a_auth = arg_str1("a", "auth", "<key>", "Recipient's endpoint auth");
+	struct arg_str *a_p256dh = arg_str1("d", "p256dh", "<base64>", "Recipient's endpoint p256dh");
+	struct arg_str *a_auth = arg_str1("a", "auth", "<base64>", "Recipient's endpoint auth");
 
 	struct arg_str *a_contact = arg_str0("f", "from", "<URL>", "Sender's email e.g. mailto:alice@acme.com or https[s] link");
 	struct arg_str *a_curl_file = arg_str0("o", "curl", "<file>", "Print curl command. File keeps encoded data.");
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 		std::cerr << "Usage: " << progname << std::endl;
 		arg_print_syntax(stderr, argtable, "\n");
 		std::cerr << "Web push message CURL printer" << std::endl;
-		arg_print_glossary(stderr, argtable, "  %-25s %s\n");
+		arg_print_glossary(stderr, argtable, "  %-27s %s\n");
 		arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 		return 1;
 	}
