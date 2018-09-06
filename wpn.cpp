@@ -117,15 +117,13 @@ bool onNotify(
 	const std::string &appName,
 	const std::string &appId,
 	int64_t sent,
-	const NotifyMessage *notification,
-	NotifyMessage *reply
+	const NotifyMessage *notification
 )
 {
 	size_t c = 0;
 	for (std::vector <OnNotifyFunc>::const_iterator it(((WpnConfig*) env)->onNotifyList.begin()); it != ((WpnConfig*)env)->onNotifyList.end(); ++it)
 	{
-		NotifyMessage response;
-		bool r = (*it) (env, persistent_id, from, appName, appId, sent, notification, &response);
+		bool r = (*it) (env, persistent_id, from, appName, appId, sent, notification);
 		if (r)
 			c++;
 	}
@@ -466,8 +464,8 @@ int main(int argc, char** argv)
 				{
 				}
 				MCSClient client(
-					config.wpnKeys->getPrivateKeyArray(),
-					config.wpnKeys->getAuthSecretArray(),
+					config.wpnKeys->getPrivateKey(),
+					config.wpnKeys->getAuthSecret(),
 					config.androidCredentials->getAndroidId(),
 					config.androidCredentials->getSecurityToken(),
 					onNotify, &config, onLog, &config,

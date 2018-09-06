@@ -153,6 +153,22 @@ EXPORTDLL int registerDeviceC(
 	int verbosity
 );
 
+/**
+ * Register device and obtain GCM token
+ */
+EXPORTDLL void *ñlient
+(
+	const char *privateKey,
+	const char *authSecret,
+	uint64_t androidId,
+	uint64_t securityToken,
+	OnNotifyFunc onNotify,
+	void *onNotifyEnv,
+	OnLogFunc onLog,
+	void *onLogEnv,
+	int verbosity
+);
+
 #ifdef __cplusplus
 }
 #endif

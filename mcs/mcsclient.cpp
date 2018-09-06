@@ -731,8 +731,8 @@ static int nextMessage(
 //----------------------------- MCSClient -----------------------------
 
 MCSClient::MCSClient(
-	const uint8_t *privateKey,
-	const uint8_t *authSecret,
+	const std::string &privateKey,
+	const std::string &authSecret,
 	uint64_t androidId,
 	uint64_t securityToken,
 	OnNotifyFunc onNotify,
@@ -743,8 +743,8 @@ MCSClient::MCSClient(
 )
 	: state(STATE_VERSION), listenerThread(NULL)
 {
-	this->privateKey = privateKey;
-	this->authSecret = authSecret;
+	ece_base64url_decode(privateKey.c_str(), privateKey.size(), ECE_BASE64URL_REJECT_PADDING, this->privateKey, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
+	ece_base64url_decode(authSecret.c_str(), authSecret.size(), ECE_BASE64URL_REJECT_PADDING, this->authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
 	this->androidId = androidId;
 	this->securityToken = securityToken;
 	this->onNotify = onNotify;
@@ -761,8 +761,8 @@ MCSClient::MCSClient
 )
 	: state(STATE_VERSION), listenerThread(NULL)
 {
-	this->privateKey = other.privateKey;
-	this->authSecret = other.authSecret;
+	memmove(this->privateKey, other.privateKey, sizeof(this->privateKey));
+	memmove(this->authSecret, other.authSecret, sizeof(this->authSecret));
 	this->androidId = other.androidId;
 	this->securityToken = other.securityToken;
 	this->onNotify = other.onNotify;
@@ -823,7 +823,7 @@ void MCSClient::disconnect()
 	mStop = true;
 	if (mSocket && mSsl)
 		mSSLFactory.close(mSocket, mSsl);
-	mSocket = 0;
+	mSocket = INVALID_SOCKET;
 	mSsl = NULL;
 
 	if (listenerThread) {
@@ -1099,8 +1099,7 @@ void MCSClient::notify
 ) const
 {
 	if (onNotify) {
-		NotifyMessage response;
-		onNotify(onNotifyEnv, persistent_id, from, appName, appId, sent, &notification, &response);
+		onNotify(onNotifyEnv, persistent_id, from, appName, appId, sent, &notification);
 	}
 }
 

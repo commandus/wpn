@@ -109,8 +109,8 @@ private:
 	int logIn();
 	int sendVersion();
 public:
-	const uint8_t *privateKey;
-	const uint8_t *authSecret;
+	uint8_t privateKey[ECE_WEBPUSH_PRIVATE_KEY_LENGTH];
+	uint8_t authSecret[ECE_WEBPUSH_AUTH_SECRET_LENGTH];
 	uint64_t androidId;
 	uint64_t securityToken;
 	OnNotifyFunc onNotify;
@@ -121,8 +121,8 @@ public:
 	// const std::string gcmToken;
 
 	MCSClient(
-		const uint8_t *privateKey,
-		const uint8_t *authSecret,
+		const std::string &privateKey,
+		const std::string &authSecret,
 		uint64_t androidId,
 		uint64_t securityToken,
 		OnNotifyFunc onNotify, 

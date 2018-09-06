@@ -57,9 +57,7 @@ typedef bool (*OnNotifyFunc)
 	const std::string &appName,
 	const std::string &appId,
 	int64_t sent,
- 
-	const NotifyMessage *request,
-	NotifyMessage *reply
+ 	const NotifyMessage *request
 );
 
 // return true if has reply

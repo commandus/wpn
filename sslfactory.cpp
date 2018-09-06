@@ -141,22 +141,6 @@ int createSSLsocket
 	return 0;
 }
 
-void doneSSLsocket
-(
-	SSL *ssl,
-	int socket
-) 
-{
-#ifdef _MSC_VER
-	closesocket(socket);
-#else
-	close(socket);
-#endif
-	if (ssl)
-		SSL_free(ssl);
-	ssl = NULL;
-}
-
 SSLFactory::SSLFactory()
 {
 	int r = createContext(&mContext);
@@ -192,5 +176,14 @@ void SSLFactory::close
 	SSL *ssl
 )
 {
-	doneSSLsocket(ssl, socket);
+#ifdef _MSC_VER
+	closesocket(socket);
+#else
+	close_socket_gracefully(socket);
+#endif
+	if (ssl != NULL)
+	{
+		SSL_shutdown(ssl);
+		SSL_free(ssl);
+	}
 }
