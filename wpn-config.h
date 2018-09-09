@@ -113,7 +113,7 @@ public:
 	void unloadNotifyFuncs();
 	std::vector <std::string> notifyLibFileNames;
 	std::vector <SO_INSTANCE> notifyLibs;
-	std::vector <OnNotifyFunc> onNotifyList;
+	std::vector <OnNotifyC> onNotifyList;
 
 	bool setPersistentId(const std::string &authorizedEntity, const std::string &persistent_id);
 	void getPersistentIds(std::vector<std::string> &retval);

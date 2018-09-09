@@ -164,7 +164,7 @@ CallbackLogger::CallbackLogger(
 }
 
 void CallbackLogger::setCallback(
-	OnLogFunc aonLog,
+	OnLogC aonLog,
 	void *aonLogEnv
 )
 {
@@ -183,7 +183,7 @@ int CallbackLogger::overflow(int c)
 		else
 		{
 			if (onLog)
-				onLog(onLogEnv, verbosity, buffer.str());
+				onLog(onLogEnv, verbosity, buffer.str().c_str());
 			buffer.clear();
 		}
 	}
@@ -193,7 +193,7 @@ int CallbackLogger::overflow(int c)
 CallbackLogger &CallbackLogger::flush()
 {
 	if (onLog)
-		onLog(onLogEnv, verbosity, buffer.str());
+		onLog(onLogEnv, verbosity, buffer.str().c_str());
 	buffer.clear();
 	return *this;
 }
@@ -735,9 +735,9 @@ MCSClient::MCSClient(
 	const std::string &authSecret,
 	uint64_t androidId,
 	uint64_t securityToken,
-	OnNotifyFunc onNotify,
+	OnNotifyC onNotify,
 	void *onNotifyEnv,
-	OnLogFunc onLog,
+	OnLogC onLog,
 	void *onLogEnv,
 	int verbosity
 )
@@ -909,25 +909,6 @@ int MCSClient::ping()
 	return r;
 }
 
-void MCSClient::mkNotifyMessage
-(
-	NotifyMessage &retval,
-	const std::string &authorizedEntity,	///< e.g. 246829423295
-	const std::string &title,
-	const std::string &body,
-	const std::string &icon,
-	const std::string &click_action,
-	const std::string &data
-)
-{
-	retval.authorizedEntity = authorizedEntity;
-	retval.title = title;
-	retval.body = body;
-	retval.icon = icon;
-	retval.link = click_action;
-	retval.data = data;
-}
-
 /**
  * Parse command
  * @param retval return value. If it is data, return data JSON string in retval.data
@@ -1088,6 +1069,22 @@ int MCSClient::parseJSONNotifyMessage
 	return r;
 }
 
+static void copyRefNotifyMessage(NotifyMessageC *retval, const NotifyMessage *value)
+{
+	retval->authorizedEntity = value->authorizedEntity.c_str();
+	retval->title = value->title.c_str();
+	retval->body = value->body.c_str();
+	retval->icon = value->icon.c_str();
+	retval->sound = value->sound.c_str();
+	retval->link = value->link.c_str();
+	retval->linkType = value->linkType.c_str();
+	retval->urgency = value->urgency;
+	retval->timeout = value->timeout;
+	retval->category = value->category.c_str();
+	retval->extra = value->extra.c_str();
+	retval->data = value->data.c_str();
+}
+
 void MCSClient::notify
 (
 	const std::string &persistent_id,
@@ -1099,7 +1096,9 @@ void MCSClient::notify
 ) const
 {
 	if (onNotify) {
-		onNotify(onNotifyEnv, persistent_id, from, appName, appId, sent, &notification);
+		NotifyMessageC notificationC;
+		copyRefNotifyMessage(&notificationC, &notification);
+		onNotify(onNotifyEnv, persistent_id.c_str(), from.c_str(), appName.c_str(), appId.c_str(), sent, &notificationC);
 	}
 }
 

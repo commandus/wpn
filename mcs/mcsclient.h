@@ -45,6 +45,22 @@ enum PROTO_STATE {
 	STATE_TAG = 1
 };
 
+typedef struct
+{
+	std::string authorizedEntity;	///< e.g. 246829423295
+	std::string title;
+	std::string body;
+	std::string icon;				///< Specifies an icon filename or stock icon to display.
+	std::string sound;				///< sound file name
+	std::string link;				///< click action
+	std::string linkType;			///< click action content type
+	int urgency; 					///< low- 0, normal, critical
+	int timeout; 					///< timeout in milliseconds at which to expire the notification.
+	std::string category;
+	std::string extra;
+	std::string data;				///< extra data in JSON format
+} NotifyMessage;
+
 using namespace google::protobuf;
 
 struct severity {
@@ -68,13 +84,13 @@ class CallbackLogger : public std::streambuf
 private:
 	int verbosity;
 	std::stringstream buffer;
-	OnLogFunc onLog;
+	OnLogC onLog;
 	void *onLogEnv;
 	CallbackLogger &flush();
 public:
 	CallbackLogger();
 	void setCallback(
-		OnLogFunc aonLog,
+		OnLogC aonLog,
 		void *aonLogEnv
 	);
 	virtual int overflow(int c);
@@ -84,10 +100,9 @@ public:
 	}
 	template<typename T>
 	friend CallbackLogger& operator<<(CallbackLogger & out, T&& t) {
-		out << std::forward<T>(t);
+		// out << std::forward<T>(t);
 		return out;
 	}
-	
 };
 
 class MCSClient
@@ -113,10 +128,12 @@ public:
 	uint8_t authSecret[ECE_WEBPUSH_AUTH_SECRET_LENGTH];
 	uint64_t androidId;
 	uint64_t securityToken;
-	OnNotifyFunc onNotify;
+
+	OnNotifyC onNotify;
 	void *onNotifyEnv;
-	OnLogFunc onLog;
+	OnLogC onLog;
 	void *onLogEnv;
+
 	int verbosity;
 	// const std::string gcmToken;
 
@@ -125,9 +142,9 @@ public:
 		const std::string &authSecret,
 		uint64_t androidId,
 		uint64_t securityToken,
-		OnNotifyFunc onNotify, 
+		OnNotifyC onNotify, 
 		void *onNotifyEnv,
-		OnLogFunc onLog,
+		OnLogC onLog,
 		void *onLogEnv,
 		int verbosity
 	);
@@ -144,17 +161,6 @@ public:
 
 	int ping();
 	int read();
-
-	static void mkNotifyMessage
-	(
-		NotifyMessage &retval,
-		const std::string &authorizedEntity,	///< e.g. 246829423295
-		const std::string &title,
-		const std::string &body,
-		const std::string &icon,
-		const std::string &click_action,
-		const std::string &data
-	);
 
 	/**
 	* Parse command

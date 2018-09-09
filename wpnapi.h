@@ -3,6 +3,7 @@ extern "C" {
 #endif
 	
 #include <ece/keys.h>
+#include "wpn-notify.h"
 
 #define AESGCM 		0
 #define AES128GCM	1
@@ -162,9 +163,9 @@ EXPORTDLL void *ñlient
 	const char *authSecret,
 	uint64_t androidId,
 	uint64_t securityToken,
-	OnNotifyFunc onNotify,
+	OnNotifyC onNotify,
 	void *onNotifyEnv,
-	OnLogFunc onLog,
+	OnLogC onLog,
 	void *onLogEnv,
 	int verbosity
 );

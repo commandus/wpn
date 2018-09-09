@@ -646,16 +646,16 @@ void unloadPlugin(SO_INSTANCE so)
 #endif
 }
 
-OnNotifyFunc loadDesktopNotifyFunc
+static OnNotifyC loadDesktopNotifyC
 (
 	SO_INSTANCE so,
 	const std::string &functionName
 )
 {
 #ifdef _MSC_VER
-	return (OnNotifyFunc) GetProcAddress(so, functionName.c_str());
+	return (OnNotifyC) GetProcAddress(so, functionName.c_str());
 #else
-	return (OnNotifyFunc) dlsym(so, functionName.c_str());
+	return (OnNotifyC) dlsym(so, functionName.c_str());
 #endif
 }
 
@@ -691,7 +691,7 @@ size_t WpnConfig::loadNotifyFuncs()
 				continue;
 			}
 			notifyLibs.push_back(so);
-			OnNotifyFunc desktopNotify = loadDesktopNotifyFunc(so, notifyFunctionName);
+			OnNotifyC desktopNotify = loadDesktopNotifyC(so, notifyFunctionName);
 			if (!desktopNotify)
 			{
 				if (verbosity > 1)

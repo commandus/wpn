@@ -101,7 +101,7 @@ void onLog
 (
 	void *env,
 	int severity,
-	const std::string &message
+	const char *message
 )
 {
 	std::cerr << message << std::endl;
@@ -110,24 +110,20 @@ void onLog
 /**
   * Call dynamically loaded functions to notify user
   */
-bool onNotify(
+void onNotify(
 	void *env,
-	const std::string &persistent_id,
-	const std::string &from,				///< e.g. BDOU99-h67HcA6JeFXHbSNMu7e2yNNu3RzoMj8TM4W88jITfq7ZmPvIM1Iv-4_l2LxQcYwhqby2xGpWwzjfAnG4
-	const std::string &appName,
-	const std::string &appId,
+	const char *persistent_id,
+	const char *from,
+	const char *appName,
+	const char *appId,
 	int64_t sent,
-	const NotifyMessage *notification
+	const NotifyMessageC *notification
 )
 {
-	size_t c = 0;
-	for (std::vector <OnNotifyFunc>::const_iterator it(((WpnConfig*) env)->onNotifyList.begin()); it != ((WpnConfig*)env)->onNotifyList.end(); ++it)
+	for (std::vector <OnNotifyC>::const_iterator it(((WpnConfig*) env)->onNotifyList.begin()); it != ((WpnConfig*)env)->onNotifyList.end(); ++it)
 	{
-		bool r = (*it) (env, persistent_id, from, appName, appId, sent, notification);
-		if (r)
-			c++;
+		(*it) (env, persistent_id, from, appName, appId, sent, notification);
 	}
-	return c;
 }
 
 void readCommand(MCSClient *client, std::istream &strm)

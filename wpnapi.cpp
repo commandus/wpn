@@ -4,6 +4,7 @@
 #include "utilvapid.h"
 #include "utilrecv.h"
 #include "wp-storage-file.h"
+#include "mcs/mcsclient.h"
 
 /**
  * Helper function for testing
@@ -266,4 +267,31 @@ EXPORTDLL int registerDeviceC(
 		}
 	}
 	return r;
+}
+
+/**
+ * Register device and obtain GCM token
+ */
+EXPORTDLL void *ñlient
+(
+	const char *privateKey,
+	const char *authSecret,
+	uint64_t androidId,
+	uint64_t securityToken,
+	OnNotifyC onNotify,
+	void *onNotifyEnv,
+	OnLogC onLog,
+	void *onLogEnv,
+	int verbosity
+)
+{
+	MCSClient *client = new MCSClient(
+		std::string(privateKey),
+		std::string(authSecret),
+		androidId,
+		securityToken,
+		onNotify, onNotifyEnv, onLog, onLogEnv,
+		verbosity
+	);
+	return client;
 }
