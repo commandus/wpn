@@ -170,6 +170,8 @@
     <ClCompile Include="..\commandoutput.cpp" />
     <ClCompile Include="..\mcs\gen\android_checkin.pb.cc" />
     <ClCompile Include="..\mcs\gen\checkin.pb.cc" />
+    <ClCompile Include="..\mcs\gen\mcs.pb.cc" />
+    <ClCompile Include="..\mcs\mcsclient.cpp" />
     <ClCompile Include="..\params.cpp" />
     <ClCompile Include="..\sslfactory.cpp" />
     <ClCompile Include="..\third_party\nayuki\QR-Code-generator\BitBuffer.cpp" />
@@ -190,6 +192,8 @@
     <ClInclude Include="..\commandoutput.h" />
     <ClInclude Include="..\mcs\gen\android_checkin.pb.h" />
     <ClInclude Include="..\mcs\gen\checkin.pb.h" />
+    <ClInclude Include="..\mcs\gen\mcs.pb.h" />
+    <ClInclude Include="..\mcs\mcsclient.h" />
     <ClInclude Include="..\onullstream.hpp" />
     <ClInclude Include="..\platform.h" />
     <ClInclude Include="..\sslfactory.h" />

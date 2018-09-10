@@ -1,7 +1,7 @@
 #include <sstream>
 #include "utilqr.h"
 
-const std::string sym = "\u2588\u2588";
+const std::string sym = u8"\u2588\u2588";
 const std::string emp = "  ";
 
 // Prints the given QR Code to the console.
