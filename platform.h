@@ -17,6 +17,8 @@ Sleep(seconds *1000);
 #include <stdlib.h>
 #include <unistd.h>
 
+#define INVALID_SOCKET		-1
+
 #define str_realpath(retval, path) \
 { \
 	char full_path[PATH_MAX]; \

@@ -153,7 +153,7 @@ SSLFactory::~SSLFactory()
 	doneContext(mContext);
 }
 
-SSL *SSLFactory::open
+SSL *SSLFactory::connect
 (
 	int *socket,
 	const std::string &host, 
@@ -170,7 +170,7 @@ SSL *SSLFactory::open
 	return ret;
 }
 
-void SSLFactory::close
+void SSLFactory::disconnect
 (
 	int socket,
 	SSL *ssl
@@ -179,7 +179,7 @@ void SSLFactory::close
 #ifdef _MSC_VER
 	closesocket(socket);
 #else
-	close_socket_gracefully(socket);
+	close(socket);
 #endif
 	if (ssl != NULL)
 	{

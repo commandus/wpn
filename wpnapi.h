@@ -157,7 +157,7 @@ EXPORTDLL int registerDeviceC(
 /**
  * Register device and obtain GCM token
  */
-EXPORTDLL void *ñlient
+EXPORTDLL void *client
 (
 	const char *privateKey,
 	const char *authSecret,

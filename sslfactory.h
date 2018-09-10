@@ -13,12 +13,12 @@ private:
 public:
 	SSLFactory();
 	~SSLFactory();
-	SSL *open(
+	SSL *connect(
 		int *socket,
 		const std::string &host, 
 		int port
 	);
-	void close(int socket, SSL *ssl);
+	void disconnect(int socket, SSL *ssl);
 };
 
 #endif // SSLFACTORY_H

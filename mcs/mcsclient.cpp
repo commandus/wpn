@@ -802,7 +802,7 @@ int MCSClient::connect()
 	if ((!androidId) || (!securityToken))
 		return ERR_NO_CREDS;
 	
-	mSsl = mSSLFactory.open(&mSocket, MCS_HOST, MCS_PORT);
+	mSsl = mSSLFactory.connect(&mSocket, MCS_HOST, MCS_PORT);
 	if (!mSsl)
 		return ERR_NO_CONNECT;
 	mStop = false;
@@ -822,7 +822,7 @@ void MCSClient::disconnect()
 {
 	mStop = true;
 	if (mSocket && mSsl)
-		mSSLFactory.close(mSocket, mSsl);
+		mSSLFactory.disconnect(mSocket, mSsl);
 	mSocket = INVALID_SOCKET;
 	mSsl = NULL;
 
