@@ -3,6 +3,7 @@
 #include "wpnapi.h"
 #include "utilvapid.h"
 #include "utilrecv.h"
+#include "utilqr.h"
 #include "wp-storage-file.h"
 #include "mcs/mcsclient.h"
 
@@ -267,6 +268,39 @@ EXPORTDLL int registerDeviceC(
 		}
 	}
 	return r;
+}
+
+/**
+ * Return QR lines using two pseudographics symbols full block (\u2588\u2588).
+ * If retval is NULL, return required size
+ * @param retval return buffer. Can be NULL
+ * @param retsize return buffer size
+ * @param value string to conversion
+ * @param mode 0- pseudo graphics, 1- pseudo graphics inverted
+ */
+EXPORTDLL size_t qr2pchar
+(
+	char *retval,
+	size_t retsize,
+	const char *value,
+	const int mode
+)
+{
+	std::string r = qr2string(value, mode == 1);
+	size_t rs = r.size();
+	if (retval)
+	{
+		size_t csz = retsize >= rs ? rs : retsize;
+		if (csz > 0) 
+		{
+			memmove(retval, r.c_str(), csz);
+			if (retsize > csz)
+			{
+				retval[csz] = '\0';	// add trailing zero
+			}
+		}
+	}
+	return rs;
 }
 
 /**

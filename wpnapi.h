@@ -155,6 +155,22 @@ EXPORTDLL int registerDeviceC(
 );
 
 /**
+ * Return QR lines using two pseudographics symbols full block (\u2588\u2588).
+ * If retval is NULL, return required size 
+ * @param retval return buffer. Can be NULL
+ * @param retsize return buffer size
+ * @param value string to conversion
+ * @param mode 0- pseudo graphics, 1- pseudo graphics inverted
+ */
+EXPORTDLL size_t qr2pchar
+(
+	char *retval,
+	size_t retsize,
+	const char *value, 
+	const int mode
+);
+
+/**
  * Register device and obtain GCM token
  */
 EXPORTDLL void *client
