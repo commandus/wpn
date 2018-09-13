@@ -208,6 +208,10 @@
     <ClInclude Include="..\wpn-notify.h" />
     <ClInclude Include="..\wpnapi.h" />
     <ClInclude Include="params.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="version.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
