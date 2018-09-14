@@ -1,14 +1,12 @@
 #include <sstream>
 #include "utilqr.h"
 
-const std::string sym = u8"\u2588\u2588";
-const std::string emp = "  ";
-
 // Prints the given QR Code to the console.
 static void qr2stream(
 	std::ostream &retval, 
 	const QrCode &qr,
-	bool invert
+	const std::string &foreground,
+	const std::string &background
 ) 
 {
 	int border = 4;
@@ -17,9 +15,7 @@ static void qr2stream(
 		for (int x = -border; x < qr.getSize() + border; x++) 
 		{
 			bool b = qr.getModule(x, y);
-			if (invert)
-				b = !b;
-			retval << (b ? emp : sym);
+			retval << (b ? background : foreground);
 		}
 		retval << std::endl;
 	}
@@ -29,11 +25,12 @@ static void qr2stream(
 std::string qr2string
 (
 	const std::string &value,
-	const bool invert
+	const std::string &foreground,
+	const std::string &background
 )
 {
 	const QrCode qr = QrCode::encodeText(value.c_str(), QrCode::Ecc::LOW);
 	std::stringstream ss;
-	qr2stream(ss, qr, invert);
+	qr2stream(ss, qr, foreground, background);
 	return ss.str();
 }

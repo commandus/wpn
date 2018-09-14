@@ -181,7 +181,15 @@ int main(int argc, char** argv)
 						<< it->getAuthorizedEntity() << ","
 						<< it->getServerKey() << ","
 						<< it->getToken();
-					std::cout << qr2string(ss.str(), config.invert_qrcode) << std::endl;
+					std::string v;
+
+					std::string foreground = u8"\u2588\u2588";
+					std::string background = "  ";
+					if (config.invert_qrcode)
+						v = qr2string(v, foreground, background);
+					else
+						v = qr2string(v, background, foreground);
+					std::cout << v << std::endl;
 				}
 			}
 			break;

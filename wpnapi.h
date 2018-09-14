@@ -160,14 +160,16 @@ EXPORTDLL int registerDeviceC(
  * @param retval return buffer. Can be NULL
  * @param retsize return buffer size
  * @param value string to conversion
- * @param mode 0- pseudo graphics, 1- pseudo graphics inverted
+ * @param mode 0- pseudo graphics
  */
 EXPORTDLL size_t qr2pchar
 (
 	char *retval,
 	size_t retsize,
 	const char *value, 
-	const int mode
+	const int mode,
+	const char *foreground,
+	const char *background
 );
 
 /**
