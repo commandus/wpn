@@ -242,6 +242,38 @@ EXPORTDLL int checkInC(
 }
 
 /**
+ * Calls generateVAPIDKeysC() and checkInC()
+ * @return from checkInC()
+ */
+EXPORTDLL int initClient
+(
+	char* privateKey,
+	size_t privateKeySize,
+	char* publicKey,
+	size_t publicKeySize,
+	char* authSecret,
+	size_t authSecretSize,
+	uint64_t *androidId,
+	uint64_t *securityToken,
+	int verbosity
+)
+{
+	generateVAPIDKeysC(
+		privateKey,
+		privateKeySize,
+		publicKey,
+		publicKeySize,
+		authSecret,
+		authSecretSize
+	);
+	return checkIn(
+		androidId,
+		securityToken,
+		verbosity
+	);
+}
+
+/**
  * Register device and obtain GCM token
  */
 EXPORTDLL int registerDeviceC(

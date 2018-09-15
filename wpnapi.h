@@ -155,6 +155,23 @@ EXPORTDLL int registerDeviceC(
 );
 
 /**
+ * Calls generateVAPIDKeysC() and checkInC()
+ * @return from checkInC()
+ */
+EXPORTDLL int initClient
+(
+	char* privateKey,
+	size_t privateKeySize,
+	char* publicKey,
+	size_t publicKeySize,
+	char* authSecret,
+	size_t authSecretSize,
+	uint64_t *androidId,
+	uint64_t *securityToken,
+	int verbosity
+);
+
+/**
  * Return QR lines using two pseudographics symbols full block (\u2588\u2588).
  * If retval is NULL, return required size 
  * @param retval return buffer. Can be NULL
