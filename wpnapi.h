@@ -158,7 +158,7 @@ EXPORTDLL int registerDeviceC(
  * Calls generateVAPIDKeysC() and checkInC()
  * @return from checkInC()
  */
-EXPORTDLL int initClient
+EXPORTDLL int initClientC
 (
 	char* privateKey,
 	size_t privateKeySize,
