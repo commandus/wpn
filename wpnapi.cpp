@@ -7,6 +7,8 @@
 #include "wp-storage-file.h"
 #include "mcs/mcsclient.h"
 
+#define TRIES	5
+
 /**
  * Helper function for testing
  * Print out "curl ..."  command line string
@@ -247,6 +249,8 @@ EXPORTDLL int checkInC(
  */
 EXPORTDLL int initClientC
 (
+	char* retRegistrationId,
+	size_t retsize,
 	char* privateKey,
 	size_t privateKeySize,
 	char* publicKey,
@@ -255,6 +259,7 @@ EXPORTDLL int initClientC
 	size_t authSecretSize,
 	uint64_t *androidId,
 	uint64_t *securityToken,
+	const char *appId,
 	int verbosity
 )
 {
@@ -266,11 +271,28 @@ EXPORTDLL int initClientC
 		authSecret,
 		authSecretSize
 	);
-	return checkIn(
+	int r = checkIn(
 		androidId,
 		securityToken,
 		verbosity
 	);
+	if (r < 200 || r >= 300)
+		return r;
+
+	std::string retGCMToken;
+	for (int i = 0; i < TRIES; i++)
+	{
+		r = registerDevice(
+			&retGCMToken,
+			*androidId,
+			*securityToken,
+			appId,
+			verbosity
+		);
+		if (r >= 200 && r < 300)
+			return r;
+	}
+	return r;
 }
 
 /**

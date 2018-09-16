@@ -171,6 +171,8 @@ EXPORTDLL size_t endpointC(
  */
 EXPORTDLL int initClientC
 (
+	char* retRegistrationId,
+	size_t retsize,
 	char* privateKey,
 	size_t privateKeySize,
 	char* publicKey,
@@ -179,6 +181,7 @@ EXPORTDLL int initClientC
 	size_t authSecretSize,
 	uint64_t *androidId,
 	uint64_t *securityToken,
+	const char *appId,
 	int verbosity
 );
 
