@@ -290,7 +290,16 @@ EXPORTDLL int initClientC
 			verbosity
 		);
 		if (r >= 200 && r < 300)
-			return r;
+			break;
+	}
+	
+	size_t sz = retGCMToken.size();
+
+	if (retRegistrationId && (retsize >= sz)) {
+		memmove(retRegistrationId, retGCMToken.c_str(), sz);
+		if (retsize > sz) {
+			retRegistrationId[sz] = '\0';
+		}
 	}
 	return r;
 }
