@@ -363,3 +363,31 @@ EXPORTDLL void *client
 	);
 	return client;
 }
+
+/**
+ * VAPID Endpoint
+ * @see https://github.com/web-push-libs/webpush-java/wiki/Endpoints
+ */
+EXPORTDLL size_t endpointC(
+	char* retval,
+	size_t retsize,
+	const char *registrationId,			///< GCMToken
+	const int browser					///< 0- Chrome, 1- Firefox
+)
+{
+	std::string r = endpoint(std::string(registrationId));
+	size_t rs = r.size();
+	if (retval)
+	{
+		size_t csz = retsize >= rs ? rs : retsize;
+		if (csz > 0)
+		{
+			memmove(retval, r.c_str(), csz);
+			if (retsize > csz)
+			{
+				retval[csz] = '\0';	// add trailing zero
+			}
+		}
+	}
+	return rs;
+}

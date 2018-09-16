@@ -63,4 +63,13 @@ std::string tagNmessageToString
 	const void *msg
 );
 
+/**
+ * VAPID Endpoint
+ * @see https://github.com/web-push-libs/webpush-java/wiki/Endpoints
+ */
+EXPORTDLL std::string endpoint(
+	const std::string &registrationId,			///< GCMToken
+	const int browser = 0						///< 0- Chrome, 1- Firefox
+);
+
 #endif

@@ -199,6 +199,25 @@ const uint8_t REGISTER_SERVER_KEY[] =
 };
 
 /**
+ * VAPID Endpoint
+ * @see https://github.com/web-push-libs/webpush-java/wiki/Endpoints
+ */
+EXPORTDLL std::string endpoint(
+	const std::string &registrationId,			///< GCMToken
+	const int browser							///< 0- Chrome, 1- Firefox
+)
+{
+	switch (browser) {
+	case 1:
+		// Firefox VAPID
+		return "https://updates.push.services.mozilla.com/wpush/v2/" + registrationId;
+	default:
+		// Chrome VAPID
+		return "https://fcm.googleapis.com/fcm/send/" + registrationId;
+	}
+}
+
+/**
  * Register device and obtain GCM token
  */
 EXPORTDLL int registerDevice(

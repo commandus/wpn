@@ -143,7 +143,7 @@ EXPORTDLL int checkInC(
 );
 
 /**
- * Register device and obtain GCM token
+ * Register device and obtain GCM token (registration id)
  */
 EXPORTDLL int registerDeviceC(
 	char* retGCMToken,
@@ -152,6 +152,17 @@ EXPORTDLL int registerDeviceC(
 	uint64_t securityToken,
 	const char* appId,
 	int verbosity
+);
+
+/**
+ * VAPID Endpoint
+ * @see https://github.com/web-push-libs/webpush-java/wiki/Endpoints
+ */
+EXPORTDLL size_t endpointC(
+	char* retval,
+	size_t retvalSize,
+	const char *registrationId,			///< GCMToken
+	const int browser = 0				///< 0- Chrome, 1- Firefox
 );
 
 /**
