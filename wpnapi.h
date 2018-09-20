@@ -204,9 +204,9 @@ EXPORTDLL size_t qr2pchar
 );
 
 /**
- * Register device and obtain GCM token
+ * Start client
  */
-EXPORTDLL void *client
+EXPORTDLL void *startClient
 (
 	const char *privateKey,
 	const char *authSecret,
@@ -217,6 +217,14 @@ EXPORTDLL void *client
 	OnLogC onLog,
 	void *onLogEnv,
 	int verbosity
+);
+
+/**
+ * Stop client
+ */
+EXPORTDLL void stopClient
+(
+	void *client
 );
 
 #ifdef __cplusplus

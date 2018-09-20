@@ -369,9 +369,9 @@ EXPORTDLL size_t qr2pchar
 }
 
 /**
- * Register device and obtain GCM token
+ * Start client
  */
-EXPORTDLL void *client
+EXPORTDLL void *startClient
 (
 	const char *privateKey,
 	const char *authSecret,
@@ -392,7 +392,21 @@ EXPORTDLL void *client
 		onNotify, onNotifyEnv, onLog, onLogEnv,
 		verbosity
 	);
+	client->connect();
 	return client;
+}
+
+/**
+ * Stop client
+ */
+EXPORTDLL void stopClient
+(
+	void *client
+)
+{
+	if (client) {
+		delete ((MCSClient*)client);
+	}
 }
 
 /**
