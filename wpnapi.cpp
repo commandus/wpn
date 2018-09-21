@@ -370,9 +370,11 @@ EXPORTDLL size_t qr2pchar
 
 /**
  * Start client
+ * @param retcode can be NULL
  */
 EXPORTDLL void *startClient
 (
+	int *retcode,
 	const char *privateKey,
 	const char *authSecret,
 	uint64_t androidId,
@@ -392,7 +394,9 @@ EXPORTDLL void *startClient
 		onNotify, onNotifyEnv, onLog, onLogEnv,
 		verbosity
 	);
-	client->connect();
+	int r = client->connect();
+	if (retcode)
+		*retcode = r;
 	return client;
 }
 

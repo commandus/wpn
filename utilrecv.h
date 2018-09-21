@@ -8,15 +8,6 @@
 #define AES128GCM	1
 
 // MathFuncsDll.h
-#ifdef _MSC_VER
-#ifdef EXPORT_C_DLL
-#define EXPORTDLL extern "C" __declspec(dllexport) 
-#else
-#define EXPORTDLL
-#endif
-#else
-#define EXPORTDLL
-#endif
 
 #define ERR_WRONG_PARAM				-31
 #define ERR_REGISTER_VAL			-32	// Error registering
@@ -40,7 +31,7 @@ int curlPost
 /**
   * Obtain device identifer and "password"
   */
-EXPORTDLL int checkIn(
+int checkIn(
 	uint64_t *androidId,
 	uint64_t *securityToken,
 	int verbosity
@@ -49,7 +40,7 @@ EXPORTDLL int checkIn(
 /**
  * Register device and obtain GCM token
  */
-EXPORTDLL int registerDevice(
+int registerDevice(
 	std::string *retGCMToken,
 	uint64_t androidId,
 	uint64_t securityToken,
@@ -67,7 +58,7 @@ std::string tagNmessageToString
  * VAPID Endpoint
  * @see https://github.com/web-push-libs/webpush-java/wiki/Endpoints
  */
-EXPORTDLL std::string endpoint(
+std::string endpoint(
 	const std::string &registrationId,			///< GCMToken
 	const int browser = 0						///< 0- Chrome, 1- Firefox
 );

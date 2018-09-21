@@ -159,7 +159,7 @@ int curlPost
 
 static const std::string CHECKIN_URL("https://android.clients.google.com/checkin");
 
-EXPORTDLL int checkIn(
+int checkIn(
 	uint64_t *androidId,
 	uint64_t *securityToken,
 	int verbosity
@@ -202,7 +202,7 @@ const uint8_t REGISTER_SERVER_KEY[] =
  * VAPID Endpoint
  * @see https://github.com/web-push-libs/webpush-java/wiki/Endpoints
  */
-EXPORTDLL std::string endpoint(
+std::string endpoint(
 	const std::string &registrationId,			///< GCMToken
 	const int browser							///< 0- Chrome, 1- Firefox
 )
@@ -220,7 +220,7 @@ EXPORTDLL std::string endpoint(
 /**
  * Register device and obtain GCM token
  */
-EXPORTDLL int registerDevice(
+int registerDevice(
 	std::string *retGCMToken,
 	uint64_t androidId,
 	uint64_t securityToken,

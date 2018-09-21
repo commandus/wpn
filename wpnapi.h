@@ -205,9 +205,11 @@ EXPORTDLL size_t qr2pchar
 
 /**
  * Start client
+ * @param retcode can be NULL
  */
 EXPORTDLL void *startClient
 (
+	int *retcode,
 	const char *privateKey,
 	const char *authSecret,
 	uint64_t androidId,
