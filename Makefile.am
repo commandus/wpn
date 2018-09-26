@@ -80,7 +80,9 @@ nobase_dist_include_HEADERS = \
 	third_party/sole/sole.hpp \
 	utilqr.h $(QRHEADERS) \
 	$(ARGT3HEADERS) \
-	$(gengrpcs_h)
+	$(gengrpcs_h) \
+	config-filename.h
+
 common_src = $(ARGT3SOURCES)
 
 #
@@ -92,7 +94,7 @@ wpn_SOURCES= \
 	mcs/mcsclient.cpp \
 	utilstring.cpp params.cpp commandoutput.cpp \
 	utilqr.cpp $(QRSOURCES) \
-	utilvapid.cpp utilrecv.cpp \
+	utilvapid.cpp utilrecv.cpp config-filename.cpp \
 	$(common_src)
 
 wpn_LDADD = $(commonlibs) -ldl
@@ -113,7 +115,7 @@ webpush_curl_CPPFLAGS = $(commoncppflags)
 #	wpnr
 #
 wpnr_SOURCES= \
-	tools/wpnr/wpnr.cpp \
+	tools/wpnr/wpnr.cpp config-filename.cpp \
 	$(common_src)
 
 wpnr_LDADD = -L.libs -lwpnapi $(commonlibs)
