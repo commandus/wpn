@@ -10,7 +10,8 @@ lib_LTLIBRARIES = \
 #	Binaries
 bin_PROGRAMS = \
 	wpn \
-	webpush-curl
+	webpush-curl \
+	wpnr
 
 commoncppflags = -std=c++11 -O2 -I/usr/local/include -Imcs/gen -Ithird_party
 commonlibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl -lece -lnghttp2 -lglog -lunwind -lprotobuf
@@ -43,6 +44,7 @@ wpn_lib_source = \
 	wp-push.cpp wp-subscribe.cpp wp-connection.cpp \
 	sslfactory.cpp \
 	mcs/mcsclient.cpp \
+	$(gengrpcs_c) \
 	utilstring.cpp params.cpp commandoutput.cpp \
 	utilqr.cpp $(QRSOURCES) \
 	utilvapid.cpp utilrecv.cpp
@@ -85,10 +87,15 @@ common_src = $(ARGT3SOURCES)
 #	wpn
 #
 wpn_SOURCES= \
-	wpn-config.cpp wpn.cpp \
+	wpn-config.cpp wpn.cpp wp-storage-file.cpp \
+	wp-push.cpp wp-subscribe.cpp wp-connection.cpp sslfactory.cpp \
+	mcs/mcsclient.cpp \
+	utilstring.cpp params.cpp commandoutput.cpp \
+	utilqr.cpp $(QRSOURCES) \
+	utilvapid.cpp utilrecv.cpp \
 	$(common_src)
 
-wpn_LDADD = -lwpn $(commonlibs) -ldl
+wpn_LDADD = $(commonlibs) -ldl
 wpn_CPPFLAGS = $(commoncppflags)
 
 #
@@ -103,6 +110,16 @@ webpush_curl_LDADD = $(commonlibs)
 webpush_curl_CPPFLAGS = $(commoncppflags)
 
 #
+#	wpnr
+#
+wpnr_SOURCES= \
+	tools/wpnr/wpnr.cpp \
+	$(common_src)
+
+wpnr_LDADD = -L.libs -lwpnapi $(commonlibs)
+wpnr_CPPFLAGS = $(commoncppflags)
+
+#
 #	Configs, readme, CMake etc.
 #
 configdir = $(datadir)
@@ -111,5 +128,6 @@ dist_config_DATA = \
 	vs/wpn.sln vs/libwpn-dynamic.vcxproj vs/libwpn-static.vcxproj vs/webpush-curl.vcxproj vs/wpn.vcxproj vs/dllmain.cpp \
 	CMakeLists.txt \
 	tools/mkcert tools/curl/README \
+	tools/wpnr/README \
 	LICENSE COPYING CODE_OF_CONDUCT.md CONTRIBUTING.md HISTORY README.md \
 	autogen.sh email-template.html

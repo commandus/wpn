@@ -46,6 +46,7 @@
 #include "utilstring.h"
 #include "utilvapid.h"
 #include "utilrecv.h"
+#include "sslfactory.h"
 
 #define ERR_WSA		-1
 

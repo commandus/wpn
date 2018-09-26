@@ -271,6 +271,8 @@ EXPORTDLL int initClientC
 		authSecret,
 		authSecretSize
 	);
+	*androidId = 0;
+	*securityToken = 0;
 	int r = checkIn(
 		androidId,
 		securityToken,
