@@ -203,7 +203,7 @@ static void logMessage
 	enum MCSProtoTag tag,
 	MessageLite *message,
 	int verbosity,
-	std::ostream *log
+	CallbackLogger *log
 ) {
 	switch (tag)
 	{
@@ -676,7 +676,7 @@ static int nextMessage(
 	MessageLite *retMessage,
 	std::string &buffer,
 	int verbosity,
-	std::ostream *log
+	CallbackLogger *log
 )
 {
 	std::stringstream ss(buffer);
@@ -698,7 +698,7 @@ static int nextMessage(
 	}
 
 	if (log && (verbosity >= 1))
-		*log << "<<<  Tag " << (int)tag << " size " << msgSize << "  >>>" << "\n";
+		*log << severity(1) << "<<<  Tag " << (int)tag << " size " << msgSize << "  >>>" << "\n";
 
 	*retTag = (enum MCSProtoTag) tag;
 	google::protobuf::io::CodedInputStream::Limit limit = codedInput.PushLimit(msgSize);
@@ -712,7 +712,7 @@ static int nextMessage(
 		std::string d;
 		retMessage->SerializeToString(&d);
 		if (log && (verbosity >= 1))
-			*log << "Tag: " << (int) tag << " size: " << msgSize << ": " << hexString(d) << "\n";
+			*log << severity(1) << "Tag: " << (int) tag << " size: " << msgSize << ": " << hexString(d) << "\n";
 	}
 	else
 	{
@@ -1125,10 +1125,10 @@ int MCSClient::process()
 		else {
 			MessageLite *m = NULL;
 			enum MCSProtoTag tag;
-			sz = nextMessage(&tag, m, mStream, verbosity, &std::cerr);
+			sz = nextMessage(&tag, m, mStream, verbosity, &log);
 			if (!m)
 				continue;
-			logMessage(tag, m, verbosity, &std::cerr);
+			logMessage(tag, m, verbosity, &log);
 			doSmth(tag, m, this);
 			delete m;
 			count++;

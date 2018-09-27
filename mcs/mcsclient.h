@@ -22,6 +22,7 @@
 
 #include <thread>
 #include <sstream>
+#include <iostream>
 #include <inttypes.h>
 
 #include <google/protobuf/message.h>
@@ -94,13 +95,26 @@ public:
 		void *aonLogEnv
 	);
 	virtual int overflow(int c);
-	friend CallbackLogger& operator<<(CallbackLogger & out, severity const& v) {
+	friend CallbackLogger& operator<<(CallbackLogger &out, severity const& v) {
 		out.verbosity = v.value;
 		return out;
 	}
+	/*
 	template<typename T>
 	friend CallbackLogger& operator<<(CallbackLogger & out, T&& t) {
 		// out << std::forward<T>(t);
+		onLog(onLogEnv, verbosity, const char *message);
+		return out;
+	}
+	*/
+	friend CallbackLogger& operator<<(CallbackLogger &out, const char *v) {
+		// out << std::forward<T>(t);
+		out.onLog(out.onLogEnv, out.verbosity, v);
+		return out;
+	}
+	friend CallbackLogger& operator<<(CallbackLogger &out, const std::string &v) {
+		// out << std::forward<T>(t);
+		out.onLog(out.onLogEnv, out.verbosity, v.c_str());
 		return out;
 	}
 };
