@@ -79,6 +79,35 @@ static int save
 	return r;
 }
 
+void onNotify
+(
+	void *env,
+	const char *persistent_id,
+	const char *from,				///< e.g. BDOU99-h67HcA6JeFXHbSNMu7e2yNNu3RzoMj8TM4W88jITfq7ZmPvIM1Iv-4_l2LxQcYwhqby2xGpWwzjfAnG4
+	const char *appName,
+	const char *appId,
+	int64_t sent,
+	const NotifyMessageC *request
+)
+{
+	std::cerr << "Notify " 
+		<< "persistent_id: " << persistent_id
+		<< std::endl;
+}
+
+void onLog
+(
+	void *env,
+	int severity,
+	const char *message
+)
+{
+	std::cerr << "Log " 
+		<< "severity: " << severity
+		<< ", message: " << message
+		<< std::endl;
+}
+
 int main(int argc, char **argv) 
 {
 	std::string filename;
@@ -205,5 +234,19 @@ int main(int argc, char **argv)
 			appId
 		);
 	}
+	// read
+	int retcode;
+	void *client = startClient(
+		&retcode,
+		privateKeyC,
+		authSecretC,
+		androidId,
+		securityToken,
+		onNotify,
+		NULL,
+		onLog,
+		NULL,
+		verbosity
+	);
 	return r;
 }
