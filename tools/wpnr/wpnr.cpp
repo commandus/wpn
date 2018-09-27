@@ -110,10 +110,6 @@ void onLog
 
 int main(int argc, char **argv) 
 {
-	std::string filename;
-
-	int contentEncoding; // AESGCM or AES128GCM
-
 	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
@@ -125,8 +121,6 @@ int main(int argc, char **argv)
 		a_help, a_end 
 	};
 
-	int nerrors;
-
 	// verify the argtable[] entries were allocated successfully
 	if (arg_nullcheck(argtable) != 0)
 	{
@@ -134,8 +128,9 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	// Parse the command line as defined by argtable[]
-	nerrors = arg_parse(argc, argv, argtable);
+	int nerrors = arg_parse(argc, argv, argtable);
 
+	std::string filename;
 	if (a_file_name->count)
 		filename = *a_file_name->sval;
 	else
@@ -248,5 +243,14 @@ int main(int argc, char **argv)
 		NULL,
 		verbosity
 	);
+	if (r) 
+	{
+		std::cerr << "Starting client error " << retcode << std::endl;
+	}
+	std::string l;
+	do {
+		std::cin >> l;
+	} while (l != "q");
+	
 	return r;
 }
