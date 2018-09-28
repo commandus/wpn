@@ -1,5 +1,0 @@
-.lib/libwpnapi.so
-
-gcc -c -I ../../third_party ../../third_party/argtable3/argtable3.c
-g++ -std=c++11 -o wpnr -I ../.. -I ../../third_party wpnr.cpp argtable3.o
-
