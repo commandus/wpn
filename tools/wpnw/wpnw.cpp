@@ -41,8 +41,8 @@
 
 using json = nlohmann::json;
 
-static const char* progname = "wpnr";
-#define DEF_FILE_NAME			".wpnr.js"
+static const char* progname = "wpnw";
+#define DEF_FILE_NAME			".wpnw.js"
 
 static std::string jsonConfig
 (
@@ -130,12 +130,21 @@ void onLog
 int main(int argc, char **argv) 
 {
 	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
+	
+	struct arg_str *a_registrationid = arg_str0("r", "registration", "<id>", "Recipient registration id");
+	struct arg_str *a_p256dh = arg_str0("p", "p256dh", "<base64>", "VAPID public key");
+	struct arg_str *a_auth = arg_str0("a", "auth", "<base64>", "VAPID auth");
+	struct arg_str *a_body = arg_str0("b", "body", "<text>", "Message");
+	struct arg_str *a_contact = arg_str0("c", "contact", "<URL>", "e-mail or http link");
+
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
 		a_file_name,
+		a_registrationid, a_p256dh,
+		a_auth, a_body, a_contact,
 		a_verbosity,
 		a_help, a_end 
 	};
@@ -155,6 +164,11 @@ int main(int argc, char **argv)
 	else
 		filename = getDefaultConfigFileName();
 	int verbosity = a_verbosity->count;
+	std::string registrationid = *a_registrationid->sval;
+	std::string p256dh = *a_p256dh->sval;
+	std::string auth = *a_auth->sval;
+	std::string body = *a_body->sval;
+	std::string contact = *a_contact->sval;
 
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)
@@ -187,10 +201,10 @@ int main(int argc, char **argv)
 	char authSecretC[48];
 	uint64_t androidId;
 	uint64_t securityToken;
-	std::string s;
 	std::string appId;
 
 	try {
+		std::string s;
 		appId = j["appId"];
 		s = j["registrationId"];
 		strncpy(registrationIdC, s.c_str(), sizeof(registrationIdC));
@@ -215,7 +229,7 @@ int main(int argc, char **argv)
 	int r  = 0;
 	if (isNew) 
 	{
-		// generate a new application name. Is it requited?
+		// generate a new application name. Is it required?
 		appId = "wp:com.commandus.wpnr#" + sole::uuid4().str();
 		// Initialize client
 		r = initClientC(
@@ -248,43 +262,30 @@ int main(int argc, char **argv)
 			appId
 		);
 	}
-	// read
-	int retcode;
-	void *client = startClient(
-		&retcode,
-		privateKeyC,
-		authSecretC,
-		androidId,
-		securityToken,
-		onNotify,
-		NULL,
-		onLog,
-		NULL,
-		verbosity
-	);
-	if (r) 
-	{
-		std::cerr << "Starting client error " << retcode << std::endl;
-	} 
-	std::cout << "Enter q to quit" << std::endl;
-	char endpoint[255];
-	endpointC(endpoint, sizeof(endpoint), registrationIdC, 0);	///< 0- Chrome, 1- Firefox
-	std::cout << endpoint << std::endl;
-	std::cout << jsonConfig(
-		registrationIdC,
-		privateKeyC,
-		publicKeyC,
-		authSecretC,
-		androidId,
-		securityToken,
-		appId
-	) << std::endl;
 
-	// loop
-	std::string l;
-	do {
-		std::cin >> l;
-	} while (l != "q");
+	// write
 	
+	int retcode;
+	char retval[4096];
+	char endpoint[256];
+	endpointC(endpoint, sizeof(endpoint), registrationid.c_str(), 0);	///< 0- Chrome, 1- Firefox
+	r = webpushVapidC(
+		retval, sizeof(retval),
+		publicKeyC,
+		privateKeyC,
+		endpoint,
+		p256dh.c_str(),
+		auth.c_str(),
+		body.c_str(),
+		contact.c_str(),
+		AES128GCM,
+		time(NULL) + 86400 - 60
+	);
+
+	if (r < 200 || r > 299) 
+	{
+		std::cerr << "Send error " << r << std::endl;
+		return r;
+	} 
 	return r;
 }

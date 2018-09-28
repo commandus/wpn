@@ -215,7 +215,7 @@ int main(int argc, char **argv)
 	int r  = 0;
 	if (isNew) 
 	{
-		// generate a new application name. Is it requited?
+		// generate a new application name. Is it required?
 		appId = "wp:com.commandus.wpnr#" + sole::uuid4().str();
 		// Initialize client
 		r = initClientC(
@@ -265,6 +265,7 @@ int main(int argc, char **argv)
 	if (r) 
 	{
 		std::cerr << "Starting client error " << retcode << std::endl;
+		return r;
 	} 
 	std::cout << "Enter q to quit" << std::endl;
 	char endpoint[255];
@@ -286,5 +287,6 @@ int main(int argc, char **argv)
 		std::cin >> l;
 	} while (l != "q");
 	
+	stopClient(client);
 	return r;
 }
