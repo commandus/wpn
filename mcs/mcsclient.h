@@ -65,20 +65,12 @@ typedef struct
 using namespace google::protobuf;
 
 struct severity {
-	int value;
+	int value = 0;
 	severity(int v)
 		: value(v)
 	{
 	}
 };
-
-/*
-struct flush {
-	flush()
-	{
-	}
-};
-*/
 
 class CallbackLogger : public std::streambuf
 {
@@ -99,21 +91,7 @@ public:
 		out.verbosity = v.value;
 		return out;
 	}
-	/*
-	template<typename T>
-	friend CallbackLogger& operator<<(CallbackLogger & out, T&& t) {
-		// out << std::forward<T>(t);
-		onLog(onLogEnv, verbosity, const char *message);
-		return out;
-	}
-	*/
-	friend CallbackLogger& operator<<(CallbackLogger &out, const char *v) {
-		// out << std::forward<T>(t);
-		out.onLog(out.onLogEnv, out.verbosity, v);
-		return out;
-	}
 	friend CallbackLogger& operator<<(CallbackLogger &out, const std::string &v) {
-		// out << std::forward<T>(t);
 		out.onLog(out.onLogEnv, out.verbosity, v.c_str());
 		return out;
 	}

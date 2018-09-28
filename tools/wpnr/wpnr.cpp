@@ -42,7 +42,30 @@
 using json = nlohmann::json;
 
 static const char* progname = "wpnr";
-#define DEF_FILE_NAME			".wpn.js"
+#define DEF_FILE_NAME			".wpnr.js"
+
+static std::string jsonConfig
+(
+ 	const char* registrationIdC,
+	const char* privateKeyC,
+	const char* publicKeyC,
+	const char* authSecretC,
+	uint64_t androidId,
+	uint64_t securityToken,
+	const std::string &appId
+)
+{
+	json json = {
+		{ "appId", appId},
+		{ "registrationId", registrationIdC},
+		{ "privateKey", privateKeyC },
+		{ "publicKey", publicKeyC },
+		{ "authSecret", authSecretC },
+		{ "androidId", androidId },
+		{ "securityToken", securityToken }
+	};
+	return json.dump(2);
+}
 
 static int save
 (
@@ -57,16 +80,15 @@ static int save
 )
 {
 	int r = 0;
-	json json = {
-		{ "appId", appId},
-		{ "registrationId", registrationIdC},
-		{ "privateKey", privateKeyC },
-		{ "publicKey", publicKeyC },
-		{ "authSecret", authSecretC },
-		{ "androidId", androidId },
-		{ "securityToken", securityToken }
-	};
-	std::string d = json.dump(2);
+	std::string d = jsonConfig(
+		registrationIdC,
+		privateKeyC,
+		publicKeyC,
+		authSecretC,
+		androidId,
+		securityToken,
+		appId
+	);
 	std::ofstream ostrm(filename);
 	try {
 		ostrm << d;
@@ -102,10 +124,7 @@ void onLog
 	const char *message
 )
 {
-	std::cerr << "Log " 
-		<< "severity: " << severity
-		<< ", message: " << message
-		<< std::endl;
+	std::cerr << message;
 }
 
 int main(int argc, char **argv) 
@@ -246,7 +265,22 @@ int main(int argc, char **argv)
 	if (r) 
 	{
 		std::cerr << "Starting client error " << retcode << std::endl;
-	}
+	} 
+	std::cout << "Enter q to quit" << std::endl;
+	char endpoint[255];
+	endpointC(endpoint, sizeof(endpoint), registrationIdC, 0);	///< 0- Chrome, 1- Firefox
+	std::cout << endpoint << std::endl;
+	std::cout << jsonConfig(
+		registrationIdC,
+		privateKeyC,
+		publicKeyC,
+		authSecretC,
+		androidId,
+		securityToken,
+		appId
+	) << std::endl;
+
+	// loop
 	std::string l;
 	do {
 		std::cin >> l;
