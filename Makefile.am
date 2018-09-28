@@ -11,7 +11,7 @@ lib_LTLIBRARIES = \
 bin_PROGRAMS = \
 	wpn \
 	webpush-curl \
-	wpnr
+	wpnr wpnw
 
 commoncppflags = -std=c++11 -O2 -I/usr/local/include -Imcs/gen -Ithird_party
 commonlibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl -lece -lnghttp2 -lglog -lunwind -lprotobuf
@@ -112,7 +112,7 @@ webpush_curl_LDADD = $(commonlibs)
 webpush_curl_CPPFLAGS = $(commoncppflags)
 
 #
-#	wpnr
+#	wpnr (with shared library)
 #
 wpnr_SOURCES= \
 	tools/wpnr/wpnr.cpp config-filename.cpp \
@@ -120,6 +120,16 @@ wpnr_SOURCES= \
 
 wpnr_LDADD = -L.libs -lwpnapi $(commonlibs)
 wpnr_CPPFLAGS = $(commoncppflags)
+
+#
+#	wpnw (with shared library)
+#
+wpnw_SOURCES= \
+	tools/wpnw/wpnw.cpp config-filename.cpp \
+	$(common_src)
+
+wpnw_LDADD = -L.libs -lwpnapi $(commonlibs)
+wpnw_CPPFLAGS = $(commoncppflags)
 
 #
 #	Configs, readme, CMake etc.
@@ -130,6 +140,6 @@ dist_config_DATA = \
 	vs/wpn.sln vs/libwpn-dynamic.vcxproj vs/libwpn-static.vcxproj vs/webpush-curl.vcxproj vs/wpn.vcxproj vs/dllmain.cpp \
 	CMakeLists.txt \
 	tools/mkcert tools/curl/README \
-	tools/wpnr/README \
+	tools/wpnr/README.md tools/wpnw/README.md \
 	LICENSE COPYING CODE_OF_CONDUCT.md CONTRIBUTING.md HISTORY README.md \
 	autogen.sh email-template.html
