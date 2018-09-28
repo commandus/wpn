@@ -227,6 +227,12 @@ Old browsers supports GCM web push, modern browsers supports both of them.
 
 VAPID use two different encodings, old version use AES GCM and new version AES 128 GCM. By default a modern AES 128 GCM encoding is used.
 
+Utilities to read/write messages:
+
+- wpn read/write
+- wpnr read only
+- wpnw write only
+
 ### Client push message using GCM
 
 Send notification with -m option.
