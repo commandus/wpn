@@ -581,17 +581,30 @@ bool WpnConfig::save() const
 
 bool WpnConfig::fromJson(const json &value)
 {
+	bool r;
+	androidCredentials = NULL;
+	wpnKeys = NULL;
+	subscriptions = NULL;
 	try {
-		androidCredentials = new AndroidCredentials(value["credentials"]);
-		wpnKeys = new WpnKeys(value["keys"]);
-		subscriptions = new Subscriptions(value["subscriptions"]);
+		r = (value.find("credentials") != value.end())
+			&& (value.find("keys") != value.end())
+			&& (value.find("subscriptions") != value.end());
+		if (r) 
+		{
+			androidCredentials = new AndroidCredentials(value["credentials"]);
+			wpnKeys = new WpnKeys(value["keys"]);
+			subscriptions = new Subscriptions(value["subscriptions"]);
+		}
 	} catch(...) {
-		androidCredentials = new AndroidCredentials();
-		wpnKeys = new WpnKeys();
-		subscriptions = new Subscriptions();
-		return false;
+		r = false;
 	}
-	return true;
+	if (!androidCredentials) 
+		androidCredentials = new AndroidCredentials();
+	if (!wpnKeys) 
+		wpnKeys = new WpnKeys();
+	if (!subscriptions) 
+		subscriptions = new Subscriptions();
+	return r;
 }
 
 SO_INSTANCE loadPlugin(const std::string &fileName)
