@@ -21,7 +21,7 @@
  * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/connect/subscribe
  * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
  * @param serverKey optional key used to send messages
- * @param authorizedEntity usual decimal number string
+ * @param authorizedEntity usually decimal number string
  * @param retVal can be NULL
  * @param retHeaders can be NULL
  * @param verbosity default 0- none
