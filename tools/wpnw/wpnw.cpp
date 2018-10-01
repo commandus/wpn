@@ -135,8 +135,9 @@ int main(int argc, char **argv)
 	struct arg_str *a_p256dh = arg_str0("p", "p256dh", "<base64>", "VAPID public key");
 	struct arg_str *a_auth = arg_str0("a", "auth", "<base64>", "VAPID auth");
 	struct arg_str *a_body = arg_str0("b", "body", "<text>", "Message");
-	struct arg_str *a_contact = arg_str0("c", "contact", "<URL>", "e-mail or http link");
+	struct arg_str *a_contact = arg_str0("f", "from", "<URL>", "Sender's email e.g. mailto:alice@acme.com or https[s] link");
 
+ 	struct arg_lit *a_aesgcm = arg_lit0("1", "aesgcm", "Force AESGCM. Default AES128GCM");
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
@@ -145,6 +146,7 @@ int main(int argc, char **argv)
 		a_file_name,
 		a_registrationid, a_p256dh,
 		a_auth, a_body, a_contact,
+		a_aesgcm,
 		a_verbosity,
 		a_help, a_end 
 	};
@@ -162,14 +164,15 @@ int main(int argc, char **argv)
 	if (a_file_name->count)
 		filename = *a_file_name->sval;
 	else
-		filename = getDefaultConfigFileName();
+		filename = getDefaultConfigFileName(DEF_FILE_NAME);
 	int verbosity = a_verbosity->count;
 	std::string registrationid = *a_registrationid->sval;
 	std::string p256dh = *a_p256dh->sval;
 	std::string auth = *a_auth->sval;
 	std::string body = *a_body->sval;
 	std::string contact = *a_contact->sval;
-	
+	std::string cmdFileName = "curl.out";
+	bool aesgcm = a_aesgcm->count > 0;
 	if (registrationid.empty()) {
 		nerrors++;
 		std::cerr << "Recipient registration id missed." << std::endl;
@@ -235,7 +238,6 @@ int main(int argc, char **argv)
 		securityToken = j["securityToken"];
 	} catch(...) {
 	}
-	strm.close();
 
 	bool isNew = appId.empty();
 
@@ -246,6 +248,8 @@ int main(int argc, char **argv)
 	int r  = 0;
 	if (isNew) 
 	{
+		if (verbosity > 1)
+			std::cerr << "Generate credentials.." << std::endl;
 		// generate a new application name. Is it required?
 		appId = "wp:com.commandus.wpnr#" + sole::uuid4().str();
 		// Initialize client
@@ -278,6 +282,8 @@ int main(int argc, char **argv)
 			securityToken,
 			appId
 		);
+		if (verbosity > 1)
+			std::cerr << "Credentials saved in " << filename << ", code: " << r << std::endl;
 	}
 
 	// write
@@ -298,6 +304,25 @@ int main(int argc, char **argv)
 		appId
 	) << std::endl;
 
+	time_t t = time(NULL) + 86400 - 60;
+	if (verbosity > 1)
+	{
+		r = webpushVapidCmdC(
+			retval, sizeof(retval),
+			publicKeyC,
+			privateKeyC,
+			cmdFileName.c_str(),
+			endpoint,
+			p256dh.c_str(),
+			auth.c_str(),
+			body.c_str(),
+			contact.c_str(),
+			aesgcm ? AESGCM : AES128GCM,
+			t
+		);
+		if (r > 0)
+			std::cerr << "curl: " << std::endl << retval << std::endl;
+	}
 	r = webpushVapidC(
 		retval, sizeof(retval),
 		publicKeyC,
@@ -307,13 +332,15 @@ int main(int argc, char **argv)
 		auth.c_str(),
 		body.c_str(),
 		contact.c_str(),
-		AES128GCM,
-		time(NULL) + 86400 - 60
+		aesgcm ? AESGCM : AES128GCM,
+		t
 	);
 
 	if (r < 200 || r > 299) 
 	{
-		std::cerr << "Send error " << r << std::endl;
+		std::cerr << "Send error " << r 
+			<< ": " << retval
+			<< std::endl;
 		return r;
 	} 
 	return r;

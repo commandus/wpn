@@ -26,6 +26,8 @@
 #define DEF_PLUGIN_FILE_EXT		".so"
 #endif
 
+#define DEF_FILE_NAME			".wpn.js"
+
 static const char* progname = "wpn";
 
 static const char* SUBSCRIBE_URLS[SUBSCRIBE_URL_COUNT] = {
@@ -66,7 +68,7 @@ std::string WpnConfig::getDefaultFCMEndPoint()
 
 WpnConfig::WpnConfig()
 	: errorcode(0), cmd(CMD_LISTEN), outputFormat(0), verbosity(0), aesgcm(false),
-	file_name(getDefaultConfigFileName()), name(""), subscribeUrl(""), fcm_endpoint(""), 
+	file_name(getDefaultConfigFileName(DEF_FILE_NAME)), name(""), subscribeUrl(""), fcm_endpoint(""), 
 	authorizedEntity(""), subscriptionMode(0), serverKey(""), recipientTokenFile(""), 
 	vapid_sender_contact(""), vapid_recipient_p256dh(""), vapid_recipient_auth(""),
 	private_key(""), public_key(""), auth_secret(""), sub(""),
@@ -195,7 +197,7 @@ int WpnConfig::parseCmd
 	if (a_file_name->count)
 		file_name = *a_file_name->sval;
 	else
-		file_name = getDefaultConfigFileName();
+		file_name = getDefaultConfigFileName(DEF_FILE_NAME);
 
 	// read
 	if (file_name.find(".js") != std::string::npos) {

@@ -153,7 +153,7 @@ int main(int argc, char **argv)
 	if (a_file_name->count)
 		filename = *a_file_name->sval;
 	else
-		filename = getDefaultConfigFileName();
+		filename = getDefaultConfigFileName(DEF_FILE_NAME);
 	int verbosity = a_verbosity->count;
 
 	// special case: '--help' takes precedence over error reporting

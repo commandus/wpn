@@ -9,8 +9,6 @@
 
 #include "config-filename.h"
 
-#define DEF_FILE_NAME			".wpn.js"
-
 #ifdef _MSC_VER
 std::string getDefaultConfigFileName()
 {
@@ -34,11 +32,11 @@ std::string getDefaultConfigFileName()
 /**
 * https://stackoverflow.com/questions/2910377/get-home-directory-in-linux-c
 */
-std::string getDefaultConfigFileName()
+std::string getDefaultConfigFileName(const std::string &filename)
 {
 	struct passwd *pw = getpwuid(getuid());
 	const char *homedir = pw->pw_dir;
 	std::string r(homedir);
-	return r + "/" + DEF_FILE_NAME;
+	return r + "/" + filename;
 }
 #endif
