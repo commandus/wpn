@@ -169,6 +169,23 @@ int main(int argc, char **argv)
 	std::string auth = *a_auth->sval;
 	std::string body = *a_body->sval;
 	std::string contact = *a_contact->sval;
+	
+	if (registrationid.empty()) {
+		nerrors++;
+		std::cerr << "Recipient registration id missed." << std::endl;
+	}
+	if (p256dh.empty()) {
+		nerrors++;
+		std::cerr << "Recipient public key missed." << std::endl;
+	}
+	if (auth.empty()) {
+		nerrors++;
+		std::cerr << "Recipient auth missed." << std::endl;
+	}
+	if (body.empty()) {
+		nerrors++;
+		std::cerr << "Message text missed." << std::endl;
+	}
 
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)
@@ -177,7 +194,7 @@ int main(int argc, char **argv)
 			arg_print_errors(stderr, a_end, progname);
 		std::cerr << "Usage: " << progname << std::endl;
 		arg_print_syntax(stderr, argtable, "\n");
-		std::cerr << "Web push receiver" << std::endl;
+		std::cerr << "Web push sender" << std::endl;
 		arg_print_glossary(stderr, argtable, "  %-27s %s\n");
 		arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 		return 1;
@@ -269,6 +286,18 @@ int main(int argc, char **argv)
 	char retval[4096];
 	char endpoint[256];
 	endpointC(endpoint, sizeof(endpoint), registrationid.c_str(), 0);	///< 0- Chrome, 1- Firefox
+
+	std::cout << endpoint << std::endl;	
+	std::cout << jsonConfig(
+		registrationIdC,
+		privateKeyC,
+		publicKeyC,
+		authSecretC,
+		androidId,
+		securityToken,
+		appId
+	) << std::endl;
+
 	r = webpushVapidC(
 		retval, sizeof(retval),
 		publicKeyC,
