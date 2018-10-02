@@ -44,8 +44,14 @@ using json = nlohmann::json;
 static const char* progname = "wpnw";
 #define DEF_FILE_NAME			".wpnw.js"
 
+enum VAPID_PROVIDER {
+	PROVIDER_CHROME = 0,
+	PROVIDER_FIREFOX = 1
+};
+
 static std::string jsonConfig
 (
+	enum VAPID_PROVIDER provider,
  	const char* registrationIdC,
 	const char* privateKeyC,
 	const char* publicKeyC,
@@ -56,6 +62,7 @@ static std::string jsonConfig
 )
 {
 	json json = {
+		{ "provider", provider == PROVIDER_FIREFOX ? "firefox" : "chrome" },
 		{ "appId", appId},
 		{ "registrationId", registrationIdC},
 		{ "privateKey", privateKeyC },
@@ -69,6 +76,7 @@ static std::string jsonConfig
 
 static int save
 (
+	enum VAPID_PROVIDER provider,
 	const std::string &filename,
  	const char* registrationIdC,
 	const char* privateKeyC,
@@ -81,6 +89,7 @@ static int save
 {
 	int r = 0;
 	std::string d = jsonConfig(
+		provider,
 		registrationIdC,
 		privateKeyC,
 		publicKeyC,
@@ -130,7 +139,9 @@ void onLog
 int main(int argc, char **argv) 
 {
 	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
-	
+
+	struct arg_str *a_provider = arg_str0("p", "provider", "chrome|firefox", "web push provider. Default chrome.");
+
 	struct arg_str *a_registrationid = arg_str0("r", "registration", "<id>", "Recipient registration id");
 	struct arg_str *a_p256dh = arg_str0("p", "p256dh", "<base64>", "VAPID public key");
 	struct arg_str *a_auth = arg_str0("a", "auth", "<base64>", "VAPID auth");
@@ -144,6 +155,7 @@ int main(int argc, char **argv)
 
 	void* argtable[] = { 
 		a_file_name,
+		a_provider,
 		a_registrationid, a_p256dh,
 		a_auth, a_body, a_contact,
 		a_aesgcm,
@@ -189,6 +201,13 @@ int main(int argc, char **argv)
 		nerrors++;
 		std::cerr << "Message text missed." << std::endl;
 	}
+	
+	enum VAPID_PROVIDER provider = PROVIDER_CHROME;
+	if (a_provider->count) {
+		if ("firefox" == std::string(*a_provider->sval)) {
+			provider = PROVIDER_FIREFOX;
+		}
+	}
 
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)
@@ -225,6 +244,9 @@ int main(int argc, char **argv)
 
 	try {
 		std::string s;
+		s = j["provider"];;
+		if (s == "firefox")
+			provider = PROVIDER_FIREFOX;
 		appId = j["appId"];
 		s = j["registrationId"];
 		strncpy(registrationIdC, s.c_str(), sizeof(registrationIdC));
@@ -273,6 +295,7 @@ int main(int argc, char **argv)
 		}
 		// save 
 		r = save(
+			provider,
 			filename,
 			registrationIdC,
 			privateKeyC,
@@ -291,10 +314,11 @@ int main(int argc, char **argv)
 	int retcode;
 	char retval[4096];
 	char endpoint[256];
-	endpointC(endpoint, sizeof(endpoint), registrationid.c_str(), 0);	///< 0- Chrome, 1- Firefox
+	endpointC(endpoint, sizeof(endpoint), registrationid.c_str(), (int) provider);	///< 0- Chrome, 1- Firefox
 
 	std::cout << endpoint << std::endl;	
 	std::cout << jsonConfig(
+		provider,
 		registrationIdC,
 		privateKeyC,
 		publicKeyC,
