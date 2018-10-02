@@ -44,11 +44,6 @@ using json = nlohmann::json;
 static const char* progname = "wpnw";
 #define DEF_FILE_NAME			".wpnw.js"
 
-enum VAPID_PROVIDER {
-	PROVIDER_CHROME = 0,
-	PROVIDER_FIREFOX = 1
-};
-
 static std::string jsonConfig
 (
 	enum VAPID_PROVIDER provider,
@@ -139,7 +134,6 @@ void onLog
 int main(int argc, char **argv) 
 {
 	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
-
 	struct arg_str *a_provider = arg_str0("p", "provider", "chrome|firefox", "web push provider. Default chrome.");
 
 	struct arg_str *a_registrationid = arg_str0("r", "registration", "<id>", "Recipient registration id");
@@ -154,8 +148,7 @@ int main(int argc, char **argv)
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
-		a_file_name,
-		a_provider,
+		a_file_name, a_provider,
 		a_registrationid, a_p256dh,
 		a_auth, a_body, a_contact,
 		a_aesgcm,

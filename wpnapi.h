@@ -18,6 +18,11 @@ extern "C" {
 #define EXPORTDLL
 #endif
 
+enum VAPID_PROVIDER {
+	PROVIDER_CHROME = 0,
+	PROVIDER_FIREFOX = 1
+};
+
 /**
  * Helper function for testing
  * Print out "curl ..."  command line string
