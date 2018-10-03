@@ -134,7 +134,7 @@ void onLog
 int main(int argc, char **argv) 
 {
 	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
-	struct arg_str *a_provider = arg_str0("p", "provider", "chrome|firefox", "web push provider. Default chrome.");
+	struct arg_str *a_provider = arg_str0("p", "provider", "chrome|firefox", "Re-init web push provider. Default chrome.");
 
 	struct arg_str *a_registrationid = arg_str0("r", "registration", "<id>", "Recipient registration id");
 	struct arg_str *a_p256dh = arg_str0("p", "p256dh", "<base64>", "VAPID public key");
@@ -240,6 +240,8 @@ int main(int argc, char **argv)
 		s = j["provider"];;
 		if (s == "firefox")
 			provider = PROVIDER_FIREFOX;
+		else
+			provider = PROVIDER_CHROME;
 		appId = j["appId"];
 		s = j["registrationId"];
 		strncpy(registrationIdC, s.c_str(), sizeof(registrationIdC));
@@ -254,7 +256,7 @@ int main(int argc, char **argv)
 	} catch(...) {
 	}
 
-	bool isNew = appId.empty();
+	bool isNew = appId.empty() || (a_provider->count > 0);
 
 	// In windows, this will init the winsock stuff
 	curl_global_init(CURL_GLOBAL_ALL);

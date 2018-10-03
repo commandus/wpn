@@ -134,7 +134,7 @@ void onLog
 int main(int argc, char **argv) 
 {
 	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
-	struct arg_str *a_provider = arg_str0("p", "provider", "chrome|firefox", "web push provider. Default chrome.");
+	struct arg_str *a_provider = arg_str0("p", "provider", "chrome|firefox", "Re-init web push provider. Default chrome.");
 
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
@@ -208,6 +208,8 @@ int main(int argc, char **argv)
 		s = j["provider"];;
 		if (s == "firefox")
 			provider = PROVIDER_FIREFOX;
+		else
+			provider = PROVIDER_CHROME;
 		appId = j["appId"];
 		s = j["registrationId"];
 		strncpy(registrationIdC, s.c_str(), sizeof(registrationIdC));
@@ -223,7 +225,7 @@ int main(int argc, char **argv)
 	}
 	strm.close();
 
-	bool isNew = appId.empty();
+	bool isNew = appId.empty() || (a_provider->count > 0);
 
 	// In windows, this will init the winsock stuff
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -287,7 +289,7 @@ int main(int argc, char **argv)
 	} 
 	std::cout << "Enter q to quit" << std::endl;
 	char endpoint[255];
-	endpointC(endpoint, sizeof(endpoint), registrationIdC, 0);	///< 0- Chrome, 1- Firefox
+	endpointC(endpoint, sizeof(endpoint), registrationIdC, (int) provider);	///< 0- Chrome, 1- Firefox
 	std::cout << endpoint << std::endl;
 	std::cout << jsonConfig(
 		provider,
