@@ -137,9 +137,15 @@ int main(int argc, char **argv)
 	struct arg_str *a_provider = arg_str0("p", "provider", "chrome|firefox", "Re-init web push provider. Default chrome.");
 
 	struct arg_str *a_registrationid = arg_str0("r", "registration", "<id>", "Recipient registration id");
-	struct arg_str *a_p256dh = arg_str0("p", "p256dh", "<base64>", "VAPID public key");
+	struct arg_str *a_p256dh = arg_str0("d", "p256dh", "<base64>", "VAPID public key");
 	struct arg_str *a_auth = arg_str0("a", "auth", "<base64>", "VAPID auth");
-	struct arg_str *a_body = arg_str0("b", "body", "<text>", "Message");
+	
+	struct arg_str *a_subject = arg_str0("t", "subject", "<Text>", "Subject (topic)");
+	struct arg_str *a_body = arg_str0("b", "body", "<Text>", "Body");
+	struct arg_str *a_icon = arg_str0("i", "icon", "<URL>", "http[s]:// icon address.");
+	struct arg_str *a_link = arg_str0("l", "link", "<URL>", "http[s]:// action address.");
+
+	
 	struct arg_str *a_contact = arg_str0("f", "from", "<URL>", "Sender's email e.g. mailto:alice@acme.com or https[s] link");
 
  	struct arg_lit *a_aesgcm = arg_lit0("1", "aesgcm", "Force AESGCM. Default AES128GCM");
@@ -150,7 +156,9 @@ int main(int argc, char **argv)
 	void* argtable[] = { 
 		a_file_name, a_provider,
 		a_registrationid, a_p256dh,
-		a_auth, a_body, a_contact,
+		a_auth, 
+		a_subject, a_body, a_icon, a_link,
+		a_contact,
 		a_aesgcm,
 		a_verbosity,
 		a_help, a_end 
@@ -174,7 +182,47 @@ int main(int argc, char **argv)
 	std::string registrationid = *a_registrationid->sval;
 	std::string p256dh = *a_p256dh->sval;
 	std::string auth = *a_auth->sval;
-	std::string body = *a_body->sval;
+	std::string subject; 
+	std::string icon;
+	std::string link;
+	std::string body;
+	
+	if (a_subject->count)
+	{
+		subject = *a_subject->sval;
+	}
+	else
+	{
+		subject = "";
+	}
+
+	if (a_body->count)
+	{
+		body = *a_body->sval;
+	}
+	else
+	{
+		body = "";
+	}
+
+	if (a_icon->count)
+	{
+		icon = *a_icon->sval;
+	}
+	else
+	{
+		icon = "";
+	}
+
+	if (a_link->count)
+	{
+		link = *a_link->sval;
+	} 
+	else 
+	{
+		link = "";
+	}
+
 	std::string contact = *a_contact->sval;
 	std::string cmdFileName = "curl.out";
 	bool aesgcm = a_aesgcm->count > 0;
