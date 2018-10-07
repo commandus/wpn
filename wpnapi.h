@@ -167,6 +167,7 @@ EXPORTDLL size_t endpointC(
 	char* retval,
 	size_t retvalSize,
 	const char *registrationId,			///< GCMToken
+	const int send = 0,				///< 1- send, 0- receive
 	const int browser = 0				///< 0- Chrome, 1- Firefox
 );
 

@@ -423,10 +423,11 @@ EXPORTDLL size_t endpointC(
 	char* retval,
 	size_t retsize,
 	const char *registrationId,			///< GCMToken
+	const int send,					///< 1- send, 0- receiver
 	const int browser					///< 0- Chrome, 1- Firefox
 )
 {
-	std::string r = endpoint(std::string(registrationId));
+	std::string r = endpoint(std::string(registrationId), send != 0, browser);
 	size_t rs = r.size();
 	if (retval)
 	{

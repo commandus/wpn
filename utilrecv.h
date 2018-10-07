@@ -60,6 +60,7 @@ std::string tagNmessageToString
  */
 std::string endpoint(
 	const std::string &registrationId,			///< GCMToken
+	const bool send = false,
 	const int browser = 0						///< 0- Chrome, 1- Firefox
 );
 

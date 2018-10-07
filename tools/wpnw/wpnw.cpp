@@ -244,7 +244,8 @@ int main(int argc, char **argv)
 	}
 	
 	enum VAPID_PROVIDER provider = PROVIDER_CHROME;
-	if (a_provider->count) {
+	bool isNew = a_provider->count;
+	if (isNew) {
 		if ("firefox" == std::string(*a_provider->sval)) {
 			provider = PROVIDER_FIREFOX;
 		}
@@ -304,14 +305,12 @@ int main(int argc, char **argv)
 	} catch(...) {
 	}
 
-	bool isNew = appId.empty() || (a_provider->count > 0);
-
 	// In windows, this will init the winsock stuff
 	curl_global_init(CURL_GLOBAL_ALL);
 	OpenSSL_add_all_algorithms();
 
 	int r  = 0;
-	if (isNew) 
+	if (isNew || appId.empty()) 
 	{
 		if (verbosity > 1)
 			std::cerr << "Generate credentials.." << std::endl;
@@ -357,7 +356,7 @@ int main(int argc, char **argv)
 	int retcode;
 	char retval[4096];
 	char endpoint[256];
-	endpointC(endpoint, sizeof(endpoint), registrationid.c_str(), (int) provider);	///< 0- Chrome, 1- Firefox
+	endpointC(endpoint, sizeof(endpoint), registrationid.c_str(), 1, (int) provider);	///< 0- Chrome, 1- Firefox
 
 	std::cout << endpoint << std::endl;	
 	std::cout << jsonConfig(

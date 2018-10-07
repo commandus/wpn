@@ -170,6 +170,8 @@ int main(int argc, char **argv)
 		}
 	}
 
+	bool isNew = a_provider->count > 0;
+
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)
 	{
@@ -225,14 +227,12 @@ int main(int argc, char **argv)
 	}
 	strm.close();
 
-	bool isNew = appId.empty() || (a_provider->count > 0);
-
 	// In windows, this will init the winsock stuff
 	curl_global_init(CURL_GLOBAL_ALL);
 	OpenSSL_add_all_algorithms();
 
 	int r  = 0;
-	if (isNew) 
+	if (isNew || appId.empty()) 
 	{
 		// generate a new application name. Is it required?
 		appId = "wp:com.commandus.wpnr#" + sole::uuid4().str();
@@ -289,7 +289,7 @@ int main(int argc, char **argv)
 	} 
 	std::cout << "Enter q to quit" << std::endl;
 	char endpoint[255];
-	endpointC(endpoint, sizeof(endpoint), registrationIdC, (int) provider);	///< 0- Chrome, 1- Firefox
+	endpointC(endpoint, sizeof(endpoint), registrationIdC, 0, (int) provider);	///< 0- Chrome, 1- Firefox
 	std::cout << endpoint << std::endl;
 	std::cout << jsonConfig(
 		provider,

@@ -204,6 +204,7 @@ const uint8_t REGISTER_SERVER_KEY[] =
  */
 std::string endpoint(
 	const std::string &registrationId,			///< GCMToken
+	const bool send,
 	const int browser							///< 0- Chrome, 1- Firefox
 )
 {
@@ -213,7 +214,11 @@ std::string endpoint(
 		return "https://updates.push.services.mozilla.com/wpush/v2/" + registrationId;
 	default:
 		// Chrome VAPID
-		return "https://fcm.googleapis.com/fcm/send/" + registrationId;
+		if (send)
+			return "https://fcm.googleapis.com/wp/" + registrationId;
+		else
+			return "https://fcm.googleapis.com/fcm/send/" + registrationId;
+
 	}
 }
 
