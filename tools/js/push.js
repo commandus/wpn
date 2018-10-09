@@ -85,6 +85,7 @@ var options = {
   //contentEncoding: 'aesgcm'
 };
 
+/*
 webPush.sendNotification(
   pushSubscriptionFirefox,
   payload,
@@ -93,6 +94,7 @@ webPush.sendNotification(
   value => console.log(value), 
   error => console.log(error)
 );
+*/
 
 webPush.sendNotification(
   pushSubscriptionChrome,

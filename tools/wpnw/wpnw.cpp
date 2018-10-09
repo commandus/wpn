@@ -47,94 +47,21 @@ static const char* progname = "wpnw";
 static std::string jsonConfig
 (
 	enum VAPID_PROVIDER provider,
- 	const char* registrationIdC,
 	const char* privateKeyC,
-	const char* publicKeyC,
-	const char* authSecretC,
-	uint64_t androidId,
-	uint64_t securityToken,
-	const std::string &appId
+	const char* publicKeyC
 )
 {
 	json json = {
 		{ "provider", provider == PROVIDER_FIREFOX ? "firefox" : "chrome" },
-		{ "appId", appId},
-		{ "registrationId", registrationIdC},
 		{ "privateKey", privateKeyC },
 		{ "publicKey", publicKeyC },
-		{ "authSecret", authSecretC },
-		{ "androidId", androidId },
-		{ "securityToken", securityToken }
 	};
 	return json.dump(2);
-}
-
-static int save
-(
-	enum VAPID_PROVIDER provider,
-	const std::string &filename,
- 	const char* registrationIdC,
-	const char* privateKeyC,
-	const char* publicKeyC,
-	const char* authSecretC,
-	uint64_t androidId,
-	uint64_t securityToken,
-	const std::string &appId
-)
-{
-	int r = 0;
-	std::string d = jsonConfig(
-		provider,
-		registrationIdC,
-		privateKeyC,
-		publicKeyC,
-		authSecretC,
-		androidId,
-		securityToken,
-		appId
-	);
-	std::ofstream ostrm(filename);
-	try {
-		ostrm << d;
-	}
-	catch (...) {
-		std::cerr << "Error write " << filename << std::endl;
-		r = -1;
-	}
-	ostrm.close();
-	return r;
-}
-
-void onNotify
-(
-	void *env,
-	const char *persistent_id,
-	const char *from,				///< e.g. BDOU99-h67HcA6JeFXHbSNMu7e2yNNu3RzoMj8TM4W88jITfq7ZmPvIM1Iv-4_l2LxQcYwhqby2xGpWwzjfAnG4
-	const char *appName,
-	const char *appId,
-	int64_t sent,
-	const NotifyMessageC *request
-)
-{
-	std::cerr << "Notify " 
-		<< "persistent_id: " << persistent_id
-		<< std::endl;
-}
-
-void onLog
-(
-	void *env,
-	int severity,
-	const char *message
-)
-{
-	std::cerr << message;
 }
 
 int main(int argc, char **argv) 
 {
 	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
-	struct arg_lit *a_info = arg_lit0("i", "info", "Print VAPID keys");
 	struct arg_str *a_provider = arg_str0("p", "provider", "chrome|firefox", "Re-init web push provider. Default chrome.");
 
 	struct arg_str *a_registrationid = arg_str0("r", "registration", "<id>", "Recipient registration id");
@@ -156,7 +83,7 @@ int main(int argc, char **argv)
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
-		a_file_name, a_info, a_provider,
+		a_file_name, a_provider,
 		a_registrationid, a_p256dh,
 		a_auth, 
 		a_subject, a_body, a_icon, a_link,
@@ -175,13 +102,7 @@ int main(int argc, char **argv)
 	// Parse the command line as defined by argtable[]
 	int nerrors = arg_parse(argc, argv, argtable);
 
-	std::string filename;
-	if (a_file_name->count)
-		filename = *a_file_name->sval;
-	else
-		filename = getDefaultConfigFileName(DEF_FILE_NAME);
 	int verbosity = a_verbosity->count;
-	bool printOnly = a_info->count > 0;
 	std::string registrationid = *a_registrationid->sval;
 	std::string p256dh = *a_p256dh->sval;
 	std::string auth = *a_auth->sval;
@@ -229,38 +150,30 @@ int main(int argc, char **argv)
 		link = "";
 	}
 	
-	bool force_vapid = (a_force_publickey->count > 0) && (a_force_privatekey->count > 0);
-
 	std::string contact = *a_contact->sval;
 	std::string cmdFileName = "curl.out";
 	bool aesgcm = a_aesgcm->count > 0;
 
-	if (!printOnly)
-	{
-		if (registrationid.empty()) {
-			nerrors++;
-			std::cerr << "Recipient registration id missed." << std::endl;
-		}
-		if (p256dh.empty()) {
-			nerrors++;
-			std::cerr << "Recipient public key missed." << std::endl;
-		}
-		if (auth.empty()) {
-			nerrors++;
-			std::cerr << "Recipient auth missed." << std::endl;
-		}
-		if (body.empty()) {
-			nerrors++;
-			std::cerr << "Message text missed." << std::endl;
-		}
+	if (registrationid.empty()) {
+		nerrors++;
+		std::cerr << "Recipient registration id missed." << std::endl;
+	}
+	if (p256dh.empty()) {
+		nerrors++;
+		std::cerr << "Recipient public key missed." << std::endl;
+	}
+	if (auth.empty()) {
+		nerrors++;
+		std::cerr << "Recipient auth missed." << std::endl;
+	}
+	if (body.empty()) {
+		nerrors++;
+		std::cerr << "Message text missed." << std::endl;
 	}
 
 	enum VAPID_PROVIDER provider = PROVIDER_CHROME;
-	bool isNew = a_provider->count;
-	if (isNew) {
-		if ("firefox" == std::string(*a_provider->sval)) {
-			provider = PROVIDER_FIREFOX;
-		}
+	if ("firefox" == std::string(*a_provider->sval)) {
+		provider = PROVIDER_FIREFOX;
 	}
 
 	// special case: '--help' takes precedence over error reporting
@@ -277,16 +190,6 @@ int main(int argc, char **argv)
 	}
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
-	// load config file
-	std::ifstream strm(filename);
-	json j;
-	try {
-		strm >> j;
-	}
-	catch (...) {
-		std::cerr << "Error parse " << filename << std::endl;
-	}
-	strm.close();
 
 	char registrationIdC[256];
 	char privateKeyC[96];
@@ -296,101 +199,42 @@ int main(int argc, char **argv)
 	uint64_t securityToken;
 	std::string appId;
 
-	try {
-		std::string s;
-		s = j["provider"];;
-		if (s == "firefox")
-			provider = PROVIDER_FIREFOX;
-		else
-			provider = PROVIDER_CHROME;
-		appId = j["appId"];
-		s = j["registrationId"];
-		strncpy(registrationIdC, s.c_str(), sizeof(registrationIdC));
-		s = j["privateKey"];
-		strncpy(privateKeyC, s.c_str(), sizeof(privateKeyC));
-		s = j["publicKey"];
-		strncpy(publicKeyC, s.c_str(), sizeof(publicKeyC));
-		s = j["authSecret"];
-		strncpy(authSecretC, s.c_str(), sizeof(authSecretC));
-		androidId = j["androidId"];
-		securityToken = j["securityToken"];
-	} catch(...) {
-	}
-
 	// In windows, this will init the winsock stuff
 	curl_global_init(CURL_GLOBAL_ALL);
 	OpenSSL_add_all_algorithms();
 
 	int r  = 0;
-	if (isNew || appId.empty()) 
-	{
-		if (verbosity > 1)
-			std::cerr << "Generate credentials.." << std::endl;
-		// generate a new application name. Is it required?
-		appId = "wp:com.commandus.wpnr#" + sole::uuid4().str();
-		// Initialize client
-		r = initClientC(
-			registrationIdC, sizeof(registrationIdC),
-			privateKeyC, sizeof(privateKeyC),
-			publicKeyC, sizeof(publicKeyC),
-			authSecretC, sizeof(authSecretC),
-			&androidId,
-			&securityToken,
-			appId.c_str(),
-			verbosity
-		);
-		if ((r < 200) || (r >= 300))
-		{
-			std::cerr << "Error " << r << " on client registration. Check Internet connection and try again." << std::endl;
-			return r;
-		} else {
-			// HTTP 200 -> 0
-			r = 0;
-		}
-		// save 
-		r = save(
-			provider,
-			filename,
-			registrationIdC,
-			privateKeyC,
-			publicKeyC,
-			authSecretC,
-			androidId,
-			securityToken,
-			appId
-		);
-		if (verbosity > 1)
-			std::cerr << "Credentials saved in " << filename << ", code: " << r << std::endl;
-	}
 
 	// write
-	
 	int retcode;
 	char retval[4096];
 	char endpoint[256];
 	endpointC(endpoint, sizeof(endpoint), registrationid.c_str(), 1, (int) provider);	///< 0- Chrome, 1- Firefox
 
-	if (force_vapid) 
-	{
-		strncpy(privateKeyC, force_privatekey.c_str(), sizeof(privateKeyC));
-		strncpy(publicKeyC, force_publickey.c_str(), sizeof(publicKeyC));
-	}
+	strncpy(privateKeyC, force_privatekey.c_str(), sizeof(privateKeyC));
+	strncpy(publicKeyC, force_publickey.c_str(), sizeof(publicKeyC));
 
 	std::cout << endpoint << std::endl;	
 	std::cout << jsonConfig(
 		provider,
-		registrationIdC,
 		privateKeyC,
-		publicKeyC,
-		authSecretC,
-		androidId,
-		securityToken,
-		appId
+		publicKeyC
 	) << std::endl;
 
-	if (printOnly)
-		return 0;
-	
+	json requestBody = {
+		{"to", registrationid },
+		{"notification", 
+			{
+				{"title", subject },
+				{"body", body },
+				{"icon", icon},
+				{"click_action", link }
+			}
+		}
+	};
+
+	std::string msg = requestBody.dump();
+std::cerr<< msg << std::endl;
 	time_t t = time(NULL) + 86400 - 60;
 	if (verbosity > 1)
 	{
@@ -402,7 +246,7 @@ int main(int argc, char **argv)
 			endpoint,
 			p256dh.c_str(),
 			auth.c_str(),
-			body.c_str(),
+			msg.c_str(),
 			contact.c_str(),
 			aesgcm ? AESGCM : AES128GCM,
 			t
@@ -410,6 +254,7 @@ int main(int argc, char **argv)
 		if (r > 0)
 			std::cerr << "curl: " << std::endl << retval << std::endl;
 	}
+	
 	r = webpushVapidC(
 		retval, sizeof(retval),
 		publicKeyC,
@@ -417,7 +262,7 @@ int main(int argc, char **argv)
 		endpoint,
 		p256dh.c_str(),
 		auth.c_str(),
-		body.c_str(),
+		msg.c_str(),
 		contact.c_str(),
 		aesgcm ? AESGCM : AES128GCM,
 		t
