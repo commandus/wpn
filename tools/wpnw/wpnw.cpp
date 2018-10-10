@@ -234,7 +234,6 @@ int main(int argc, char **argv)
 	};
 
 	std::string msg = requestBody.dump();
-std::cerr<< msg << std::endl;
 	time_t t = time(NULL) + 86400 - 60;
 	if (verbosity > 1)
 	{

@@ -294,7 +294,7 @@ EXPORTDLL int initClientC
 		if (r >= 200 && r < 300)
 			break;
 	}
-	
+
 	size_t sz = retGCMToken.size();
 
 	if (retRegistrationId && (retsize >= sz)) {
