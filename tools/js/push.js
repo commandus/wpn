@@ -69,6 +69,15 @@ var pushSubscriptionChrome = {
   }
 };
 
+// wpnr
+var pushSubscriptionWpnr = {
+  endpoint: 'https://fcm.googleapis.com/fcm/send/eBj1u43iA9Q:APA91bHz7hxB0ImaMZM_4G1K9Lv8MPgIu_Ta0r5Gt9LtI_Gm34B9nkTEOZVZxiZu2YjAIpWo5aZ1SaoBy3n8t_F_lqTsGhwzjdVVhf9kGT6E8KH7CGZBggrKxDxBgj21gb6MlyzTxrbr',
+  keys:{
+    p256dh: 'BCFyUK_mS-7vF6Q7q0QW0WJLZ8Tod1THmG-2G9g7rVc8lRix3xiUOca6I_Kdpdu5fSJ3YNQyVCY0kXVeRyJnlJk',
+    auth: 'CPmnFP1TA2VEE02-KIHCTg'
+  }
+};
+
 var payload = JSON.stringify(
   {
     notification: {
@@ -85,6 +94,7 @@ var options = {
   //contentEncoding: 'aesgcm'
 };
 
+
 /*
 webPush.sendNotification(
   pushSubscriptionFirefox,
@@ -94,10 +104,19 @@ webPush.sendNotification(
   value => console.log(value), 
   error => console.log(error)
 );
-*/
 
 webPush.sendNotification(
   pushSubscriptionChrome,
+  payload,
+  options
+).then(
+  value => console.log(value), 
+  error => console.log(error)
+);
+*/
+
+webPush.sendNotification(
+  pushSubscriptionWpnr,
   payload,
   options
 ).then(
