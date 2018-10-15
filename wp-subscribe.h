@@ -1,6 +1,5 @@
 /**
- * FireBase subscription
- * Helper utilities
+ * FCM subscription helper functions
  */
 #ifndef WP_SUBSCRIBE_H
 #define WP_SUBSCRIBE_H
@@ -17,7 +16,8 @@
  * Make subscription
  * @param subscription return value
  * @param subscribeMode always 1
- * @param wpnKeys reserved
+ * @param receiverPublicKey receiver public key
+ * @param receiverAuth receiver auth secret
  * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/connect/subscribe
  * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
  * @param serverKey optional key used to send messages
@@ -31,7 +31,8 @@ int subscribe
 (
 	Subscription &subscription, 
 	int subscribeMode, 
-	const WpnKeys &wpnKeys, 
+	const std::string &receiverPublicKey,
+	const std::string &receiverAuth,
 	const std::string &subscribeUrl,
 	const std::string &endPoint,
 	const std::string &authorizedEntity,

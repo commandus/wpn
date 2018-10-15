@@ -280,7 +280,9 @@ int main(int argc, char** argv)
 				std::string d;
 				std::string headers;
 
-				int r = subscribe(subscription, SUBSCRIBE_FORCE_FIREBASE, *config.wpnKeys, 
+				int r = subscribe(subscription, SUBSCRIBE_FORCE_FIREBASE, 
+					config.wpnKeys->getPublicKey(),
+					config.wpnKeys->getAuthSecret(),  
 					config.subscribeUrl, config.getDefaultFCMEndPoint(), config.authorizedEntity,
 					config.serverKey, &d, &headers, config.verbosity);
 				if ((r < 200) || (r >= 300))

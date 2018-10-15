@@ -61,9 +61,6 @@ static std::string jsonConfig
 
 int main(int argc, char **argv) 
 {
-	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
-	struct arg_str *a_provider = arg_str0("p", "provider", "chrome|firefox", "Re-init web push provider. Default chrome.");
-
 	struct arg_str *a_registrationid = arg_str0("r", "registration", "<id>", "Recipient registration id");
 	struct arg_str *a_p256dh = arg_str0("d", "p256dh", "<base64>", "VAPID public key");
 	struct arg_str *a_auth = arg_str0("a", "auth", "<base64>", "VAPID auth");
@@ -73,7 +70,10 @@ int main(int argc, char **argv)
 	struct arg_str *a_icon = arg_str0("i", "icon", "<URL>", "http[s]:// icon address.");
 	struct arg_str *a_link = arg_str0("l", "link", "<URL>", "http[s]:// action address.");
 
+	// from
 	struct arg_str *a_contact = arg_str0("f", "from", "<URL>", "Sender's email e.g. mailto:alice@acme.com or https[s] link");
+	// to
+	struct arg_str *a_provider = arg_str0("p", "provider", "chrome|firefox", "Default chrome.");
 	struct arg_str *a_force_publickey = arg_str0("K", "public-key", "<base64>", "Override VAPID public key");
 	struct arg_str *a_force_privatekey = arg_str0("k", "private-key", "<base64>", "Override VAPID private key");
 
@@ -83,11 +83,13 @@ int main(int argc, char **argv)
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
-		a_file_name, a_provider,
 		a_registrationid, a_p256dh,
 		a_auth, 
 		a_subject, a_body, a_icon, a_link,
-		a_contact, a_force_publickey, a_force_privatekey,
+		// from
+		a_contact, 
+		// to
+		a_provider, a_force_publickey, a_force_privatekey,
 		a_aesgcm,
 		a_verbosity,
 		a_help, a_end 

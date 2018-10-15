@@ -43,6 +43,7 @@ using json = nlohmann::json;
 
 static const char* progname = "wpnr";
 #define DEF_FILE_NAME			".wpnr.js"
+#undef SUPPORT_FIREFOX
 
 static std::string jsonConfig
 (
@@ -134,15 +135,19 @@ void onLog
 int main(int argc, char **argv) 
 {
 	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
+	// TODO add Firefox read
+#ifdef SUPPORT_FIREFOX	
 	struct arg_str *a_provider = arg_str0("p", "provider", "chrome|firefox", "Re-init web push provider. Default chrome.");
-
+#endif	
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
-		a_file_name, a_provider,
-	
+		a_file_name,
+#ifdef SUPPORT_FIREFOX
+		a_provider,
+#endif
 		a_verbosity,
 		a_help, a_end 
 	};
@@ -164,13 +169,20 @@ int main(int argc, char **argv)
 	int verbosity = a_verbosity->count;
 
 	enum VAPID_PROVIDER provider = PROVIDER_CHROME;
+#ifdef SUPPORT_FIREFOX
 	if (a_provider->count) {
 		if ("firefox" == std::string(*a_provider->sval)) {
 			provider = PROVIDER_FIREFOX;
 		}
 	}
+#endif	
 
-	bool isNew = a_provider->count > 0;
+	bool isNew = 
+#ifdef SUPPORT_FIREFOX	
+	a_provider->count > 0;
+#else
+	false;
+#endif	
 
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)

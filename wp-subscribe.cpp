@@ -86,107 +86,9 @@ static int curlPost
 /**
  * Make subscription
  * @param subscription return value
- * @param subscribeMode always 1
- * @param wpnKeys reserved
- * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/connect/subscribe
- * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
- * @param serverKey optional key used to send messages
- * @param authorizedEntity usual decimal number string
- * @param token OAuth 2.0 oth other kind token 
- * @param retVal can be NULL
- * @param retHeaders can be NULL
- * @param verbosity default 0- none
- * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
- */
-int subscribe2
-(
-	Subscription &subscription, 
-	int subscribeMode, 
-	const WpnKeys &wpnKeys, 
-	const std::string &subscribeUrl,
-	const std::string &endPoint,
-	const std::string &authorizedEntity,
-	const std::string &serverKey,
-	const std::string &token, 
-	std::string *retVal,
-	std::string *retHeaders,
-	int verbosity
-)
-{
-	int r = 0;
-
-	if (endPoint.empty())
-	{
-		if (retVal)
-			*retVal = "Endpoint is empty";
-		return ERR_PARAM_ENDPOINT;
-	}
-	if (authorizedEntity.empty())
-	{
-		if (retVal)
-			*retVal = "Authorized entity is empty";
-		return ERR_PARAM_AUTH_ENTITY;
-	}
-
-	subscription.setSubscribeUrl(subscribeUrl);
-	subscription.setSubscribeMode(subscribeMode);
-	subscription.setEndpoint(endPoint);
-	subscription.setServerKey(serverKey);
-	subscription.setAuthorizedEntity(authorizedEntity);
-
-	switch (subscribeMode) {
-		case SUBSCRIBE_FORCE_FIREBASE:
-		{
-			std::string key = wpnKeys.getPublicKey();
-			std::string auth = wpnKeys.getAuthSecret();
-			json j = {
-				{"endpoint", endPoint},
-				{"encryption_key", key},
-				{"encryption_auth", auth},
-				{"authorized_entity", authorizedEntity}
-			};
-			std::string s(j.dump());
-
-			if (verbosity > 2)
-				std::cerr << "Send: " << s << " to " << subscribeUrl << std::endl;
-			r = curlPost(subscribeUrl, "application/json", s, retHeaders,  retVal, verbosity);
-			if (verbosity > 2)
-				std::cerr << "Headers received: " << retHeaders << std::endl;			
-			if (retVal) {
-				if (verbosity > 2)
-					std::cerr << "Receive response code: "<< r << ", body:" << *retVal << " from " << subscribeUrl << std::endl;
-				if (r >= 200 && r < 300)
-				{
-					json js = json::parse(*retVal);
-					subscription.setToken(js["token"]);
-					subscription.setPushSet(js["pushSet"]);
-				}
-				else
-				{
-					json js = json::parse(*retVal);
-					if (retVal)
-					{
-						json e = js["error"];
-						*retVal = e["message"];
-					}
-				}
-			}
-			break;
-		}
-		default:
-		{
-			if (retVal)
-				*retVal = "Unsupported mode";
-			return ERR_MODE;
-		}
-	}
-	return r;
-}
-
-/**
- * Make subscription
- * @param subscription return value
- * @param subscribeMode always 1
+ * @param subscribeMode always SUBSCRIBE_FORCE_FIREBASE
+ * @param receiverPublicKey receiver public key
+ * @param receiverAuth receiver auth secret
  * @param wpnKeys reserved
  * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/connect/subscribe
  * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
@@ -200,7 +102,8 @@ int subscribe
 (
 	Subscription &subscription, 
 	int subscribeMode, 
-	const WpnKeys &wpnKeys, 
+	const std::string &receiverPublicKey,
+	const std::string &receiverAuth,
 	const std::string &subscribeUrl,
 	const std::string &endPoint,
 	const std::string &authorizedEntity,
@@ -234,13 +137,11 @@ int subscribe
 	switch (subscribeMode) {
 		case SUBSCRIBE_FORCE_FIREBASE:
 		{
-			std::string key = wpnKeys.getPublicKey();
-			std::string auth = wpnKeys.getAuthSecret();
 			std::string s = 
 				"authorized_entity=" + escapeURLString(authorizedEntity)
 				+ "&endpoint=" + escapeURLString(endPoint)
-				+ "&encryption_key=" + escapeURLString(key)
-				+ "&encryption_auth=" + escapeURLString(auth)
+				+ "&encryption_key=" + escapeURLString(receiverPublicKey)
+				+ "&encryption_auth=" + escapeURLString(receiverAuth)
 			;
 			if (verbosity > 2)
 				std::cerr << "Send: " << s << " to " << subscribeUrl << std::endl;
