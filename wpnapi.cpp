@@ -429,6 +429,9 @@ EXPORTDLL int subscribeC
 	std::string retPushSet;
 	int r = subscribe(&retVal, &retHeaders, retToken, retPushSet, 
 		receiverPublicKey, receiverAuth, subscribeUrl, endPoint, authorizedEntity, verbosity);
-;
-
+	STR2PCHAR(retval, retvalsize, retVal)
+	STR2PCHAR(retheaders, retheaderssize, retHeaders)
+	STR2PCHAR(rettoken, rettokensize, retToken)
+	STR2PCHAR(retpushset, retpushsetsize, retPushSet)
+	return r;
 }
