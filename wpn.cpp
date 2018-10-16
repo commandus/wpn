@@ -276,26 +276,34 @@ int main(int argc, char** argv)
 			break;
 		case CMD_SUBSCRIBE_FCM:
 			{
-				Subscription subscription;
 				std::string d;
 				std::string headers;
-
-				int r = subscribe(subscription, SUBSCRIBE_FORCE_FIREBASE, 
+				std::string token;
+				std::string pushset;
+				int r = subscribe(&d, &headers, token, pushset, 
 					config.wpnKeys->getPublicKey(),
 					config.wpnKeys->getAuthSecret(),  
 					config.subscribeUrl, config.getDefaultFCMEndPoint(), config.authorizedEntity,
-					config.serverKey, &d, &headers, config.verbosity);
+					config.verbosity);
 				if ((r < 200) || (r >= 300))
 				{
 					std::cerr << "Error " << r << ": " << d << std::endl;
 				}
 				else 
 				{
+					Subscription subscription;
+					subscription.setToken(token);
+					subscription.setPushSet(pushset);
+					subscription.setServerKey(config.serverKey);
+					subscription.setSubscribeUrl(config.subscribeUrl);
+					subscription.setSubscribeMode(SUBSCRIBE_FORCE_FIREBASE);
+					subscription.setEndpoint(config.getDefaultFCMEndPoint());
+					subscription.setAuthorizedEntity(config.authorizedEntity);
 					config.subscriptions->list.push_back(subscription);
-				}
-				if (config.verbosity > 0)
-				{
-					subscription.write(std::cout, "\t", config.outputFormat);
+					if (config.verbosity > 0)
+					{
+						subscription.write(std::cout, "\t", config.outputFormat);
+					}
 				}
 			}
 			break;

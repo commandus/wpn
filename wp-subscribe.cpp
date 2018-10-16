@@ -85,31 +85,30 @@ static int curlPost
 
 /**
  * Make subscription
- * @param subscription return value
- * @param subscribeMode always SUBSCRIBE_FORCE_FIREBASE
+ * @param retVal can be NULL
+ * @param retHeaders can be NULL
+ * @param retToken return subscription token
+ * @param retPushSet return subscription push set
  * @param receiverPublicKey receiver public key
  * @param receiverAuth receiver auth secret
  * @param wpnKeys reserved
  * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/connect/subscribe
  * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
  * @param authorizedEntity usual decimal number string
- * @param retVal can be NULL
- * @param retHeaders can be NULL
  * @param verbosity default 0- none
  * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
  */
 int subscribe
 (
-	Subscription &subscription, 
-	int subscribeMode, 
+	std::string *retVal,
+	std::string *retHeaders,
+	std::string &retToken,
+	std::string &retPushSet,
 	const std::string &receiverPublicKey,
 	const std::string &receiverAuth,
 	const std::string &subscribeUrl,
 	const std::string &endPoint,
 	const std::string &authorizedEntity,
-	const std::string &serverKey,
-	std::string *retVal,
-	std::string *retHeaders,
 	int verbosity
 )
 {
@@ -127,53 +126,34 @@ int subscribe
 			*retVal = "Authorized entity is empty";
 		return ERR_PARAM_AUTH_ENTITY;
 	}
-
-	subscription.setSubscribeUrl(subscribeUrl);
-	subscription.setSubscribeMode(subscribeMode);
-	subscription.setEndpoint(endPoint);
-	subscription.setServerKey(serverKey);
-	subscription.setAuthorizedEntity(authorizedEntity);
-
-	switch (subscribeMode) {
-		case SUBSCRIBE_FORCE_FIREBASE:
+	std::string s = 
+		"authorized_entity=" + escapeURLString(authorizedEntity)
+		+ "&endpoint=" + escapeURLString(endPoint)
+		+ "&encryption_key=" + escapeURLString(receiverPublicKey)
+		+ "&encryption_auth=" + escapeURLString(receiverAuth)
+	;
+	if (verbosity > 2)
+		std::cerr << "Send: " << s << " to " << subscribeUrl << std::endl;
+	r = curlPost(subscribeUrl, "application/x-www-form-urlencoded", s, retHeaders,  retVal, verbosity);
+	if (verbosity > 2)
+		std::cerr << "Headers received: " << *retHeaders << std::endl;			
+	if (retVal) {
+		if (verbosity > 2)
+			std::cerr << "Receive response code: "<< r << ", body:" << *retVal << " from " << subscribeUrl << std::endl;
+		if (r >= 200 && r < 300)
 		{
-			std::string s = 
-				"authorized_entity=" + escapeURLString(authorizedEntity)
-				+ "&endpoint=" + escapeURLString(endPoint)
-				+ "&encryption_key=" + escapeURLString(receiverPublicKey)
-				+ "&encryption_auth=" + escapeURLString(receiverAuth)
-			;
-			if (verbosity > 2)
-				std::cerr << "Send: " << s << " to " << subscribeUrl << std::endl;
-			r = curlPost(subscribeUrl, "application/x-www-form-urlencoded", s, retHeaders,  retVal, verbosity);
-			if (verbosity > 2)
-				std::cerr << "Headers received: " << *retHeaders << std::endl;			
-			if (retVal) {
-				if (verbosity > 2)
-					std::cerr << "Receive response code: "<< r << ", body:" << *retVal << " from " << subscribeUrl << std::endl;
-				if (r >= 200 && r < 300)
-				{
-					json js = json::parse(*retVal);
-					subscription.setToken(js["token"]);
-					subscription.setPushSet(js["pushSet"]);
-				}
-				else
-				{
-					json js = json::parse(*retVal);
-					if (retVal)
-					{
-						json e = js["error"];
-						*retVal = e["message"];
-					}
-				}
-			}
-			break;
+			json js = json::parse(*retVal);
+			retToken = js["token"];
+			retPushSet = js["pushSet"];
 		}
-		default:
+		else
 		{
+			json js = json::parse(*retVal);
 			if (retVal)
-				*retVal = "Unsupported mode";
-			return ERR_MODE;
+			{
+				json e = js["error"];
+				*retVal = e["message"];
+			}
 		}
 	}
 	return r;

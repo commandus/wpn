@@ -14,31 +14,29 @@
 
 /**
  * Make subscription
- * @param subscription return value
- * @param subscribeMode always 1
- * @param receiverPublicKey receiver public key
- * @param receiverAuth receiver auth secret
- * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/connect/subscribe
- * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
- * @param serverKey optional key used to send messages
- * @param authorizedEntity usually decimal number string
  * @param retVal can be NULL
  * @param retHeaders can be NULL
+ * @param retToken return subscription token
+ * @param retPushSet return subscription push set
+ * @param receiverPublicKey receiver public key
+ * @param receiverAuth receiver auth secret
+ * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/send/[GCM_TOKEN]
+ * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
+ * @param authorizedEntity FCM: usually decimal number string
  * @param verbosity default 0- none
  * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
  */
 int subscribe
 (
-	Subscription &subscription, 
-	int subscribeMode, 
+	std::string *retVal,
+	std::string *retHeaders,
+	std::string &retToken,
+	std::string &retPushSet,
 	const std::string &receiverPublicKey,
 	const std::string &receiverAuth,
 	const std::string &subscribeUrl,
 	const std::string &endPoint,
 	const std::string &authorizedEntity,
-	const std::string &serverKey,
-	std::string *retVal,
-	std::string *retHeaders,
 	int verbosity
 );
 

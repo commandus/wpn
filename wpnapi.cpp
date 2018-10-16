@@ -5,9 +5,20 @@
 #include "utilrecv.h"
 #include "utilqr.h"
 #include "wp-storage-file.h"
+#include "wp-subscribe.h"
 #include "mcs/mcsclient.h"
 
 #define TRIES	5
+
+/// Copy string to pchar, add trailing zero if space available
+#define	STR2PCHAR(retval, retvalsize, r) \
+if ((retvalsize > 0) && retval) { \
+	size_t sz = (r.size() < retvalsize) ? r.size() : retvalsize; \
+	memmove(retval, r.c_str(), sz); \
+	if (sz < retvalsize) { \
+		retval[sz] = '\0'; \
+	} \
+}
 
 /**
  * Helper function for testing
@@ -53,14 +64,7 @@ EXPORTDLL size_t webpushVapidCmdC(
 		expiration
 	);
 
-	if ((retvalsize > 0) && retval) {
-		size_t sz = (r.size() < retvalsize) ? r.size() : retvalsize;
-		memmove(retval, r.c_str(), sz);
-		if (sz < retvalsize) {
-			// add terminal
-			retval[sz] = '\0';
-		}
-	}
+	STR2PCHAR(retval, retvalsize, r)
 	return r.size();
 }
 
@@ -105,14 +109,7 @@ EXPORTDLL int webpushVapidC(
 		contentEncoding,
 		expiration
 	);
-	if (retvalsize > 0) {
-		size_t sz = (r.size() < retvalsize) ? r.size() : retvalsize;
-		memmove(retval, r.c_str(), sz);
-		if (sz < retvalsize) {
-			// add terminal
-			retval[sz] = '\0';
-		}
-	}
+	STR2PCHAR(retval, retvalsize, r)
 	return c;
 }
 
@@ -172,14 +169,7 @@ EXPORTDLL int webpushVapidDataC
 		contentEncoding,
 		expiration
 	);
-	if (retvalsize > 0) {
-		size_t sz = (r.size() < retvalsize) ? r.size() : retvalsize;
-		memmove(retval, r.c_str(), sz);
-		if (sz < retvalsize) {
-			// add terminal
-			retval[sz] = '\0';
-		}
-	}
+	STR2PCHAR(retval, retvalsize, r)
 	return c;
 }
 
@@ -204,32 +194,18 @@ EXPORTDLL void generateVAPIDKeysC
 {
 	WpnKeys k;
 	k.generate();
+
 	std::string p = k.getPrivateKey();
 	size_t sz = p.size();
-	if (privateKey && (privateKeySize >= sz)) {
-		memmove(privateKey, p.c_str(), sz);
-		if (privateKeySize > sz) {
-			privateKey[sz] = '\0';
-		}
-	}
+	STR2PCHAR(privateKey, privateKeySize, p)
 
 	p = k.getPublicKey();
 	sz = p.size();
-	if (publicKey && (publicKeySize >= sz)) {
-		memmove(publicKey, p.c_str(), sz);
-		if (publicKeySize > sz) {
-			publicKey[sz] = '\0';
-		}
-	}
+	STR2PCHAR(publicKey, publicKeySize, p)
 
 	p = k.getAuthSecret();
 	sz = p.size();
-	if (authSecret && (authSecretSize >= sz)) {
-		memmove(authSecret, p.c_str(), sz);
-		if (authSecretSize > sz) {
-			authSecret[sz] = '\0';
-		}
-	}
+	STR2PCHAR(authSecret, authSecretSize, p)
 }
 
 EXPORTDLL int checkInC(
@@ -295,14 +271,7 @@ EXPORTDLL int initClientC
 			break;
 	}
 
-	size_t sz = retGCMToken.size();
-
-	if (retRegistrationId && (retsize >= sz)) {
-		memmove(retRegistrationId, retGCMToken.c_str(), sz);
-		if (retsize > sz) {
-			retRegistrationId[sz] = '\0';
-		}
-	}
+	STR2PCHAR(retRegistrationId, retsize, retGCMToken)
 	return r;
 }
 
@@ -325,13 +294,7 @@ EXPORTDLL int registerDeviceC(
 			retGCMToken[0] = '\0';
 		return r;
 	}
-	size_t sz = t.size();
-	if (retGCMToken && (GCMTokenSize >= sz)) {
-		memmove(retGCMToken, t.c_str(), sz);
-		if (GCMTokenSize > sz) {
-			retGCMToken[sz] = '\0';
-		}
-	}
+	STR2PCHAR(retGCMToken, GCMTokenSize, t)
 	return r;
 }
 
@@ -357,15 +320,7 @@ EXPORTDLL size_t qr2pchar
 	size_t rs = r.size();
 	if (retval)
 	{
-		size_t csz = retsize >= rs ? rs : retsize;
-		if (csz > 0) 
-		{
-			memmove(retval, r.c_str(), csz);
-			if (retsize > csz)
-			{
-				retval[csz] = '\0';	// add trailing zero
-			}
-		}
+		STR2PCHAR(retval, retsize, r)
 	}
 	return rs;
 }
@@ -428,18 +383,52 @@ EXPORTDLL size_t endpointC(
 )
 {
 	std::string r = endpoint(std::string(registrationId), send != 0, browser);
-	size_t rs = r.size();
-	if (retval)
-	{
-		size_t csz = retsize >= rs ? rs : retsize;
-		if (csz > 0)
-		{
-			memmove(retval, r.c_str(), csz);
-			if (retsize > csz)
-			{
-				retval[csz] = '\0';	// add trailing zero
-			}
-		}
-	}
-	return rs;
+	STR2PCHAR(retval, retsize, r)
+	return r.size();
+}
+
+/**
+ * Make subscription
+ * @param retval can be NULL
+ * @param retvalsize buffer size, can be 0
+ * @param retheaders can be NULL
+ * @param retheaderssize buffer size, can be 0 
+ * @param rettoken return subscription token
+ * @param rettokensize buffer size, can be 0
+ * @param retpushset return subscription push set
+ * @param retpushsetsize buffer size, can be 0
+ * @param receiverPublicKey receiver public key
+ * @param receiverAuth receiver auth secret
+ * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/send/[GCM_TOKEN]
+ * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
+ * @param authorizedEntity FCM: usually decimal number string
+ * @param verbosity default 0- none
+ * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
+ */
+EXPORTDLL int subscribeC
+(
+	char *retval,
+	size_t retvalsize,
+	char *retheaders,
+	size_t retheaderssize,
+ 	char *rettoken,
+	size_t rettokensize,
+	char *retpushset,
+	size_t retpushsetsize,
+	const char *receiverPublicKey,
+	const char *receiverAuth,
+	const char *subscribeUrl,
+	const char *endPoint,
+	const char *authorizedEntity,
+	int verbosity
+)
+{
+	std::string retVal;
+	std::string retHeaders;
+	std::string retToken;
+	std::string retPushSet;
+	int r = subscribe(&retVal, &retHeaders, retToken, retPushSet, 
+		receiverPublicKey, receiverAuth, subscribeUrl, endPoint, authorizedEntity, verbosity);
+;
+
 }
