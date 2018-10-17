@@ -20,12 +20,17 @@ webPush.setVapidDetails(
   'BM97-HP_Pw_RIrkp1mwVaYTEgR21Pl4PD1QYzDGYi5o7mp-YB6Cr9Pbz7_D7l3r5Zb4Ji-pLKubCza_lE4SsZIA',
   'tt8Cgw4QEZwrr7CN2d-4ITxaAygiQ7j5kL6uzz9P-Sg'
 );
-*/
 
 webPush.setVapidDetails(
   'mailto:andrei.i.ivanov@gmail.com',
   'BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A',
   '_93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk'
+);
+*/
+webPush.setVapidDetails(
+  'mailto:andrei.i.ivanov@gmail.com',
+  'BCFyUK_mS-7vF6Q7q0QW0WJLZ8Tod1THmG-2G9g7rVc8lRix3xiUOca6I_Kdpdu5fSJ3YNQyVCY0kXVeRyJnlJk',
+  'Lw4w_3pxiyuud_HKgKgqUiaietys0L6jZKZxL4szCZo'
 );
 
 // chrome
@@ -78,6 +83,14 @@ var pushSubscriptionWpnr = {
   }
 };
 
+var pushSubscriptionWpn2 = {
+  endpoint: 'https://fcm.googleapis.com/fcm/send/d3LawxQS33I:APA91bFutAtKMPgQYRTYq7gj1yPvWkWtpD1OiWrY2zootMI_mNKdNJRZ8h_XC7QAJS38juPZaHsOAxg3N7L9SSOrMCMgyaCKRtP4qtztzgu60i3gW3ty-u8gdRF_sR0r2vUwuNP6a40E',
+  keys:{
+    p256dh: 'BM97-HP_Pw_RIrkp1mwVaYTEgR21Pl4PD1QYzDGYi5o7mp-YB6Cr9Pbz7_D7l3r5Zb4Ji-pLKubCza_lE4SsZIA',
+    auth: '0L9jlM_NNYaurD3SSp_ZDg'
+  }
+};
+
 var payload = JSON.stringify(
   {
     notification: {
@@ -116,7 +129,7 @@ webPush.sendNotification(
 */
 
 webPush.sendNotification(
-  pushSubscriptionWpnr,
+  pushSubscriptionWpn2,
   payload,
   options
 ).then(

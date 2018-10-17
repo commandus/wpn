@@ -22,7 +22,6 @@
  * @param receiverAuth receiver auth secret
  * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/send/[GCM_TOKEN]
  * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
- * @param authorizedEntity FCM: usually decimal number string
  * @param verbosity default 0- none
  * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
  */

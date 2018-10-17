@@ -193,6 +193,29 @@ Optional server key (API key for web application) (-K) is used to send reply. Se
 
 Value of authorized-entity is decimal number identifies subscription if FCM.
 
+
+### VAPID
+
+["authorized_entity":"103953800507"](https://firebase.google.com/docs/cloud-messaging/js/client)
+
+#### wplink
+```
+./wpnlink -s eBj1u43iA9Q:APA91bHz7hxB0ImaMZM_4G1K9Lv8MPgIu_Ta0r5Gt9LtI_Gm34B9nkTEOZVZxiZu2YjAIpWo5aZ1SaoBy3n8t_F_lqTsGhwzjdVVhf9kGT6E8KH7CGZBggrKxDxBgj21gb6MlyzTxrbr -k BM97-HP_Pw_RIrkp1mwVaYTEgR21Pl4PD1QYzDGYi5o7mp-YB6Cr9Pbz7_D7l3r5Zb4Ji-pLKubCza_lE4SsZIA -a 0L9jlM_NNYaurD3SSp_ZDg -vvv
+```
+
+#### curl
+```
+curl -i -H "Accept:application/json" -H "Content-Type:application/json" -X POST https://fcm.googleapis.com/fcm/connect/subscribe -d '{"endpoint": "https://fcm.googleapis.com/fcm/send/eBj1u43iA9Q:APA91bHz7hxB0ImaMZM_4G1K9Lv8MPgIu_Ta0r5Gt9LtI_Gm34B9nkTEOZVZxiZu2YjAIpWo5aZ1SaoBy3n8t_F_lqTsGhwzjdVVhf9kGT6E8KH7CGZBggrKxDxBgj21gb6MlyzTxrbr","encryption_key":"BM97-HP_Pw_RIrkp1mwVaYTEgR21Pl4PD1QYzDGYi5o7mp-YB6Cr9Pbz7_D7l3r5Zb4Ji-pLKubCza_lE4SsZIA","encryption_auth":"0L9jlM_NNYaurD3SSp_ZDg","authorized_entity":"103953800507"}
+```
+
+Result:
+
+{
+  "token": "daPb4z1IVT8:APA91bFJrYXJUt0aHW7YhKijlPHUkvZJdN4RbzaWqK1zIxAe381joPskAXOq3D1hAxhHRq-UH12g6RbPuVwbdMeJtdNyKa0gZDRVZ7yiU1U8snEkRQb0S0sbj7wKEKiPuNnPJnp6CdLX",
+  "pushSet": "e5Z6rtVPcz8:APA91bGIgO2rwT9E21pv-f7PMRqZDunIIkaMEazkYIM8oN7g-gu79jwEW1p0Q1jrmD6wYwXF6qLHDfUZLI4-f1XDPjfKTrokBEChXaclihE3HYApmpH4SKw5VnXKrkO3r9v0_n8IS_k0"
+}
+
+
 ## Unsubscribe
 
 Specify subscription endpoint (-e):

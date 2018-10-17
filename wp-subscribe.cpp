@@ -85,6 +85,8 @@ static int curlPost
 
 /**
  * Make subscription
+ * authorizedEntity MUST BE "103953800507"
+ * @see https://firebase.google.com/docs/cloud-messaging/js/client
  * @param retVal can be NULL
  * @param retHeaders can be NULL
  * @param retToken return subscription token
@@ -94,7 +96,7 @@ static int curlPost
  * @param wpnKeys reserved
  * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/connect/subscribe
  * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
- * @param authorizedEntity usual decimal number string
+ * @param authorizedEntity usual decimal number string "103953800507"
  * @param verbosity default 0- none
  * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
  */
@@ -126,15 +128,27 @@ int subscribe
 			*retVal = "Authorized entity is empty";
 		return ERR_PARAM_AUTH_ENTITY;
 	}
+#ifdef URLENCODED	
+	std::string mimetype = "application/x-www-form-urlencoded";
 	std::string s = 
 		"authorized_entity=" + escapeURLString(authorizedEntity)
 		+ "&endpoint=" + escapeURLString(endPoint)
 		+ "&encryption_key=" + escapeURLString(receiverPublicKey)
 		+ "&encryption_auth=" + escapeURLString(receiverAuth)
 	;
+#else
+	std::string mimetype = "application/json; charset=UTF-8";
+	json j = {
+		{ "authorized_entity", authorizedEntity },
+		{ "endpoint", endPoint },
+		{ "encryption_key", receiverPublicKey },
+		{ "encryption_auth", receiverAuth }
+	};
+	std::string s = j.dump();
+#endif	
 	if (verbosity > 2)
 		std::cerr << "Send: " << s << " to " << subscribeUrl << std::endl;
-	r = curlPost(subscribeUrl, "application/x-www-form-urlencoded", s, retHeaders,  retVal, verbosity);
+	r = curlPost(subscribeUrl, mimetype, s, retHeaders,  retVal, verbosity);
 	if (verbosity > 2)
 		std::cerr << "Headers received: " << *retHeaders << std::endl;			
 	if (retVal) {

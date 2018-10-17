@@ -387,6 +387,7 @@ EXPORTDLL size_t endpointC(
 	return r.size();
 }
 
+#define GCM_SENDER_ID "103953800507"
 /**
  * Make subscription
  * @param retval can be NULL
@@ -419,7 +420,6 @@ EXPORTDLL int subscribeC
 	const char *receiverAuth,
 	const char *subscribeUrl,
 	const char *endPoint,
-	const char *authorizedEntity,
 	int verbosity
 )
 {
@@ -428,7 +428,7 @@ EXPORTDLL int subscribeC
 	std::string retToken;
 	std::string retPushSet;
 	int r = subscribe(&retVal, &retHeaders, retToken, retPushSet, 
-		receiverPublicKey, receiverAuth, subscribeUrl, endPoint, authorizedEntity, verbosity);
+		receiverPublicKey, receiverAuth, subscribeUrl, endPoint, GCM_SENDER_ID, verbosity);
 	STR2PCHAR(retval, retvalsize, retVal)
 	STR2PCHAR(retheaders, retheaderssize, retHeaders)
 	STR2PCHAR(rettoken, rettokensize, retToken)
