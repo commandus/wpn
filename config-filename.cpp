@@ -10,9 +10,9 @@
 #include "config-filename.h"
 
 #ifdef _MSC_VER
-std::string getDefaultConfigFileName()
+std::string getDefaultConfigFileName(const std::string &filename)
 {
-	std::string r = DEF_FILE_NAME;
+	std::string r = filename;
 	// Need a process with query permission set
 	HANDLE hToken = 0;
 	if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken))
@@ -22,7 +22,7 @@ std::string getDefaultConfigFileName()
 		DWORD size = sizeof(homedir);
 		if (GetUserProfileDirectoryA(hToken, homedir, &size) && (size > 0))
 		{
-			r = std::string(homedir, size - 1).append("\\").append(DEF_FILE_NAME);
+			r = std::string(homedir, size - 1).append("\\").append(filename);
 		}
 		CloseHandle(hToken);
 	}
