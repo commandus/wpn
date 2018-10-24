@@ -398,8 +398,8 @@ EXPORTDLL size_t endpointC(
  * @param rettokensize buffer size, can be 0
  * @param retpushset return subscription push set
  * @param retpushsetsize buffer size, can be 0
- * @param receiverPublicKey receiver public key
- * @param receiverAuth receiver auth secret
+ * @param receiverAndroidId receiver Android id
+ * @param receiverSecurityToken receiver security number
  * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/send/[GCM_TOKEN]
  * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
  * @param authorizedEntity FCM: usually decimal number string
@@ -416,8 +416,8 @@ EXPORTDLL int subscribeC
 	size_t rettokensize,
 	char *retpushset,
 	size_t retpushsetsize,
-	const char *receiverPublicKey,
-	const char *receiverAuth,
+	const char *receiverAndroidId,
+	const char *receiverSecurityToken,
 	const char *subscribeUrl,
 	const char *endPoint,
 	int verbosity
@@ -428,7 +428,7 @@ EXPORTDLL int subscribeC
 	std::string retToken;
 	std::string retPushSet;
 	int r = subscribe(&retVal, &retHeaders, retToken, retPushSet, 
-		receiverPublicKey, receiverAuth, subscribeUrl, endPoint, GCM_SENDER_ID, verbosity);
+		receiverAndroidId, receiverSecurityToken, subscribeUrl, endPoint, GCM_SENDER_ID, verbosity);
 	STR2PCHAR(retval, retvalsize, retVal)
 	STR2PCHAR(retheaders, retheaderssize, retHeaders)
 	STR2PCHAR(rettoken, rettokensize, retToken)

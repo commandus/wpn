@@ -245,8 +245,8 @@ EXPORTDLL void stopClient
  * @param rettokensize buffer size, can be 0
  * @param retpushset return subscription push set
  * @param retpushsetsize buffer size, can be 0
- * @param receiverPublicKey receiver public key
- * @param receiverAuth receiver auth secret
+ * @param receiverAndroidId receiver Android id
+ * @param receiverSecurityToken receiver security number
  * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/send/[GCM_TOKEN]
  * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
  * @param verbosity default 0- none
@@ -262,8 +262,8 @@ EXPORTDLL int subscribeC
 	size_t rettokensize,
 	char *retpushset,
 	size_t retpushsetsize,
-	const char *receiverPublicKey,
-	const char *receiverAuth,
+	const char *receiverAndroidId,
+	const char *receiverSecurityToken,
 	const char *subscribeUrl,
 	const char *endPoint,
 	int verbosity

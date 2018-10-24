@@ -187,7 +187,7 @@ static const std::string REGISTER_URL("https://android.clients.google.com/c2dm/r
 
 static const std::string HDR_AUTHORIZATION("Authorization : ");
 
-const uint8_t REGISTER_SERVER_KEY[] =
+static const uint8_t REGISTER_SERVER_KEY[] =	// also default VAPID key
 {
 	0x04, 0x33, 0x94, 0xf7, 0xdf, 0xa1, 0xeb, 0xb1, 0xdc, 0x03,
 	0xa2, 0x5e, 0x15, 0x71, 0xdb, 0x48, 0xd3, 0x2e, 0xed, 0xed,
