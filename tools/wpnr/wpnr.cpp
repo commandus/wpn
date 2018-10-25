@@ -33,11 +33,11 @@
 #include <fstream>
 #include "nlohmann/json.hpp"
 
-#include "sole/sole.hpp"
 #include "sslfactory.h"
 
 #include "config-filename.h"
 #include "wpnapi.h"
+#include "utilinstance.h"
 
 using json = nlohmann::json;
 
@@ -247,7 +247,6 @@ int main(int argc, char **argv)
 	if (isNew || appId.empty()) 
 	{
 		// generate a new application name. Is it required?
-		appId = "wp:com.commandus.wpnr#" + sole::uuid4().str();
 		// Initialize client
 		r = initClientC(
 			registrationIdC, sizeof(registrationIdC),

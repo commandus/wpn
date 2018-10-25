@@ -194,8 +194,11 @@ int subscribeFCM
 	return r;
 }
 
+static const std::string REGISTER_URL("https://android.clients.google.com/c2dm/register3");
+static const std::string TOKEN_PREFIX = "token=";
+
 /**
- * Make subscription
+ * Make subscription VAPID
  * authorizedEntity MUST BE "103953800507"
  * @see https://firebase.google.com/docs/cloud-messaging/js/client
  * @param retVal can be NULL
@@ -204,8 +207,7 @@ int subscribeFCM
  * @param retPushSet return subscription push set
  * @param receiverAndroidId receiver Android id
  * @param receiverSecurityToken receiver security number
- * @param wpnKeys reserved
- * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/connect/subscribe
+ * @param receiverAppId application identifier
  * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
  * @param authorizedEntity usual decimal number string "103953800507"
  * @param verbosity default 0- none
@@ -219,7 +221,7 @@ int subscribe
 	std::string &retPushSet,
 	const std::string &receiverAndroidId,
 	const std::string &receiverSecurityToken,
-	const std::string &subscribeUrl,
+	const std::string &receiverAppId,
 	const std::string &endPoint,
 	const std::string &authorizedEntity,
 	int verbosity
@@ -245,28 +247,27 @@ int subscribe
 		"app=org.chrome.linux&X-subtype=wp:" + std::string(endPoint)
 		+ "&device=" + escapeURLString(receiverAndroidId)
 		+ "&sender=" + escapeURLString(authorizedEntity)
+		+ "&appid=" + receiverAppId
+		+ "&scope=GCM&X-scope=GCM&gmsv=72"
 	;
+	std::string auth = receiverAndroidId + ":" + receiverSecurityToken;
 	if (verbosity > 2)
-		std::cerr << "Send: " << s << " to " << subscribeUrl << std::endl;
-	r = curlPost(subscribeUrl, mimetype, receiverAndroidId + ":" + receiverSecurityToken, s, retHeaders,  retVal, verbosity);
+		std::cerr << "Send: " << s << " to " << REGISTER_URL << std::endl
+		<< "auth: " << auth << std::endl;
+	r = curlPost(REGISTER_URL, mimetype, auth, s, retHeaders,  retVal, verbosity);
 	if (verbosity > 2)
-		std::cerr << "Headers received: " << *retHeaders << std::endl;			
+		std::cerr << "Headers received: " << *retHeaders << std::endl;
+	retPushSet = "";
+	retToken = "";
 	if (retVal) {
 		if (verbosity > 2)
-			std::cerr << "Receive response code: "<< r << ", body:" << *retVal << " from " << subscribeUrl << std::endl;
+			std::cerr << "Receive response code: "<< r << ", body:" << std::endl 
+			<< *retVal << std::endl << "from " << REGISTER_URL << std::endl;
 		if (r >= 200 && r < 300)
 		{
-			json js = json::parse(*retVal);
-			retToken = js["token"];
-			retPushSet = js["pushSet"];
-		}
-		else
-		{
-			json js = json::parse(*retVal);
-			if (retVal)
-			{
-				json e = js["error"];
-				*retVal = e["message"];
+			size_t token_pos = retVal->find(TOKEN_PREFIX);
+			if (token_pos != std::string::npos) {
+				retToken = retVal->substr(token_pos + TOKEN_PREFIX.length());
 			}
 		}
 	}

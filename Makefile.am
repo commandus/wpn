@@ -13,7 +13,7 @@ bin_PROGRAMS = \
 	webpush-curl \
 	wpnr wpnw wpnlink
 
-commoncppflags = -std=c++11 -O2 -I/usr/local/include -Imcs/gen -Ithird_party
+commoncppflags = -O2 -I/usr/local/include -Imcs/gen -Ithird_party
 commonlibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl -lece -lnghttp2 -lglog -lunwind -lprotobuf
 
 #
@@ -47,7 +47,8 @@ wpn_lib_source = \
 	$(gengrpcs_c) \
 	utilstring.cpp params.cpp commandoutput.cpp \
 	utilqr.cpp $(QRSOURCES) \
-	utilvapid.cpp utilrecv.cpp
+	utilvapid.cpp utilrecv.cpp utilinstance.cpp
+AM_CXXFLAGS = -std=c++11 
 
 #
 #	libwpn.a
@@ -66,18 +67,17 @@ libwpn_la_LDFLAGS = -version-info 0:2:0
 #	libwpnapi.la C shared library (Delphi compatible)
 #
 libwpnapi_la_SOURCES = $(wpn_lib_source) wpnapi.cpp
-libwpnapi_la_CPPFLAGS = $(commoncppflags)
+libwpnapi_la_CPPFLAGS = $(commoncppflags) 
 libwpnapi_la_LDFLAGS = -version-info 0:2:0
 
 nobase_dist_include_HEADERS = \
 	platform.h \
 	wpn-config.h wpn.h wpn-notify.h utilvapid.h utilrecv.h \
 	wp-storage-file.h wp-subscribe.h wp-connection.h wp-push.h \
-	wpnapi.h sslfactory.h utilstring.h commandoutput.h params.h \
+	wpnapi.h sslfactory.h utilstring.h utilinstance.h commandoutput.h params.h \
 	mcs/mcsclient.h \
 	onullstream.hpp \
 	third_party/nlohmann/json.hpp \
-	third_party/sole/sole.hpp \
 	utilqr.h $(QRHEADERS) \
 	$(ARGT3HEADERS) \
 	$(gengrpcs_h) \
@@ -94,7 +94,7 @@ wpn_SOURCES= \
 	mcs/mcsclient.cpp \
 	utilstring.cpp params.cpp commandoutput.cpp \
 	utilqr.cpp $(QRSOURCES) \
-	utilvapid.cpp utilrecv.cpp config-filename.cpp \
+	utilvapid.cpp utilrecv.cpp utilinstance.cpp config-filename.cpp \
 	$(common_src)
 
 wpn_LDADD = $(commonlibs) -ldl

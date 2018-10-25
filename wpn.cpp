@@ -280,7 +280,7 @@ int main(int argc, char** argv)
 				std::string headers;
 				std::string token;
 				std::string pushset;
-				int r = subscribe(&d, &headers, token, pushset, 
+				int r = subscribeFCM(&d, &headers, token, pushset, 
 					config.wpnKeys->getPublicKey(),
 					config.wpnKeys->getAuthSecret(),  
 					config.subscribeUrl, config.getDefaultFCMEndPoint(), config.authorizedEntity,
@@ -309,6 +309,7 @@ int main(int argc, char** argv)
 			break;
 		case CMD_SUBSCRIBE_VAPID:
 			{
+				// TODO
 				Subscription subscription;
 				config.subscriptions->list.push_back(subscription);
 				if (config.verbosity > 0)

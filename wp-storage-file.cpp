@@ -1,7 +1,7 @@
 #include <inttypes.h>
 
 #include <fstream>
-#include "sole/sole.hpp"
+#include "utilinstance.h"
 #include "wp-storage-file.h"
 #include "utilstring.h"
 #include "utilvapid.h"
@@ -59,7 +59,7 @@ AndroidCredentials::AndroidCredentials(
 
 std::string AndroidCredentials::genAppId()
 {
-	return sole::uuid4().str();
+	return mkInstanceId();
 }
 
 void AndroidCredentials::init
@@ -124,9 +124,12 @@ void AndroidCredentials::read
 	parse(keys, delimiter);
 }
 
+// #define APP_ID_PREFIX "wp:com.commandus.wpn#"
+#define APP_ID_PREFIX "" 
+
 const std::string AndroidCredentials::getAppId() const
 {
-	return "wp:com.commandus.wpn#" + mAppId;
+	return APP_ID_PREFIX + mAppId;
 }
 
 uint64_t AndroidCredentials::getAndroidId() const

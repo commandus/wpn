@@ -506,7 +506,7 @@ Each line separated by one space.
 
 Identifiers and tokens section consists of identifiers and security tokens:
 
-- appId Application-wide unique identifier UUID 16 bytes (128 bits) long e.g. 550e8400-e29b-41d4-a716-446655440000. See https://tools.ietf.org/html/rfc4122
+- appId Application- Android instance identifier (8 bytes minus 4 high bits, base64 encoded and some chars replaced (url conformant))
 - androidId identifier assigned by Google service 64 bits long unsigned integer (a.k.a Android id)
 - token Security token 64 bits long unsigned integer
 - GCMToken GCM token string

@@ -33,7 +33,7 @@
 #include <fstream>
 #include "nlohmann/json.hpp"
 
-#include "sole/sole.hpp"
+#include "utilinstance.h"
 #include "sslfactory.h"
 
 #include "config-filename.h"

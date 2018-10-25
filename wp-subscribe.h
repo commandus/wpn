@@ -13,14 +13,14 @@
 #include "wp-storage-file.h"
 
 /**
- * Make subscription
+ * Make subscription VAPID
  * @param retVal can be NULL
  * @param retHeaders can be NULL
  * @param retToken return subscription token
  * @param retPushSet return subscription push set
  * @param receiverPublicKey receiver public key
  * @param receiverAuth receiver auth secret
- * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/send/[GCM_TOKEN]
+ * @param receiverAppId application identifier 
  * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
  * @param verbosity default 0- none
  * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
@@ -33,6 +33,37 @@ int subscribe
 	std::string &retPushSet,
 	const std::string &receiverPublicKey,
 	const std::string &receiverAuth,
+	const std::string &receiverAppId,
+	const std::string &endPoint,
+	const std::string &authorizedEntity,
+	int verbosity
+);
+
+/**
+ * Make subscription FCM
+ * authorizedEntity MUST BE "103953800507"
+ * @see https://firebase.google.com/docs/cloud-messaging/js/client
+ * @param retVal can be NULL
+ * @param retHeaders can be NULL
+ * @param retToken return subscription token
+ * @param retPushSet return subscription push set
+ * @param receiverAndroidId receiver Android id
+ * @param receiverSecurityToken receiver security number
+ * @param wpnKeys reserved
+ * @param subscribeUrl URL e.g. https://fcm.googleapis.com/fcm/connect/subscribe
+ * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
+ * @param authorizedEntity usual decimal number string "103953800507"
+ * @param verbosity default 0- none
+ * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
+ */
+int subscribeFCM
+(
+	std::string *retVal,
+	std::string *retHeaders,
+	std::string &retToken,
+	std::string &retPushSet,
+	const std::string &receiverAndroidId,
+	const std::string &receiverSecurityToken,
 	const std::string &subscribeUrl,
 	const std::string &endPoint,
 	const std::string &authorizedEntity,
