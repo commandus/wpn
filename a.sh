@@ -9,8 +9,8 @@
 #     Hx5DZb93lE98ub6KYRdveg 
 
 #Sender
-private=_93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk
-public=BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A
+private=Kw7AwYTm2KnQblUitYqnsBfK5tMbj4CHfWq4UBXGG4E
+public=BBe_qYlY_UaHNXYzugF60TCmkbrMBaSs36_GVrx3MHpZC-7-a4oaioUelbEZT5TYbzGAK9AqRpx_qO9r2pGyRTk
 
 # Recipient Firefox
 registrationFF=gAAAAABburDAsGO8igS8MAF2pwRlidA-nijrdrTVGDbN00aNWiYqWDfEivBo7WZ6Bj1NVeeoIsg7uti7n8ssstB4t2nHZZHt6XYWPUpoKXVyQmgtev-L95TM-qNqhbEFPVCo08B3nW1OdWLpM0fccKnrDQ4sTxnCEoG8ZE3SyyQKWoIBrkRh9bY
@@ -32,6 +32,11 @@ registrationWR=eM9Se1TKu0I:APA91bHW8_08w8Zsc1G-EAvPL1SCOF_X1WUo8IvHkJmhamaIlOOmx
 p256dhWR=BOv3pO9cZ8O7aENzybIY3TsdemSk41a9e_OeC23vMrAah3NTHYutDdMXbWV3yFTGFzFPVgtl5eR-gXtpdJmJef0
 authWR=pGZrBtdtWGpyUdMQ_hFHgw
 
+# Recipient wpnr chrome
+registrationWR=cVeUIjSZKSQ:APA91bG0nzG_cE2dsP3BA8p2jDaBwy6geAonMeq8CGBrwv9RVtRiaYxT2vIWrFAK179aqoY5VhWPTSogOP90kMSvGqxCgsfeFfE8ZUPUnOIC5zr7-dKw
+p256dhWR=BJfADzsxJ66eysFR_Z0SGelWeWJlfVlWx_hkd6XjLiCSBy25pZhai-XNNn78cuUzzSnx5kn6TCIyskhua0OuKlE
+authWR=li-eTvvgTlXtuTWc8O1prQ
+
 #     Hx5DZb93lE98ub6KYRdveg 
 # ./wpn -m -f "andrei.i.ivanov@gmail.com" -t "hi there" -b "body message" -i https://commandus.com/favicon.ico -l https://commandus.com/ \
 # -p $private -k $public -d $p256dh -a $auth -vvv https://fcm.googleapis.com/fcm/send/$registration
@@ -42,5 +47,6 @@ authWR=pGZrBtdtWGpyUdMQ_hFHgw
 #./wpnw -f "andrei.i.ivanov@gmail.com" -b "body message" -t "hi there" -i "https://commandus.com/favicon.ico" -l "https://commandus.com/" \
 #-r $registrationCH -d $p256dhCH -a $authCH -vvv -k $private -K $public -p chrome
 
+# ./wpnlink -s BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -k BOv3pO9cZ8O7aENzybIY3TsdemSk41a9e_OeC23vMrAah3NTHYutDdMXbWV3yFTGFzFPVgtl5eR-gXtpdJmJef0 -a pGZrBtdtWGpyUdMQ_hFHgw
 ./wpnw -f "andrei.i.ivanov@gmail.com" -b "body message" -t "hi there" -i "https://commandus.com/favicon.ico" -l "https://commandus.com/" \
 -r $registrationWR -d $p256dhWR -a $authWR -vvv -k $private -K $public -p chrome
