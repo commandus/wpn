@@ -4,7 +4,7 @@
   **/
 
 #ifndef WPN_CONFIG_H
-#define WPN_CONFIG_H
+#define WPN_CONFIG_H	1
 
 #include <string>
 #include <vector>

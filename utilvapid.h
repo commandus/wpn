@@ -7,6 +7,13 @@
 #define AESGCM 		0
 #define AES128GCM	1
 
+/**
+ * Register application catewgory name
+ * app=org.chromium.linux
+ * https://android.clients.google.com/c2dm/register3
+ */
+#define APP_CATEGORY	"org.chromium.linux"
+
 // MathFuncsDll.h
 #ifdef _MSC_VER
 #ifdef EXPORT_C_DLL

@@ -54,7 +54,7 @@ static std::string jsonConfig
 	json json = {
 		{ "provider", provider == PROVIDER_FIREFOX ? "firefox" : "chrome" },
 		{ "privateKey", privateKeyC },
-		{ "publicKey", publicKeyC },
+		{ "publicKey", publicKeyC }
 	};
 	return json.dump(2);
 }
@@ -192,13 +192,8 @@ int main(int argc, char **argv)
 	}
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
-
-	char registrationIdC[256];
 	char privateKeyC[96];
 	char publicKeyC[240];
-	char authSecretC[48];
-	uint64_t androidId;
-	uint64_t securityToken;
 	std::string appId;
 
 	// In windows, this will init the winsock stuff
@@ -208,7 +203,6 @@ int main(int argc, char **argv)
 	int r  = 0;
 
 	// write
-	int retcode;
 	char retval[4096];
 	char endpoint[256];
 	endpointC(endpoint, sizeof(endpoint), registrationid.c_str(), 1, (int) provider);	///< 0- Chrome, 1- Firefox

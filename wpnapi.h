@@ -1,3 +1,6 @@
+#ifndef WPNAPI_H_
+#define WPNAPI_H_	1
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -271,4 +274,5 @@ EXPORTDLL int subscribeC
 
 #ifdef __cplusplus
 }
+#endif
 #endif

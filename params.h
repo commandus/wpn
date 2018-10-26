@@ -1,5 +1,5 @@
 #ifndef PARAMS_H
-#define PARAMS_H
+#define PARAMS_H	1
 
 #include <inttypes.h>
 

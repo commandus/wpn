@@ -11,7 +11,7 @@ lib_LTLIBRARIES = \
 bin_PROGRAMS = \
 	wpn \
 	webpush-curl \
-	wpnr wpnw wpnlink
+	wpnr wpnw wpnlink wpnadd
 
 commoncppflags = -O2 -I/usr/local/include -Imcs/gen -Ithird_party
 commonlibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl -lece -lnghttp2 -lglog -lunwind -lprotobuf
@@ -74,7 +74,7 @@ nobase_dist_include_HEADERS = \
 	platform.h \
 	wpn-config.h wpn.h wpn-notify.h utilvapid.h utilrecv.h \
 	wp-storage-file.h wp-subscribe.h wp-connection.h wp-push.h \
-	wpnapi.h sslfactory.h utilstring.h utilinstance.h commandoutput.h params.h \
+	wpnapi.h sslfactory.h utilstring.h utilinstance.h utilfile.h commandoutput.h params.h \
 	mcs/mcsclient.h \
 	onullstream.hpp \
 	third_party/nlohmann/json.hpp \
@@ -115,7 +115,7 @@ webpush_curl_CPPFLAGS = $(commoncppflags)
 #	wpnr (with shared library)
 #
 wpnr_SOURCES= \
-	tools/wpnr/wpnr.cpp config-filename.cpp \
+	tools/wpnr/wpnr.cpp config-filename.cpp utilfile.cpp \
 	$(common_src)
 
 wpnr_LDADD = -L.libs -lwpnapi $(commonlibs)
@@ -130,6 +130,16 @@ wpnw_SOURCES= \
 
 wpnw_LDADD = -L.libs -lwpnapi $(commonlibs)
 wpnw_CPPFLAGS = $(commoncppflags)
+
+#
+#	wpnadd (with shared library)
+#
+wpnadd_SOURCES= \
+	tools/wpnadd/wpnadd.cpp config-filename.cpp utilfile.cpp \
+	$(common_src)
+
+wpnadd_LDADD = -L.libs -lwpnapi $(commonlibs)
+wpnadd_CPPFLAGS = $(commoncppflags)
 
 #
 #	wpnlink (with shared library)

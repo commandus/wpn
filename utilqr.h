@@ -1,3 +1,6 @@
+#ifndef UTILQR_H_
+#define UTILQR_H_	1
+
 #include <string>
 #include "nayuki/QR-Code-generator/BitBuffer.hpp"
 #include "nayuki/QR-Code-generator/QrCode.hpp"
@@ -10,3 +13,5 @@ std::string qr2string(
 	const std::string &foreground = u8"\u2588\u2588",
 	const std::string &background = "  "
 );
+
+#endif

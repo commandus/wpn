@@ -1,3 +1,6 @@
+#ifndef PLATFORM_H
+#define PLATFORM_H	1
+
 #ifdef _WIN32
 
 #include "windows.h"
@@ -35,4 +38,6 @@ Sleep(seconds *1000);
 #define CALLC extern "C" 
 #else
 #define CALLC
+#endif
+
 #endif

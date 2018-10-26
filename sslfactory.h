@@ -1,5 +1,5 @@
 #ifndef SSLFACTORY_H
-#define SSLFACTORY_H
+#define SSLFACTORY_H	1
 
 #include <string>
 #include <openssl/ssl.h>

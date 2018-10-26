@@ -1,5 +1,5 @@
 #ifndef UTILSTRING_H_
-#define UTILSTRING_H_
+#define UTILSTRING_H_	1
 
 #include <string>
 #include <iostream>

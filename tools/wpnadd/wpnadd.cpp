@@ -22,16 +22,17 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
- * @file wpnr.cpp
+ * @file wpnadd.cpp
  * 
  */
 
 #include <string>
+#include <cstring>
+#include <algorithm>
 #include <iostream>
+
 #include <curl/curl.h>
 #include <argtable3/argtable3.h>
-#include <fstream>
-#include <cstring>
 
 #include "sslfactory.h"
 
@@ -40,52 +41,39 @@
 #include "utilfile.h"
 #include "utilinstance.h"
 
-static const char* progname = "wpnr";
-#define DEF_FILE_NAME			".wpnr.js"
-#undef SUPPORT_FIREFOX
+static const char* progname = "wpnadd";
 
-void onNotify
-(
-	void *env,
-	const char *persistent_id,
-	const char *from,				///< e.g. BDOU99-h67HcA6JeFXHbSNMu7e2yNNu3RzoMj8TM4W88jITfq7ZmPvIM1Iv-4_l2LxQcYwhqby2xGpWwzjfAnG4
-	const char *appName,
-	const char *appId,
-	int64_t sent,
-	const NotifyMessageC *request
-)
-{
-	std::cerr << "Notify " 
-		<< "persistent_id: " << persistent_id
-		<< std::endl;
-}
+enum FORMAT_TYPE {
+	FORMAT_TYPE_JSON = 0,
+	FORMAT_TYPE_TAB = 1,
+	FORMAT_TYPE_ENDPOINT = 2
+};
 
-void onLog
-(
-	void *env,
-	int severity,
-	const char *message
-)
+static enum FORMAT_TYPE formatTypeStr2Enum(const char *value)
 {
-	std::cerr << message;
+	enum FORMAT_TYPE r;
+	std::string v(value);
+	std::transform(v.begin(), v.end(), v.begin(), ::tolower);
+	if (v == "tab")
+		r = FORMAT_TYPE_TAB;
+	else
+		if (v == "endpoint")
+			r = FORMAT_TYPE_ENDPOINT;
+		else
+			r = FORMAT_TYPE_JSON;
+	return r;
 }
 
 int main(int argc, char **argv) 
 {
-	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
-	// TODO add Firefox read
-#ifdef SUPPORT_FIREFOX	
-	struct arg_str *a_provider = arg_str0("p", "provider", "chrome|firefox", "Re-init web push provider. Default chrome.");
-#endif	
+	struct arg_str *a_format = arg_str0("f", "format", "json|tab|endpoint", "Default JSON. endpoint- print out endpoint only");
+	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. If not specified, does not exists, or empty, create a new.");
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
-		a_file_name,
-#ifdef SUPPORT_FIREFOX
-		a_provider,
-#endif
+		a_format, a_file_name,
 		a_verbosity,
 		a_help, a_end 
 	};
@@ -103,24 +91,16 @@ int main(int argc, char **argv)
 	if (a_file_name->count)
 		filename = *a_file_name->sval;
 	else
-		filename = getDefaultConfigFileName(DEF_FILE_NAME);
+		filename = "";
 	int verbosity = a_verbosity->count;
 
 	enum VAPID_PROVIDER provider = PROVIDER_CHROME;
-#ifdef SUPPORT_FIREFOX
-	if (a_provider->count) {
-		if ("firefox" == std::string(*a_provider->sval)) {
-			provider = PROVIDER_FIREFOX;
-		}
+	
+	enum FORMAT_TYPE ft = FORMAT_TYPE_JSON;
+	
+	if (a_format->count) {
+		ft = formatTypeStr2Enum(*a_format->sval);
 	}
-#endif	
-
-	bool isNew = 
-#ifdef SUPPORT_FIREFOX	
-	a_provider->count > 0;
-#else
-	false;
-#endif	
 
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)
@@ -143,40 +123,45 @@ int main(int argc, char **argv)
 	uint64_t androidId;
 	uint64_t securityToken;
 	std::string appId;
-	
-	std::string registrationId;
-	std::string privateKey;
-	std::string publicKey;
-	std::string authSecret;
 
 	// load config file
-	int r = readConfig(
-		filename,
-		provider,
-		registrationId,
-		privateKey,
-		publicKey,
-		authSecret,
-		androidId,
-		securityToken,
-		appId
-	);
-	if (r)  {
-		std::cerr << "Error parse " << filename << std::endl;
-	} else {
-		strncpy(registrationIdC, registrationId.c_str(), sizeof(registrationIdC));
-		strncpy(privateKeyC, privateKey.c_str(), sizeof(privateKeyC));
-		strncpy(publicKeyC, publicKey.c_str(), sizeof(publicKeyC));
-		strncpy(authSecretC, authSecret.c_str(), sizeof(authSecretC));
+	bool isNew = true;
+	if (!filename.empty())
+	{
+		std::string registrationId;
+		std::string privateKey;
+		std::string publicKey;
+		std::string authSecret;
+
+		int r = readConfig(
+			filename,
+			provider,
+			registrationId,
+			privateKey,
+			publicKey,
+			authSecret,
+			androidId,
+			securityToken,
+			appId
+		);
+		if (r)  {
+			std::cerr << "Error parse " << filename << std::endl;
+		} else {
+			strncpy(registrationIdC, registrationId.c_str(), sizeof(registrationIdC));
+			strncpy(privateKeyC, privateKey.c_str(), sizeof(privateKeyC));
+			strncpy(publicKeyC, publicKey.c_str(), sizeof(publicKeyC));
+			strncpy(authSecretC, authSecret.c_str(), sizeof(authSecretC));
+			isNew = false;
+		}
 	}
 
-	// In windows, this will init the winsock stuff
-	curl_global_init(CURL_GLOBAL_ALL);
-	OpenSSL_add_all_algorithms();
-
-	if (isNew || appId.empty()) 
+	int r = 0;
+	if (isNew)
 	{
-		// generate a new application name. Is it required?
+		// In windows, this will init the winsock stuff
+		curl_global_init(CURL_GLOBAL_ALL);
+		OpenSSL_add_all_algorithms();
+		// generate a new application name.
 		appId = mkInstanceId();
 		// Initialize client
 		r = initClientC(
@@ -197,7 +182,10 @@ int main(int argc, char **argv)
 			// HTTP 200 -> 0
 			r = 0;
 		}
-		// save 
+	}
+	// save 
+	if (isNew && (!filename.empty()))
+	{
 		r = writeConfig(
 			filename,
 			provider,
@@ -209,50 +197,48 @@ int main(int argc, char **argv)
 			securityToken,
 			appId
 		);
+		if (r < 0)
+			std::cerr << "Error write " << filename << std::endl;
 	}
-	if (r < 0)
-		std::cerr << "Error write " << filename << std::endl;
 
-	// read
-	int retcode;
-	void *client = startClient(
-		&retcode,
-		privateKeyC,
-		authSecretC,
-		androidId,
-		securityToken,
-		onNotify,
-		NULL,
-		onLog,
-		NULL,
-		verbosity
-	);
-	if (r) 
-	{
-		std::cerr << "Starting client error " << retcode << std::endl;
-		return r;
-	} 
-	std::cout << "Enter q to quit" << std::endl;
-	char endpoint[255];
-	endpointC(endpoint, sizeof(endpoint), registrationIdC, 0, (int) provider);	///< 0- Chrome, 1- Firefox
-	std::cout << endpoint << std::endl;
-	std::cout << jsonConfig(
-		provider,
-		registrationIdC,
-		privateKeyC,
-		publicKeyC,
-		authSecretC,
-		androidId,
-		securityToken,
-		appId
-	) << std::endl;
-
-	// loop
-	std::string l;
-	do {
-		std::cin >> l;
-	} while (l != "q");
-	
-	stopClient(client);
+	std::string s;
+	switch(ft) {
+	case FORMAT_TYPE_TAB:
+		{
+		s = tabConfig(
+			provider,
+			registrationIdC,
+			privateKeyC,
+			publicKeyC,
+			authSecretC,
+			androidId,
+			securityToken,
+			appId
+		);
+		}
+		break;
+	case FORMAT_TYPE_ENDPOINT:
+		{
+		char endpoint[255];
+		endpointC(endpoint, sizeof(endpoint), registrationIdC, 0, (int) provider);	///< 0- Chrome, 1- Firefox
+		s = endpoint;
+		}
+		break;
+	default:
+		{
+		s = jsonConfig(
+			provider,
+			registrationIdC,
+			privateKeyC,
+			publicKeyC,
+			authSecretC,
+			androidId,
+			securityToken,
+			appId
+		);
+		}
+		break;
+	}
+	std::cout << s << std::endl;
 	return r;
 }

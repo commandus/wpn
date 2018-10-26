@@ -1,5 +1,5 @@
 #ifndef COMMANDOUTPUT_H
-#define COMMANDOUTPUT_H
+#define COMMANDOUTPUT_H 1
 
 #define ERR_FAILED_RUN		-1	// Failed to run command
 #define ERR_FAILED_PIPE		-2	// Failed create pipe. Windows only

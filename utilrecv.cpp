@@ -1,3 +1,6 @@
+#ifndef UTILRECV_H_
+#define UTILRECV_H_
+
 #include "utilrecv.h"
 #include <sstream>
 
@@ -225,7 +228,8 @@ std::string endpoint(
 /**
  * Register device and obtain GCM token
  */
-int registerDevice(
+int registerDevice
+(
 	std::string *retGCMToken,
 	uint64_t androidId,
 	uint64_t securityToken,
@@ -235,7 +239,7 @@ int registerDevice(
 {
 	std::stringstream formData;
 	std::string rkb64 = base64UrlEncode(REGISTER_SERVER_KEY, sizeof(REGISTER_SERVER_KEY));
-	formData << "app=org.chromium.linux"
+	formData << "app=" << APP_CATEGORY
 		<< "&X-subtype=" << escapeURLString(appId)
 		<< "&device=" << androidId
 		<< "&sender=" << rkb64;
@@ -285,3 +289,5 @@ std::string tagNmessageToString
 	delete rawOutput;
 	return ss.str();
 }
+
+#endif

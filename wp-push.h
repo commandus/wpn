@@ -1,5 +1,5 @@
-#ifndef WP_SEND_H
-#define WP_SEND_H
+#ifndef WP_PUSH_H
+#define WP_PUSH_H	1
 
 #define ERR_PARAM_SERVER_KEY		-1
 #define ERR_PARAM_CLIENT_TOKEN		-2

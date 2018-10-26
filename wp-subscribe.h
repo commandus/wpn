@@ -1,8 +1,8 @@
 /**
  * FCM subscription helper functions
  */
-#ifndef WP_SUBSCRIBE_H
-#define WP_SUBSCRIBE_H
+#ifndef WP_SUBSCRIBE_H_
+#define WP_SUBSCRIBE_H_	1
 
 #define ERR_MODE					-1
 #define ERR_PARAM_ENDPOINT			-2

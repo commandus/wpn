@@ -244,7 +244,7 @@ int subscribe
 	std::string mimetype = "application/x-www-form-urlencoded";
 
 	std::string s =
-		"app=org.chrome.linux&X-subtype=wp:" + std::string(endPoint)
+		"app=" APP_CATEGORY "&X-subtype=wp:" + std::string(endPoint)
 		+ "&device=" + escapeURLString(receiverAndroidId)
 		+ "&sender=" + escapeURLString(authorizedEntity)
 		+ "&appid=" + receiverAppId

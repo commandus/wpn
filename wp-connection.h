@@ -3,7 +3,7 @@
  * Helper utilities
  */
 #ifndef WP_CONNECTION_H
-#define WP_CONNECTION_H
+#define WP_CONNECTION_H	1
 
 #define ERR_MODE					-1
 #define ERR_PARAM_ENDPOINT			-2

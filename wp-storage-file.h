@@ -7,8 +7,8 @@
  * AndroidCredentials, WpnKeys, Subscriptions
  * Helper utilities
  */
-#ifndef WP_STORAGE_FILE_H
-#define WP_STORAGE_FILE_H
+#ifndef WP_STORAGE_FILE_H_
+#define WP_STORAGE_FILE_H_	1
 
 #include <string>
 #include <iostream>

@@ -1,5 +1,5 @@
 #ifndef WPN_NOTIFY_H
-#define WPN_NOTIFY_H
+#define WPN_NOTIFY_H	1
 /**
  * Copyright (c) 2018 Andrei Ivanov <andrei.i.ivanov@commandus.com>
  * 
