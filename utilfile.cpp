@@ -113,7 +113,7 @@ int parseConfig
 	json j;
 	int r = 0;
 	try {
-		j.parse(value);
+		j = json::parse(value);
 	}
 	catch (...) {
 		r = -1;
@@ -159,6 +159,7 @@ int readConfig
 {
 	std::ifstream strm(filename);
 	std::string s((std::istreambuf_iterator<char>(strm)), std::istreambuf_iterator<char>());
+	strm.close();
 	return parseConfig(
 		s,
 		provider,
