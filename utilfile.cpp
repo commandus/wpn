@@ -3,6 +3,7 @@
 #include <sstream>
 #include <fstream>
 #include "nlohmann/json.hpp"
+#include "utilrecv.h"
 
 using json = nlohmann::json;
 
@@ -44,8 +45,7 @@ std::string tabConfig
 )
 {
 	std::stringstream ss;
-	char endpoint[255];
-	endpointC(endpoint, sizeof(endpoint), registrationIdC, 0, (int) provider);	///< 0- Chrome, 1- Firefox
+	std::string e = endpoint(registrationIdC, 0, (int) provider);	///< 0- Chrome, 1- Firefox
 	ss << (provider == PROVIDER_FIREFOX ? "firefox" : "chrome") 
 	<< "\t" << appId
 	<< "\t" << registrationIdC
@@ -54,7 +54,7 @@ std::string tabConfig
 	<< "\t" << authSecretC
 	<< "\t" << androidId
 	<< "\t" << securityToken
-	<< "\t" << endpoint;
+	<< "\t" << e;
 	return ss.str();
 }
 

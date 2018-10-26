@@ -368,7 +368,7 @@ static int WPCipher128(
  * @param contentEncoding AESGCM or AES128GCM
  * @param expiration 0- 12 hours from now
 */
-EXPORTDLL std::string webpushVapidCmd(
+std::string webpushVapidCmd(
 	const std::string &publicKey,
 	const std::string &privateKey,
 	const std::string &filename,
@@ -529,7 +529,7 @@ static size_t write_string(void *contents, size_t size, size_t nmemb, void *user
  * @param contentEncoding AESGCM or AES128GCM
  * @param expiration 0- 12 hours from now
 */
-EXPORTDLL int webpushVapid(
+int webpushVapid(
 	std::string &retval,
 	const std::string &publicKey,
 	const std::string &privateKey,
@@ -623,7 +623,7 @@ EXPORTDLL int webpushVapid(
  * @param expiration expiration time unix epoch seconds, default 0- now + 12 hours
  * @return 200-299- success, <0- error
 */
-EXPORTDLL int webpushVapidData
+int webpushVapidData
 (
 	std::string &retval,
 	const std::string &publicKey,

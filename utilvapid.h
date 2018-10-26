@@ -14,17 +14,6 @@
  */
 #define APP_CATEGORY	"org.chromium.linux"
 
-// MathFuncsDll.h
-#ifdef _MSC_VER
-#ifdef EXPORT_C_DLL
-#define EXPORTDLL extern "C" __declspec(dllexport) 
-#else
-#define EXPORTDLL
-#endif
-#else
-#define EXPORTDLL
-#endif
-
 std::string base64UrlEncode(
 	const void *data,
 	size_t size
@@ -43,7 +32,7 @@ std::string base64UrlEncode(
  * @param contact mailto:
  * @param contentEncoding AESGCM or AES128GCM
  */
-EXPORTDLL std::string webpushVapidCmd(
+std::string webpushVapidCmd(
 	const std::string &publicKey,
 	const std::string &privateKey,
 	const std::string &filename,
@@ -69,7 +58,7 @@ EXPORTDLL std::string webpushVapidCmd(
  * @param contentEncoding AESGCM or AES128GCM
  * @return >0- HTTP code, <0- error code
  */
-EXPORTDLL int webpushVapid(
+int webpushVapid(
 	std::string &retval,
 	const std::string &publicKey,
 	const std::string &privateKey,
@@ -100,7 +89,7 @@ EXPORTDLL int webpushVapid(
  * @param expiration expiration time unix epoch seconds, default 0- now + 12 hours
  * @return 200-299- success, <0- error
 */
-EXPORTDLL int webpushVapidData
+int webpushVapidData
 (
 	std::string &retval,
 	const std::string &publicKey,
