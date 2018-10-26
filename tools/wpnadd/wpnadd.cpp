@@ -111,6 +111,9 @@ int main(int argc, char **argv)
 		arg_print_syntax(stderr, argtable, "\n");
 		std::cerr << "Web push receiver" << std::endl;
 		arg_print_glossary(stderr, argtable, "  %-27s %s\n");
+		std::cerr << "Tab delimited config columns are:" << std::endl;
+		std::cerr << "provider appId registrationId privateKey publicKey authSecret androidId securityToken endpoint" << std::endl;
+
 		arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 		return 1;
 	}
@@ -144,7 +147,7 @@ int main(int argc, char **argv)
 			securityToken,
 			appId
 		);
-		if (r)  {
+		if (r < 0)  {
 			std::cerr << "Error parse " << filename << std::endl;
 		} else {
 			strncpy(registrationIdC, registrationId.c_str(), sizeof(registrationIdC));

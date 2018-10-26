@@ -44,6 +44,8 @@ std::string tabConfig
 )
 {
 	std::stringstream ss;
+	char endpoint[255];
+	endpointC(endpoint, sizeof(endpoint), registrationIdC, 0, (int) provider);	///< 0- Chrome, 1- Firefox
 	ss << (provider == PROVIDER_FIREFOX ? "firefox" : "chrome") 
 	<< "\t" << appId
 	<< "\t" << registrationIdC
@@ -51,7 +53,8 @@ std::string tabConfig
 	<< "\t" << publicKeyC
 	<< "\t" << authSecretC
 	<< "\t" << androidId
-	<< "\t" << securityToken;
+	<< "\t" << securityToken
+	<< "\t" << endpoint;
 	return ss.str();
 }
 
@@ -110,28 +113,33 @@ int readConfig
 	
 	std::ifstream strm(filename);
 	json j;
+	int r = 0;
 	try {
 		strm >> j;
 	}
 	catch (...) {
-		return -1;
+		r = -1;
 	}
 	strm.close();
 
-	try {
-		std::string  s = j["provider"];;
-		if (s == "firefox")
-			provider = PROVIDER_FIREFOX;
-		else
-			provider = PROVIDER_CHROME;
-		appId = j["appId"];
-		registrationId = j["registrationId"];
-		privateKey = j["privateKey"];
-		publicKey = j["publicKey"];
-		authSecret = j["authSecret"];
-		androidId = j["androidId"];
-		securityToken = j["securityToken"];
-	} catch(...) {
+	if (r == 0)
+	{
+		try {
+			std::string  s = j["provider"];;
+			if (s == "firefox")
+				provider = PROVIDER_FIREFOX;
+			else
+				provider = PROVIDER_CHROME;
+			appId = j["appId"];
+			registrationId = j["registrationId"];
+			privateKey = j["privateKey"];
+			publicKey = j["publicKey"];
+			authSecret = j["authSecret"];
+			androidId = j["androidId"];
+			securityToken = j["securityToken"];
+		} catch(...) {
+			r = -2;
+		}
 	}
-	strm.close();
+	return r;
 }
