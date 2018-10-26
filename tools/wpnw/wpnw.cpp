@@ -28,36 +28,20 @@
 
 #include <string>
 #include <iostream>
+#include <cstring>
 #include <curl/curl.h>
 #include <argtable3/argtable3.h>
 #include <fstream>
-#include "nlohmann/json.hpp"
 
 #include "utilinstance.h"
+#include "utilfile.h"
 #include "sslfactory.h"
 
 #include "config-filename.h"
 #include "wpnapi.h"
 
-using json = nlohmann::json;
-
 static const char* progname = "wpnw";
 #define DEF_FILE_NAME			".wpnw.js"
-
-static std::string jsonConfig
-(
-	enum VAPID_PROVIDER provider,
-	const char* privateKeyC,
-	const char* publicKeyC
-)
-{
-	json json = {
-		{ "provider", provider == PROVIDER_FIREFOX ? "firefox" : "chrome" },
-		{ "privateKey", privateKeyC },
-		{ "publicKey", publicKeyC }
-	};
-	return json.dump(2);
-}
 
 int main(int argc, char **argv) 
 {
@@ -65,6 +49,7 @@ int main(int argc, char **argv)
 	struct arg_str *a_p256dh = arg_str0("d", "p256dh", "<base64>", "VAPID public key");
 	struct arg_str *a_auth = arg_str0("a", "auth", "<base64>", "VAPID auth");
 	
+	// message itself
 	struct arg_str *a_subject = arg_str0("t", "subject", "<Text>", "Subject (topic)");
 	struct arg_str *a_body = arg_str0("b", "body", "<Text>", "Body");
 	struct arg_str *a_icon = arg_str0("i", "icon", "<URL>", "http[s]:// icon address.");
@@ -210,26 +195,16 @@ int main(int argc, char **argv)
 	strncpy(privateKeyC, force_privatekey.c_str(), sizeof(privateKeyC));
 	strncpy(publicKeyC, force_publickey.c_str(), sizeof(publicKeyC));
 
-	std::cout << endpoint << std::endl;	
-	std::cout << jsonConfig(
-		provider,
-		privateKeyC,
-		publicKeyC
-	) << std::endl;
-
-	json requestBody = {
-		{"to", registrationid },
-		{"notification", 
-			{
-				{"title", subject },
-				{"body", body },
-				{"icon", icon},
-				{"click_action", link }
-			}
-		}
-	};
-
-	std::string msg = requestBody.dump();
+	if (verbosity > 0)
+	{
+		std::cerr
+			<< "endpoint: " << endpoint << std::endl
+			<< "provider: " << (provider == PROVIDER_FIREFOX ? "firefox" : "chrome") << std::endl
+			<< "privateKey: " << privateKeyC << std::endl
+			<< "publicKey: " << publicKeyC << std::endl;
+	}
+	
+	std::string msg  = mkNotificationJson(registrationid, subject, body, icon, link);
 	time_t t = time(NULL) + 86400 - 60;
 	if (verbosity > 1)
 	{

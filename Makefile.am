@@ -125,11 +125,21 @@ wpnr_CPPFLAGS = $(commoncppflags)
 #	wpnw (with shared library)
 #
 wpnw_SOURCES= \
-	tools/wpnw/wpnw.cpp config-filename.cpp \
+	tools/wpnw/wpnw.cpp config-filename.cpp utilfile.cpp \
 	$(common_src)
 
 wpnw_LDADD = -L.libs -lwpnapi $(commonlibs)
 wpnw_CPPFLAGS = $(commoncppflags)
+
+#
+#	wpnw (with shared library)
+#
+wpnwj_SOURCES= \
+	tools/wpnwj/wpnwj.cpp config-filename.cpp utilfile.cpp \
+	$(common_src)
+
+wpnwj_LDADD = -L.libs -lwpnapi $(commonlibs)
+wpnwj_CPPFLAGS = $(commoncppflags)
 
 #
 #	wpnadd (with shared library)

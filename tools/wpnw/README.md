@@ -9,5 +9,5 @@
 Build using automake or:
 ```
 gcc -c -I ../../third_party ../../third_party/argtable3/argtable3.c
-g++ -std=c++11 -o wpnw -I ../.. -I ../../third_party wpnw.cpp ../../config-filename.cpp argtable3.o -lcurl -L/usr/local/lib -L../../.lib -lwpnapi -lprotobuf -lssl -lcrypto
+g++ -std=c++11 -o wpnw -I ../.. -I ../../third_party wpnw.cpp ../../config-filename.cpp ../../utilfile.cpp argtable3.o -lcurl -L/usr/local/lib -L../../.lib -lwpnapi -lprotobuf -lssl -lcrypto
 ```

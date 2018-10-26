@@ -143,3 +143,26 @@ int readConfig
 	}
 	return r;
 }
+
+std::string mkNotificationJson
+(
+	const std::string &to,
+	const std::string &subject,
+	const std::string &body,
+	const std::string &icon, 
+	const std::string &link 
+)
+{
+	json requestBody = {
+		{"to", to },
+		{"notification", 
+			{
+				{"title", subject },
+				{"body", body },
+				{"icon", icon},
+				{"click_action", link }
+			}
+		}
+	};
+	return requestBody.dump();
+}
