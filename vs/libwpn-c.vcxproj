@@ -177,6 +177,8 @@
     <ClCompile Include="..\third_party\nayuki\QR-Code-generator\BitBuffer.cpp" />
     <ClCompile Include="..\third_party\nayuki\QR-Code-generator\QrCode.cpp" />
     <ClCompile Include="..\third_party\nayuki\QR-Code-generator\QrSegment.cpp" />
+    <ClCompile Include="..\utilfile.cpp" />
+    <ClCompile Include="..\utilinstance.cpp" />
     <ClCompile Include="..\utilqr.cpp" />
     <ClCompile Include="..\utilrecv.cpp" />
     <ClCompile Include="..\utilstring.cpp" />
@@ -199,6 +201,8 @@
     <ClInclude Include="..\sslfactory.h" />
     <ClInclude Include="..\third_party\nlohmann\json.hpp" />
     <ClInclude Include="..\third_party\sole\sole.hpp" />
+    <ClInclude Include="..\utilfile.h" />
+    <ClInclude Include="..\utilinstance.h" />
     <ClInclude Include="..\utilqr.h" />
     <ClInclude Include="..\utilrecv.h" />
     <ClInclude Include="..\utilstring.h" />
