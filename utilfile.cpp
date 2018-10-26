@@ -94,11 +94,11 @@ int writeConfig
 }
 
 /**
- * load config file
+ * Parse config file
  */
-int readConfig
+int parseConfig
 (
-	const std::string &filename,
+	const std::string &value,
 	enum VAPID_PROVIDER &provider,
  	std::string &registrationId,
 	std::string &privateKey,
@@ -110,17 +110,14 @@ int readConfig
 )
 {
 	appId = "";
-	
-	std::ifstream strm(filename);
 	json j;
 	int r = 0;
 	try {
-		strm >> j;
+		j.parse(value);
 	}
 	catch (...) {
 		r = -1;
 	}
-	strm.close();
 
 	if (r == 0)
 	{
@@ -142,6 +139,37 @@ int readConfig
 		}
 	}
 	return r;
+}
+
+/**
+ * load config file
+ */
+int readConfig
+(
+	const std::string &filename,
+	enum VAPID_PROVIDER &provider,
+ 	std::string &registrationId,
+	std::string &privateKey,
+	std::string &publicKey,
+	std::string &authSecret,
+	uint64_t &androidId,
+	uint64_t &securityToken,
+	std::string &appId
+)
+{
+	std::ifstream strm(filename);
+	std::string s((std::istreambuf_iterator<char>(strm)), std::istreambuf_iterator<char>());
+	return parseConfig(
+		s,
+		provider,
+ 		registrationId,
+		privateKey,
+		publicKey,
+		authSecret,
+		androidId,
+		securityToken,
+		appId
+	);
 }
 
 std::string mkNotificationJson

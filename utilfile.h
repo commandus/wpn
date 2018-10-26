@@ -54,6 +54,19 @@ int readConfig
 	std::string &appId
 );
 
+int parseConfig
+(
+	const std::string &value,
+	enum VAPID_PROVIDER &provider,
+ 	std::string &registrationId,
+	std::string &privateKey,
+	std::string &publicKey,
+	std::string &authSecret,
+	uint64_t &androidId,
+	uint64_t &securityToken,
+	std::string &appId
+);
+
 std::string mkNotificationJson
 (
 	const std::string &to,
