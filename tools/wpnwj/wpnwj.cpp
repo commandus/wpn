@@ -46,11 +46,12 @@ static const char* progname = "wpnw";
 
 int main(int argc, char **argv) 
 {
-	struct arg_str *a_from = arg_str1(NULL, NULL, "<file>", "From");
-	struct arg_str *a_to = arg_str1(NULL, NULL, "<file>", "To");
-	struct arg_str *a_notification = arg_str1(NULL, NULL, "<file>", "Notification");
+	struct arg_str *a_from = arg_str1(NULL, NULL, "<from-file>", "From");
+	struct arg_str *a_to = arg_str1(NULL, NULL, "<to-file>", "To");
+	struct arg_str *a_notification = arg_str1(NULL, NULL, "<notification-file>", "Notification");
+	struct arg_str *a_subscription = arg_str1(NULL, NULL, "<base64|subscription-file>", "Subscription, baase64 or file name");
 
-	// from contact
+	// optional sender contact
 	struct arg_str *a_contact = arg_str0("f", "from", "<URL>", "Sender's email e.g. mailto:alice@acme.com or https[s] link");
 
 	struct arg_lit *a_aesgcm = arg_lit0("1", "aesgcm", "Force AESGCM. Default AES128GCM");
@@ -59,9 +60,11 @@ int main(int argc, char **argv)
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
+		// mandatory
 		a_from, a_to, a_notification,
-		a_contact,
-		a_aesgcm,
+		a_subscription, 
+		// optional
+		a_contact, a_aesgcm,
 		a_verbosity,
 		a_help, a_end 
 	};
@@ -74,28 +77,8 @@ int main(int argc, char **argv)
 	}
 	// Parse the command line as defined by argtable[]
 	int nerrors = arg_parse(argc, argv, argtable);
-
-	int verbosity = a_verbosity->count;
 	
-	// Load config files and notification JSON
-	std::string from = file2string(*a_from->sval);
-	std::string to = file2string(*a_to->sval);
-	std::string notification = file2string(*a_notification->sval);;
-	
-	// Check is file empty or not
-	if (from.empty()) {
-		std::cerr << "From configuration file empty." << std::endl;
-		nerrors++;
-	}
-	if (to.empty()) {
-		std::cerr << "To configuration file empty." << std::endl;
-		nerrors++;
-	}
-	if (notification.empty()) {
-		std::cerr << "Notification file empty." << std::endl;
-		nerrors++;
-	}
-
+	int verbosity;
 	enum VAPID_PROVIDER from_provider;
 	std::string from_registrationId;
 	std::string from_privateKey;
@@ -104,24 +87,6 @@ int main(int argc, char **argv)
 	uint64_t from_androidId;
 	uint64_t from_securityToken;
 	std::string from_appId;
-
-	// validate JSON
-	int r = parseConfig
-	(
-		from,
-		from_provider,
-		from_registrationId,
-		from_privateKey,
-		from_publicKey,
-		from_authSecret,
-		from_androidId,
-		from_securityToken,
-		from_appId
-	);
-	if (r != 0) {
-		std::cerr << "From configuration file is invalid." << std::endl;
-		nerrors++;
-	}
 
 	enum VAPID_PROVIDER to_provider;
 	std::string to_registrationId;
@@ -132,58 +97,113 @@ int main(int argc, char **argv)
 	uint64_t to_securityToken;
 	std::string to_appId;
 
-	r = parseConfig
-	(
-		to,
-		to_provider,
-		to_registrationId,
-		to_privateKey,
-		to_publicKey,
-		to_authSecret,
-		to_androidId,
-		to_securityToken,
-		to_appId
-	);
-	if (r != 0) {
-		std::cerr << "To configuration file is invalid." << std::endl;
-		nerrors++;
-	}
-	
-	// validate notification JSON format
 	std::string nto;
 	std::string title;
 	std::string body;
 	std::string icon; 
 	std::string click_action;
 
-	r = parseNotificationJson(
-		notification,
-		nto,
-		title,
-		body,
-		icon, 
-		click_action
-	);
+	std::string subscription;
+	std::string contact;
+	bool aesgcm;
 
-	if (r != 0) {
-		std::cerr << "Notification file is invalid." << std::endl;
-		nerrors++;
-	}
+	if (nerrors == 0) {
+		verbosity = a_verbosity->count;
+		
+		// Load config files and notification JSON
+		std::string from = file2string(*a_from->sval);
+		std::string to = file2string(*a_to->sval);
+		std::string notification = file2string(*a_notification->sval);
+		subscription = file2string(*a_subscription->sval);
+		if (subscription.empty())
+			subscription = *a_subscription->sval;
+		contact = *a_contact->sval;
+		aesgcm = a_aesgcm->count > 0;	
 
-	std::string contact = *a_contact->sval;
-	bool aesgcm = a_aesgcm->count > 0;	
-	
-	if (to_registrationId.empty()) {
-		nerrors++;
-		std::cerr << "Recipient registration id missed." << std::endl;
-	}
-	if (to_publicKey.empty()) {
-		nerrors++;
-		std::cerr << "Recipient public key missed." << std::endl;
-	}
-	if (to_authSecret.empty()) {
-		nerrors++;
-		std::cerr << "Recipient auth missed." << std::endl;
+		// validate JSON
+		int r = 0;
+		// Check is file empty or not
+		if (from.empty()) {
+			std::cerr << "From configuration file empty." << std::endl;
+			nerrors++;
+		} else {
+			r = parseConfig
+			(
+				from,
+				from_provider,
+				from_registrationId,
+				from_privateKey,
+				from_publicKey,
+				from_authSecret,
+				from_androidId,
+				from_securityToken,
+				from_appId
+			);
+			if (r != 0) {
+				std::cerr << "From configuration file is invalid." << std::endl;
+				nerrors++;
+			} else {
+				if (to_registrationId.empty()) {
+					nerrors++;
+					std::cerr << "Recipient registration id missed." << std::endl;
+				}
+			}
+		}
+
+		if (to.empty()) {
+			std::cerr << "To configuration file empty." << std::endl;
+			nerrors++;
+		} else {
+			r = parseConfig
+			(
+				to,
+				to_provider,
+				to_registrationId,
+				to_privateKey,
+				to_publicKey,
+				to_authSecret,
+				to_androidId,
+				to_securityToken,
+				to_appId
+			);
+			if (r != 0) {
+				std::cerr << "To configuration file is invalid." << std::endl;
+				nerrors++;
+			} else {
+				if (to_publicKey.empty()) {
+					nerrors++;
+					std::cerr << "Recipient public key missed." << std::endl;
+				}
+			}
+		}
+		
+		// validate notification JSON format
+		if (notification.empty()) {
+			std::cerr << "Notification file empty." << std::endl;
+			nerrors++;
+		} else {
+			r = parseNotificationJson(
+				notification,
+				nto,
+				title,
+				body,
+				icon, 
+				click_action
+			);
+
+			if (r != 0) {
+				std::cerr << "Notification file is invalid." << std::endl;
+				nerrors++;
+			} else {
+				if (to_authSecret.empty()) {
+					nerrors++;
+					std::cerr << "Recipient auth missed." << std::endl;
+				}
+			}
+		}
+
+		contact = *a_contact->sval;
+		aesgcm = a_aesgcm->count > 0;	
 	}
 	
 	// special case: '--help' takes precedence over error reporting
@@ -227,12 +247,12 @@ int main(int argc, char **argv)
 
 	std::string msg  = mkNotificationJson(nto, title, body, icon, click_action);
 	time_t t = time(NULL) + 86400 - 60;
-	r = webpushVapidC(
+	int r = webpushVapidC(
 		retval, sizeof(retval),
 		publicKeyC,
 		privateKeyC,
 		endpoint,
-		to_publicKey.c_str(),
+		subscription.c_str(),
 		to_authSecret.c_str(),
 		msg.c_str(),
 		contact.c_str(),
