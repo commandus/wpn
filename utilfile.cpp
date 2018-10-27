@@ -95,6 +95,7 @@ int writeConfig
 
 /**
  * Parse config file
+ * @return 0- success, -1: Invalid JSON, -2: Invalid config
  */
 int parseConfig
 (
@@ -142,7 +143,8 @@ int parseConfig
 }
 
 /**
- * load config file
+ * Load config file
+ * @return 0- success, -1: Invalid JSON, -2: Invalid config
  */
 int readConfig
 (
@@ -194,4 +196,43 @@ std::string mkNotificationJson
 		}
 	};
 	return requestBody.dump();
+}
+
+/**
+ * Parse notification file
+ * @return 0- success, -1: Invalid JSON, -2: Important information missed
+ */
+int parseNotificationJson
+(
+	const std::string &value,
+	std::string &to,
+	std::string &title,
+	std::string &body,
+	std::string &icon, 
+	std::string &click_action
+)
+{
+	json j;
+	int r = 0;
+	try {
+		j = json::parse(value);
+	}
+	catch (...) {
+		r = -1;
+	}
+
+	if (r == 0)
+	{
+		try {
+			to = j["to"];
+			json n = j["notification"];
+			title = n["title"];
+			body = n["body"];
+			icon = n["icon"];
+			click_action = n["click_action"];
+		} catch(...) {
+			r = -2;
+		}
+	}
+	return r;
 }

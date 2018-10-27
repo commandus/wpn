@@ -41,6 +41,10 @@ int writeConfig
 	const std::string &appId
 );
 
+/**
+ * Load config file
+ * @return 0- success, -1: Invalid JSON, -2: Invalid config
+ */
 int readConfig
 (
 	const std::string &filename,
@@ -54,6 +58,10 @@ int readConfig
 	std::string &appId
 );
 
+/**
+ * Parse config file
+ * @return 0- success, -1: Invalid JSON, -2: Invalid config
+ */
 int parseConfig
 (
 	const std::string &value,
@@ -74,6 +82,20 @@ std::string mkNotificationJson
 	const std::string &body,
 	const std::string &icon, 
 	const std::string &link 
+);
+
+/**
+ * Parse notification file
+ * @return 0- success, -1: Invalid JSON, -2: Important information missed
+ */
+int parseNotificationJson
+(
+	const std::string &value,
+	std::string &to,
+	std::string &title,
+	std::string &body,
+	std::string &icon, 
+	std::string &click_action
 );
 
 #endif

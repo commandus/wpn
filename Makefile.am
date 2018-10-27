@@ -11,7 +11,7 @@ lib_LTLIBRARIES = \
 bin_PROGRAMS = \
 	wpn \
 	webpush-curl \
-	wpnr wpnw wpnlink wpnadd
+	wpnr wpnw wpnlink wpnadd wpnwj
 
 commoncppflags = -O2 -I/usr/local/include -Imcs/gen -Ithird_party
 commonlibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl -lece -lnghttp2 -lglog -lunwind -lprotobuf
