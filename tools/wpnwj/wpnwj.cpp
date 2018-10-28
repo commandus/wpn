@@ -77,32 +77,12 @@ int main(int argc, char **argv)
 	}
 	// Parse the command line as defined by argtable[]
 	int nerrors = arg_parse(argc, argv, argtable);
-	
+
 	int verbosity;
-	enum VAPID_PROVIDER from_provider;
-	std::string from_registrationId;
-	std::string from_privateKey;
-	std::string from_publicKey;
-	std::string from_authSecret;
-	uint64_t from_androidId;
-	uint64_t from_securityToken;
-	std::string from_appId;
-
-	enum VAPID_PROVIDER to_provider;
-	std::string to_registrationId;
-	std::string to_privateKey;
-	std::string to_publicKey;
-	std::string to_authSecret;
-	uint64_t to_androidId;
-	uint64_t to_securityToken;
-	std::string to_appId;
-
-	std::string nto;
-	std::string title;
-	std::string body;
-	std::string icon; 
-	std::string click_action;
-
+	ClientConfig from;
+	ClientConfig to;
+	NotificationData notificationData;
+	
 	std::string subscription;
 	std::string contact;
 	bool aesgcm;
@@ -111,9 +91,9 @@ int main(int argc, char **argv)
 		verbosity = a_verbosity->count;
 		
 		// Load config files and notification JSON
-		std::string from = file2string(*a_from->sval);
-		std::string to = file2string(*a_to->sval);
-		std::string notification = file2string(*a_notification->sval);
+		std::string fromString = file2string(*a_from->sval);
+		std::string toString = file2string(*a_to->sval);
+		std::string notificationString = file2string(*a_notification->sval);
 		subscription = file2string(*a_subscription->sval);
 		if (subscription.empty())
 			subscription = *a_subscription->sval;
@@ -123,89 +103,91 @@ int main(int argc, char **argv)
 		// validate JSON
 		int r = 0;
 		// Check is file empty or not
-		if (from.empty()) {
+		if (fromString.empty()) {
 			std::cerr << "From configuration file empty." << std::endl;
 			nerrors++;
 		} else {
-			r = parseConfig
-			(
-				from,
-				from_provider,
-				from_registrationId,
-				from_privateKey,
-				from_publicKey,
-				from_authSecret,
-				from_androidId,
-				from_securityToken,
-				from_appId
+			r = parseConfig(
+				fromString,
+				from.provider,
+				from.registrationId,
+				from.privateKey,
+				from.publicKey,
+				from.authSecret,
+				from.androidId,
+				from.securityToken,
+				from.appId
 			);
 			if (r != 0) {
 				std::cerr << "From configuration file is invalid." << std::endl;
 				nerrors++;
 			} else {
-				if (to_registrationId.empty()) {
+				if (from.registrationId.empty()) {
 					nerrors++;
 					std::cerr << "Recipient registration id missed." << std::endl;
 				}
 			}
 		}
 
-		if (to.empty()) {
+		if (toString.empty()) {
 			std::cerr << "To configuration file empty." << std::endl;
 			nerrors++;
 		} else {
-			r = parseConfig
-			(
-				to,
-				to_provider,
-				to_registrationId,
-				to_privateKey,
-				to_publicKey,
-				to_authSecret,
-				to_androidId,
-				to_securityToken,
-				to_appId
+			r = parseConfig(
+				toString,
+				to.provider,
+				to.registrationId,
+				to.privateKey,
+				to.publicKey,
+				to.authSecret,
+				to.androidId,
+				to.securityToken,
+				to.appId
 			);
 			if (r != 0) {
 				std::cerr << "To configuration file is invalid." << std::endl;
 				nerrors++;
 			} else {
-				if (to_publicKey.empty()) {
+				if (to.publicKey.empty()) {
 					nerrors++;
 					std::cerr << "Recipient public key missed." << std::endl;
 				}
-			}
-		}
-		
-		// validate notification JSON format
-		if (notification.empty()) {
-			std::cerr << "Notification file empty." << std::endl;
-			nerrors++;
-		} else {
-			r = parseNotificationJson(
-				notification,
-				nto,
-				title,
-				body,
-				icon, 
-				click_action
-			);
-
-			if (r != 0) {
-				std::cerr << "Notification file is invalid." << std::endl;
-				nerrors++;
-			} else {
-				if (to_authSecret.empty()) {
+				if (to.authSecret.empty()) {
 					nerrors++;
 					std::cerr << "Recipient auth missed." << std::endl;
 				}
 			}
 		}
 
+		// validate notification JSON format
+		if (notificationString.empty()) {
+			std::cerr << "Notification file empty." << std::endl;
+			nerrors++;
+		} else {
+			r = parseNotificationJson(
+				notificationString,
+				notificationData.to,
+				notificationData.title,
+				notificationData.body,
+				notificationData.icon, 
+				notificationData.click_action
+			);
+
+			if (r != 0) {
+				std::cerr << "Notification file is invalid." << std::endl;
+				nerrors++;
+			} else {
+				if (notificationData.body.empty() && notificationData.title.empty()) {
+					nerrors++;
+					std::cerr << "Message body and/or title missed." << std::endl;
+				}
+			}
+		}
+
 		contact = *a_contact->sval;
-		aesgcm = a_aesgcm->count > 0;	
+		aesgcm = a_aesgcm->count > 0;
 	}
-	
+
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)
 	{
@@ -231,21 +213,21 @@ int main(int argc, char **argv)
 	// write
 	char retval[4096];
 	char endpoint[256];
-	endpointC(endpoint, sizeof(endpoint), to_registrationId.c_str(), 1, (int) to_provider);	///< 0- Chrome, 1- Firefox
+	endpointC(endpoint, sizeof(endpoint), to.registrationId.c_str(), 1, (int) to.provider);	///< 0- Chrome, 1- Firefox
 
-	strncpy(privateKeyC, from_privateKey.c_str(), sizeof(privateKeyC));
-	strncpy(publicKeyC, from_publicKey.c_str(), sizeof(publicKeyC));
+	strncpy(privateKeyC, from.privateKey.c_str(), sizeof(privateKeyC));
+	strncpy(publicKeyC, from.publicKey.c_str(), sizeof(publicKeyC));
 
 	if (verbosity > 0)
 	{
 		std::cerr
 			<< "endpoint: " << endpoint << std::endl
-			<< "provider: " << (to_provider == PROVIDER_FIREFOX ? "firefox" : "chrome") << std::endl
+			<< "provider: " << (to.provider == PROVIDER_FIREFOX ? "firefox" : "chrome") << std::endl
 			<< "privateKey: " << privateKeyC << std::endl
 			<< "publicKey: " << publicKeyC << std::endl;
 	}
 
-	std::string msg  = mkNotificationJson(nto, title, body, icon, click_action);
+	std::string msg  = mkNotificationJson(notificationData.to, notificationData.title, notificationData.body, notificationData.icon, notificationData.click_action);
 	time_t t = time(NULL) + 86400 - 60;
 	int r = webpushVapidC(
 		retval, sizeof(retval),
@@ -253,7 +235,7 @@ int main(int argc, char **argv)
 		privateKeyC,
 		endpoint,
 		subscription.c_str(),
-		to_authSecret.c_str(),
+		to.authSecret.c_str(),
 		msg.c_str(),
 		contact.c_str(),
 		aesgcm ? AESGCM : AES128GCM,

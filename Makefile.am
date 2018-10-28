@@ -11,7 +11,7 @@ lib_LTLIBRARIES = \
 bin_PROGRAMS = \
 	wpn \
 	webpush-curl \
-	wpnr wpnw wpnlink wpnadd wpnwj
+	wpnr wpnw wpnlink wpnlinkj wpnadd wpnwj
 
 commoncppflags = -O2 -I/usr/local/include -Imcs/gen -Ithird_party
 commonlibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl -lece -lnghttp2 -lglog -lunwind -lprotobuf
@@ -160,6 +160,16 @@ wpnlink_SOURCES= \
 
 wpnlink_LDADD = -L.libs -lwpnapi $(commonlibs)
 wpnlink_CPPFLAGS = $(commoncppflags)
+
+#
+#	wpnlinkj (with shared library)
+#
+wpnlinkj_SOURCES= \
+	tools/wpnlinkj/wpnlinkj.cpp config-filename.cpp utilfile.cpp \
+	$(common_src)
+
+wpnlinkj_LDADD = -L.libs -lwpnapi $(commonlibs)
+wpnlinkj_CPPFLAGS = $(commoncppflags)
 
 #
 #	Configs, readme, CMake etc.

@@ -26,6 +26,25 @@ enum VAPID_PROVIDER {
 	PROVIDER_FIREFOX = 1
 };
 
+struct ClientConfig {
+	enum VAPID_PROVIDER provider;
+	std::string registrationId;
+	std::string privateKey;
+	std::string publicKey;
+	std::string authSecret;
+	uint64_t androidId;
+	uint64_t securityToken;
+	std::string appId;
+};
+
+struct NotificationData {
+	std::string to;
+	std::string title;
+	std::string body;
+	std::string icon; 
+	std::string click_action;
+};
+
 /**
  * Helper function for testing
  * Print out "curl ..."  command line string
