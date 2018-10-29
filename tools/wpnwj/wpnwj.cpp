@@ -49,8 +49,7 @@ int main(int argc, char **argv)
 	struct arg_str *a_from = arg_str1(NULL, NULL, "<from-file>", "From");
 	struct arg_str *a_to = arg_str1(NULL, NULL, "<to-file>", "To");
 	struct arg_str *a_notification = arg_str1(NULL, NULL, "<notification-file>", "Notification");
-	struct arg_str *a_subscription = arg_str1(NULL, NULL, "<base64|subscription-file>", "Subscription, baase64 or file name");
-
+	
 	// optional sender contact
 	struct arg_str *a_contact = arg_str0("f", "from", "<URL>", "Sender's email e.g. mailto:alice@acme.com or https[s] link");
 
@@ -62,7 +61,6 @@ int main(int argc, char **argv)
 	void* argtable[] = { 
 		// mandatory
 		a_from, a_to, a_notification,
-		a_subscription, 
 		// optional
 		a_contact, a_aesgcm,
 		a_verbosity,
@@ -83,7 +81,6 @@ int main(int argc, char **argv)
 	ClientConfig to;
 	NotificationData notificationData;
 	
-	std::string subscription;
 	std::string contact;
 	bool aesgcm;
 
@@ -94,9 +91,6 @@ int main(int argc, char **argv)
 		std::string fromString = file2string(*a_from->sval);
 		std::string toString = file2string(*a_to->sval);
 		std::string notificationString = file2string(*a_notification->sval);
-		subscription = file2string(*a_subscription->sval);
-		if (subscription.empty())
-			subscription = *a_subscription->sval;
 		contact = *a_contact->sval;
 		aesgcm = a_aesgcm->count > 0;	
 
@@ -234,7 +228,7 @@ int main(int argc, char **argv)
 		publicKeyC,
 		privateKeyC,
 		endpoint,
-		subscription.c_str(),
+		notificationData.to.c_str(),
 		to.authSecret.c_str(),
 		msg.c_str(),
 		contact.c_str(),
