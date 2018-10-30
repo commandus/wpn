@@ -552,7 +552,7 @@ int webpushVapid(
 		code = WPCipher(cipherString, cryptoKeyHeader, encryptionHeader, p256dh, auth, body);
 	}
 	if (code) {
-		retval = getECECErrorString(code);
+		retval = "cipher, " + getECECErrorString(code) + "; p256dh: " + p256dh + "; auth: " + auth;
 		return code;
 	}
 

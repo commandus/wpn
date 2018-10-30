@@ -113,7 +113,7 @@ It is hard way, use it if you have a lot of mobile clients.
 First install mail program. Please refer to Appendix A how to install mailutils and set postfix.
 
 Option -e (--mailto) outputs e-mail body in HTML with link to connect mobile phone to the wpn:
-
+notificationData
 ```
 ./wpn -e "name"
 ```
