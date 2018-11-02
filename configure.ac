@@ -16,6 +16,8 @@ AC_PROG_LIBTOOL
 
 
 # Detect OS
+AM_CONDITIONAL([DEBUG], [test x$debug = xtrue])
+
 AC_CANONICAL_HOST
 build_linux=no
 build_windows=no
@@ -30,14 +32,11 @@ case "${host_os}" in
 	darwin*)
 		build_mac=yes
         ;;
-	*)
-		AC_MSG_ERROR(["OS $host_os is not supported"])
-	;;
 esac
 # Pass the conditionals to automake
-AM_CONDITIONAL([LINUX], [test "$build_linux" = "yes"])
-AM_CONDITIONAL([WINDOWS], [test "$build_windows" = "yes"])
-AM_CONDITIONAL([OSX], [test "$build_mac" = "yes"])
+AM_CONDITIONAL(LINUX, test "$build_linux" = "yes")
+AM_CONDITIONAL(WINDOWS, test "$build_windows" = "yes")
+AM_CONDITIONAL(OSX, test "$build_mac" = "yes")
 
 # MacOS: 
 #   brew install openssl@1.1

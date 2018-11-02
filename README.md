@@ -749,6 +749,12 @@ sudo apt install libgoogle-glog-dev
 sudo apt install libprotobuf-dev protobuf-compiler
 ```
 
+MacOS:
+
+```
+brew install protobuf
+```
+
 ## Error codes
 
 - -1 Out of memory

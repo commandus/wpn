@@ -14,8 +14,11 @@ bin_PROGRAMS = \
 	wpnr wpnw wpnlink wpnlinkj wpnadd wpnwj
 
 commoncppflags = -O2 -I/usr/local/include -Imcs/gen -Ithird_party
+commoncppflags += -I/usr/local/opt/openssl@1.1/include
+
 commonlibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl -lece -lnghttp2 -lprotobuf
 # -lglog -lunwind
+commonlibs += -L/usr/local/opt/openssl@1.1/lib
 
 #
 #	Generate protobuf first, then grpc
