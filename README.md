@@ -679,6 +679,12 @@ OpenSSL by default installed in Ubuntu:
 - html /usr/local/share/doc/openssl
 - libs /usr/local/lib
 
+MacOS:
+
+```
+brew install openssl@1.1
+```
+
 ### nghttp2
 
 Ubuntu:
@@ -695,6 +701,12 @@ make
 sudo make install
 ```
 
+MacOS:
+
+```
+brew install nghttp2
+```
+
 ### ecec
 
 ```
@@ -705,6 +717,7 @@ vi CMakerLists.txt
 mkdir build
 cd build
 cmake -DOPENSSL_ROOT_DIR=/usr/local ..
+# MacOS: cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1ß ..
 make
 sudo cp libece.a /usr/local/lib
 cd ../include
@@ -715,6 +728,12 @@ sudo cp -r * /usr/local/include
 
 ```
 sudo apt install libunwind-dev
+```
+
+MacOS:
+
+```
+
 ```
 
 ### libglog
