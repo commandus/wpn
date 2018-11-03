@@ -3,8 +3,9 @@
 
 #ifdef _MSC_VER
 #include <windows.h> 
-#else
+#elif __linux__
 #include <linux/limits.h>
+#else
 #endif
 #include "commandoutput.h"
 

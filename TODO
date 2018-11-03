@@ -1,0 +1,29 @@
+TODO
+====
+
+
+libwpnapi.la first
+
+cs/mcsclient.cpp:800:8: warning: address of array 'this->privateKey' will always evaluate to 'true' [-Wpointer-bool-conversion]
+        if ((!privateKey) || (!authSecret))
+             ~^~~~~~~~~~
+mcs/mcsclient.cpp:800:25: warning: address of array 'this->authSecret' will always evaluate to 'true' [-Wpointer-bool-conversion]
+        if ((!privateKey) || (!authSecret))
+                              ~^~~~~~~~~~
+
+
+wpn:
+Error parse /Users/andrei/.wpn.js
+Listen
+Enter q to quit
+p: ping
+p
+ping..
+
+
+Send tag: 
+0000
+
+
+Segmentation fault: 11
+bash-3.2$ 
