@@ -107,7 +107,7 @@ wpn_CPPFLAGS = $(commoncppflags)
 #
 #	webpush-curl
 #
-webpush_curl_SOURCES= \
+webpush_curl_SOURCES = \
 	tools/curl/webpush-curl.cpp \
 	utilvapid.cpp \
 	$(common_src)
@@ -116,9 +116,20 @@ webpush_curl_LDADD = $(commonlibs)
 webpush_curl_CPPFLAGS = $(commoncppflags)
 
 #
+# ----- With shared libraries, shared library first -----
+#
+
+tools/wpnr/wpnr.cpp : libwpnapi.la
+tools/wpnw/wpnw.cpp : libwpnapi.la
+tools/wpnwj/wpnwj.cpp : libwpnapi.la
+tools/wpnadd/wpnadd.cpp : libwpnapi.la
+tools/wpnlink/wpnlink.cpp : libwpnapi.la
+tools/wpnlink/wpnlinkj.cpp : libwpnapi.la
+
+#
 #	wpnr (with shared library)
 #
-wpnr_SOURCES= \
+wpnr_SOURCES = \
 	tools/wpnr/wpnr.cpp config-filename.cpp utilfile.cpp \
 	$(common_src)
 
