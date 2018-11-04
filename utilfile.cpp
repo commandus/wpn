@@ -7,6 +7,17 @@
 
 using json = nlohmann::json;
 
+static const std::string KEY_PROVIDER = "provider";
+static const std::string PROVIDER_VALUE_FIREFOX = "firefox";
+static const std::string PROVIDER_VALUE_CHROME = "chrome";
+static const std::string KEY_APPID = "appId";
+static const std::string KEY_REGISTRATIONID = "registrationId";
+static const std::string KEY_PRIVATEKEY = "privateKey";
+static const std::string KEY_PUBLICKEY = "publicKey";
+static const std::string KEY_AUTHSECRET = "authSecret";
+static const std::string KEY_ANDROIDID = "androidId";
+static const std::string KEY_SECURITYTOKEN = "securityToken";
+
 std::string jsonConfig
 (
 	enum VAPID_PROVIDER provider,
@@ -20,14 +31,14 @@ std::string jsonConfig
 )
 {
 	json json = {
-		{ "provider", provider == PROVIDER_FIREFOX ? "firefox" : "chrome" },
-		{ "appId", appId},
-		{ "registrationId", registrationIdC},
-		{ "privateKey", privateKeyC },
-		{ "publicKey", publicKeyC },
-		{ "authSecret", authSecretC },
-		{ "androidId", androidId },
-		{ "securityToken", securityToken }
+		{ KEY_PROVIDER, provider == PROVIDER_FIREFOX ? PROVIDER_VALUE_FIREFOX : PROVIDER_VALUE_CHROME },
+		{ KEY_APPID , appId},
+		{ KEY_REGISTRATIONID, registrationIdC},
+		{ KEY_PRIVATEKEY, privateKeyC },
+		{ KEY_PUBLICKEY, publicKeyC },
+		{ KEY_AUTHSECRET, authSecretC },
+		{ KEY_ANDROIDID, androidId },
+		{ KEY_SECURITYTOKEN, securityToken }
 	};
 	return json.dump(2);
 }
@@ -123,18 +134,43 @@ int parseConfig
 	if (r == 0)
 	{
 		try {
-			std::string  s = j["provider"];;
-			if (s == "firefox")
+			std::string s;
+			if (j.count(KEY_PROVIDER))
+				s = j.at(KEY_PROVIDER);
+			else
+				s = "";
+			if (s == PROVIDER_VALUE_FIREFOX)
 				provider = PROVIDER_FIREFOX;
 			else
 				provider = PROVIDER_CHROME;
-			appId = j["appId"];
-			registrationId = j["registrationId"];
-			privateKey = j["privateKey"];
-			publicKey = j["publicKey"];
-			authSecret = j["authSecret"];
-			androidId = j["androidId"];
-			securityToken = j["securityToken"];
+			if (j.count(KEY_APPID))
+				appId = j.at(KEY_APPID);
+			else
+				appId = "";
+			if (j.count(KEY_REGISTRATIONID))
+				registrationId = j.at(KEY_REGISTRATIONID);
+			else
+				registrationId = "";
+			if (j.count(KEY_PRIVATEKEY))
+				privateKey = j.at(KEY_PRIVATEKEY);
+			else
+				privateKey = "";
+			if (j.count(KEY_PUBLICKEY))
+				publicKey = j.at(KEY_PUBLICKEY);
+			else
+				publicKey = "";
+			if (j.count(KEY_PUBLICKEY))
+				authSecret = j.at(KEY_AUTHSECRET);
+			else
+				authSecret = "";
+			if (j.count(KEY_ANDROIDID))
+				androidId = j.at(KEY_ANDROIDID);
+			else
+				androidId = 0;
+			if (j.count(KEY_SECURITYTOKEN))
+				securityToken = j.at(KEY_SECURITYTOKEN);
+			else
+				securityToken = 0;
 		} catch(...) {
 			r = -2;
 		}
@@ -175,6 +211,13 @@ int readConfig
 	);
 }
 
+static const std::string KEY_TO = "to";
+static const std::string KEY_NOTIFICATION = "notification";
+static const std::string KEY_TITLE = "title";
+static const std::string KEY_BODY = "body";
+static const std::string KEY_ICON = "icon";
+static const std::string KEY_CLICK_ACTION = "click_action";
+
 std::string mkNotificationJson
 (
 	const std::string &to,
@@ -185,13 +228,13 @@ std::string mkNotificationJson
 )
 {
 	json requestBody = {
-		{"to", to },
-		{"notification", 
+		{ KEY_TO, to },
+		{ KEY_NOTIFICATION, 
 			{
-				{"title", subject },
-				{"body", body },
-				{"icon", icon},
-				{"click_action", link }
+				{ KEY_TITLE, subject },
+				{ KEY_BODY, body },
+				{ KEY_ICON, icon},
+				{ KEY_CLICK_ACTION, link }
 			}
 		}
 	};
@@ -224,12 +267,27 @@ int parseNotificationJson
 	if (r == 0)
 	{
 		try {
-			to = j["to"];
-			json n = j["notification"];
-			title = n["title"];
-			body = n["body"];
-			icon = n["icon"];
-			click_action = n["click_action"];
+			if (j.count(KEY_TO))
+				to = j.at(KEY_TO);
+			else
+				to = "";
+			json n = j.at(KEY_NOTIFICATION);
+			if (n.count(KEY_TITLE))
+				title = n.at(KEY_TITLE);
+			else
+				title = "";
+			if (n.count(KEY_BODY))
+				body = n.at(KEY_BODY);
+			else
+				body = "";
+			if (n.count(KEY_ICON))
+				icon = n.at(KEY_ICON);
+			else
+				icon = "";
+			if (n.count(KEY_CLICK_ACTION))
+				click_action = n.at(KEY_CLICK_ACTION);
+			else
+				click_action = "";
 		} catch(...) {
 			r = -2;
 		}

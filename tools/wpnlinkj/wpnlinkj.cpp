@@ -44,7 +44,7 @@
 
 using json = nlohmann::json;
 
-static const char* progname = "wpnlink";
+static const char* progname = "wpnlinkj";
 #undef SUPPORT_FIREFOX
 
 void onLog
@@ -60,7 +60,7 @@ void onLog
 int main(int argc, char **argv) 
 {
 	struct arg_str *a_pub = arg_str1(NULL, NULL, "<sender-file>", "Subscribe to ");
-	struct arg_str *a_receivers = arg_strn(NULL, NULL, "<reciever-file>", 1, 100, "Subscriber's config");
+	struct arg_str *a_receivers = arg_strn(NULL, NULL, "<reciever-file>", 1, 100, "Subscriber's config file(s), up to 100");
 
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
@@ -141,20 +141,20 @@ int main(int argc, char **argv)
 						c.appId
 					);
 					if (r != 0) {
-						std::cerr << "Subscriber configuration file is invalid." << std::endl;
+						std::cerr << "Subscriber configuration file " << a_receivers->sval[i] << " is invalid." << std::endl;
 						nerrors++;
 					} else {
 						if (pub.androidId == 0) {
 							nerrors++;
-							std::cerr << "Subscriber Android id missed." << std::endl;
+							std::cerr << "Subscriber Android id missed in " << a_receivers->sval[i] << " file." << std::endl;
 						}
 						if (pub.securityToken == 0) {
 							nerrors++;
-							std::cerr << "Subscriber security token missed." << std::endl;
+							std::cerr << "Subscriber security token missed " << a_receivers->sval[i] << " file." << std::endl;
 						}
 						if (pub.appId.empty()) {
 							nerrors++;
-							std::cerr << "Subscriber application instance id missed." << std::endl;
+							std::cerr << "Subscriber application instance id missed " << a_receivers->sval[i] << " file." << std::endl;
 						}
 					}
 				}
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-	
+
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)
 	{
@@ -181,6 +181,9 @@ int main(int argc, char **argv)
 	curl_global_init(CURL_GLOBAL_ALL);
 	OpenSSL_add_all_algorithms();
 
+	// User can subscribe one or more subscribers to the publisher
+	std::string endPoint = "https://fcm.googleapis.com/fcm/send/" + pub.registrationId;	// publicKey
+
 	for (std::vector<ClientConfig>::const_iterator it(tos.begin()); it != tos.end(); ++it) 
 	{
 		char retval[2048];
@@ -188,7 +191,6 @@ int main(int argc, char **argv)
 		char token[128];
 		char pushset[128];
 
-		std::string endPoint = "https://fcm.googleapis.com/fcm/send/" + pub.registrationId;	// publicKey
 		// Make subscription
 		int r = subscribeC(retval, sizeof(retval), headers, sizeof(headers),
 			token, sizeof(token), pushset, sizeof(pushset),
