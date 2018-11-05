@@ -204,7 +204,7 @@ static const std::string TOKEN_PREFIX = "token=";
  * @param retVal can be NULL
  * @param retHeaders can be NULL
  * @param retToken return subscription token
- * @param retPushSet return subscription push set
+ * @param retPushSet return subscription push set. Not implemented. Returns empty string
  * @param receiverAndroidId receiver Android id
  * @param receiverSecurityToken receiver security number
  * @param receiverAppId application identifier

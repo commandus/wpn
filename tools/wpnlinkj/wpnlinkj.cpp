@@ -183,14 +183,22 @@ int main(int argc, char **argv)
 
 	// User can subscribe one or more subscribers to the publisher
 	std::string endPoint = "https://fcm.googleapis.com/fcm/send/" + pub.registrationId;	// publicKey
-
+	if (verbosity > 1) {
+		std::cerr << "Endpoint: https://fcm.googleapis.com/fcm/send/" << pub.registrationId << std::endl;
+	}
+	
 	for (std::vector<ClientConfig>::const_iterator it(tos.begin()); it != tos.end(); ++it) 
 	{
 		char retval[2048];
 		char headers[2048];
-		char token[128];
-		char pushset[128];
+		char token[128];		///< returns subscription token
+		char pushset[128];		///< returns pushset. Not implemented. Returns empty string
 
+		if (verbosity > 1) {
+			std::cerr << "Subscribe Android id: " 
+			<< it->androidId << ", security token: " << it->securityToken << ", application id: " << it->appId
+			<< std::endl;
+		}
 		// Make subscription
 		int r = subscribeC(retval, sizeof(retval), headers, sizeof(headers),
 			token, sizeof(token), pushset, sizeof(pushset),

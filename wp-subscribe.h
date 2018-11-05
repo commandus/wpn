@@ -17,7 +17,7 @@
  * @param retVal can be NULL
  * @param retHeaders can be NULL
  * @param retToken return subscription token
- * @param retPushSet return subscription push set
+ * @param retPushSet return subscription push set. Not implemented. Returns empty string
  * @param receiverPublicKey receiver public key
  * @param receiverAuth receiver auth secret
  * @param receiverAppId application identifier 
