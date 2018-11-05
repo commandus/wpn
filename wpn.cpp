@@ -105,7 +105,7 @@ void onLog
 	const char *message
 )
 {
-	std::cerr << message << std::endl;
+	std::cerr << message;
 }
 
 /**
