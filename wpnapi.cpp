@@ -11,8 +11,11 @@
 #define TRIES	5
 
 /// Copy string to pchar, add trailing zero if space available
-#define	STR2PCHAR(retval, retvalsize, r) \
+/// Set e = ERR_INSUFFICIENT_SIZE
+#define	STR2PCHAR(e, retval, retvalsize, r) \
 if ((retvalsize > 0) && retval) { \
+	if (r.size() > retvalsize) \
+		e = ERR_INSUFFICIENT_SIZE; \
 	size_t sz = (r.size() < retvalsize) ? r.size() : retvalsize; \
 	memmove(retval, r.c_str(), sz); \
 	if (sz < retvalsize) { \
@@ -64,7 +67,8 @@ EXPORTDLL size_t webpushVapidCmdC(
 		expiration
 	);
 
-	STR2PCHAR(retval, retvalsize, r)
+	int e;
+	STR2PCHAR(e, retval, retvalsize, r)
 	return r.size();
 }
 
@@ -109,7 +113,8 @@ EXPORTDLL int webpushVapidC(
 		contentEncoding,
 		expiration
 	);
-	STR2PCHAR(retval, retvalsize, r)
+	int e;
+	STR2PCHAR(e, retval, retvalsize, r)
 	return c;
 }
 
@@ -169,7 +174,8 @@ EXPORTDLL int webpushVapidDataC
 		contentEncoding,
 		expiration
 	);
-	STR2PCHAR(retval, retvalsize, r)
+	int e;
+	STR2PCHAR(e, retval, retvalsize, r)
 	return c;
 }
 
@@ -197,15 +203,16 @@ EXPORTDLL void generateVAPIDKeysC
 
 	std::string p = k.getPrivateKey();
 	size_t sz = p.size();
-	STR2PCHAR(privateKey, privateKeySize, p)
+	int e;
+	STR2PCHAR(e, privateKey, privateKeySize, p)
 
 	p = k.getPublicKey();
 	sz = p.size();
-	STR2PCHAR(publicKey, publicKeySize, p)
+	STR2PCHAR(e, publicKey, publicKeySize, p)
 
 	p = k.getAuthSecret();
 	sz = p.size();
-	STR2PCHAR(authSecret, authSecretSize, p)
+	STR2PCHAR(e, authSecret, authSecretSize, p)
 }
 
 EXPORTDLL int checkInC(
@@ -271,7 +278,8 @@ EXPORTDLL int initClientC
 			break;
 	}
 
-	STR2PCHAR(retRegistrationId, retsize, retGCMToken)
+	int e;
+	STR2PCHAR(e, retRegistrationId, retsize, retGCMToken)
 	return r;
 }
 
@@ -294,7 +302,8 @@ EXPORTDLL int registerDeviceC(
 			retGCMToken[0] = '\0';
 		return r;
 	}
-	STR2PCHAR(retGCMToken, GCMTokenSize, t)
+	int e;
+	STR2PCHAR(e, retGCMToken, GCMTokenSize, t)
 	return r;
 }
 
@@ -320,7 +329,8 @@ EXPORTDLL size_t qr2pchar
 	size_t rs = r.size();
 	if (retval)
 	{
-		STR2PCHAR(retval, retsize, r)
+		int e;
+		STR2PCHAR(e, retval, retsize, r)
 	}
 	return rs;
 }
@@ -383,7 +393,8 @@ EXPORTDLL size_t endpointC(
 )
 {
 	std::string r = endpoint(std::string(registrationId), send != 0, browser);
-	STR2PCHAR(retval, retsize, r)
+	int e;
+	STR2PCHAR(e, retval, retsize, r)
 	return r.size();
 }
 
@@ -428,9 +439,12 @@ EXPORTDLL int subscribeC
 	std::string retPushSet;
 	int r = subscribe(&retVal, &retHeaders, retToken, retPushSet, 
 		receiverAndroidId, receiverSecurityToken, receiverAppId, endPoint, GCM_SENDER_ID, verbosity);
-	STR2PCHAR(retval, retvalsize, retVal)
-	STR2PCHAR(retheaders, retheaderssize, retHeaders)
-	STR2PCHAR(rettoken, rettokensize, retToken)
-	STR2PCHAR(retpushset, retpushsetsize, retPushSet)
+	int e = 0;
+	STR2PCHAR(e, retval, retvalsize, retVal)
+	STR2PCHAR(e, retheaders, retheaderssize, retHeaders)
+	STR2PCHAR(e, rettoken, rettokensize, retToken)
+	STR2PCHAR(e, retpushset, retpushsetsize, retPushSet)
+	if (e)
+		return e;
 	return r;
 }

@@ -213,8 +213,8 @@ int main(int argc, char **argv)
 			<< "publicKey: " << from.publicKey << std::endl;
 	}
 
-	char privateKeyC[96];
-	char publicKeyC[240];
+	char privateKeyC[255];
+	char publicKeyC[255];
 	char retval[4096];
 	strncpy(privateKeyC, from.privateKey.c_str(), sizeof(privateKeyC));
 	strncpy(publicKeyC, from.publicKey.c_str(), sizeof(publicKeyC));

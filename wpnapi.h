@@ -21,6 +21,8 @@ extern "C" {
 #define EXPORTDLL
 #endif
 
+#define ERR_INSUFFICIENT_SIZE -51
+
 enum VAPID_PROVIDER {
 	PROVIDER_CHROME = 0,
 	PROVIDER_FIREFOX = 1

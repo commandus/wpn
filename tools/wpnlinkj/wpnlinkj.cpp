@@ -191,8 +191,8 @@ int main(int argc, char **argv)
 	{
 		char retval[2048];
 		char headers[2048];
-		char token[128];		///< returns subscription token
-		char pushset[128];		///< returns pushset. Not implemented. Returns empty string
+		char token[255];		///< returns subscription token
+		char pushset[255];		///< returns pushset. Not implemented. Returns empty string
 
 		if (verbosity > 1) {
 			std::cerr << "Subscribe Android id: " 
@@ -209,7 +209,7 @@ int main(int argc, char **argv)
 		if ((r >= 200) && (r < 300)) {
 			std::cout << token << std::endl;
 		} else {
-			std::cerr << "Error: " << retval << std::endl;
+			std::cerr << "Error " << r << ": " << retval << std::endl;
 		}
 		if (r)
 			break;
