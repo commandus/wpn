@@ -897,8 +897,11 @@ int MCSClient::send
 )
 {
 	std::string s = tagNmessageToString(tag, msg);
-	log << severity(3) << "Send tag: " << (int) tag << hexString(s) << "\n";
-	return SSL_write(mSsl, s.c_str(), s.size());
+	log << severity(3) << "Send tag: " << hexString(s) << "\n";
+	if (mSsl)
+		return SSL_write(mSsl, s.c_str(), s.size());
+	else
+		return ERR_NO_CONNECT;
 }
 
 int MCSClient::ping()
@@ -906,7 +909,7 @@ int MCSClient::ping()
 	log << severity(3) << "ping.." << "\n";
 	MessageLite *l =  mkPing();
 	if (!l)
-		return -1;
+		return ERR_MEM;
 	int r = send(kHeartbeatPingTag, l);
 	delete l;
 	return r;
