@@ -797,8 +797,11 @@ static int readLoop(MCSClient *client)
 
 int MCSClient::connect()
 {
+	/*
+	 * Maybe later check are keys assigned
 	if ((!privateKey) || (!authSecret))
 		return ERR_NO_KEYS;
+	*/
 	if ((!androidId) || (!securityToken))
 		return ERR_NO_CREDS;
 	
