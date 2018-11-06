@@ -1,10 +1,14 @@
 {
-  "androidId": 5578300242671362069,
-  "appId": "cf0RQup540Q",
-  "authSecret": "V1o3lm19TEw5NP2bcnxNZw",
-  "privateKey": "8t3zOUeV0LeLM_YVd6_wL6ev01N-I2dpynRJTuem9Ss",
-  "provider": "chrome",
-  "publicKey": "BJHUtHjAC-HCdWKb4N0AJBowjmYkDETb2vNbq0fa6rjPYqPLVdJMfwzZUUsGGAx9N1s6AeK6J5KrT0h1BjhN-rc",
-  "registrationId": "eVEkHuO-bBk:APA91bHXsU8IpW1aoqLkzC77Dj5L4YFLo2QiLyzSM7ly2P8qQcho395XGVULlz8YpdbRwaNLeeU5M8A9bZHUUDsJmRovwtXuKZLYpRHELaKVxuWxH7rtaWQlCMgYeiS8I5cfTiEsY5CB",
-  "securityToken": 310750308010583798
+    "credentials": {
+        "GCMToken": "eAdZtgyB-AM:APA91bG-OmK9tcFZwDXrkAwP2rvZ8HF7NEmaYTjP0YBrhNgsZNtHlwjFKNcPJSOU_smWefm_nSlBKHN5Ghx367Ch_7ZoX9smgGBfEscKLA6GuKr-7EAWqm_a6Sd3ZHSdNoUVzgtVW9zF",
+        "androidId": 5380598195652758677,
+        "appId": "c1zhW1U1kSg",
+        "securityToken": 2551403126352055701
+    },
+    "keys": {
+        "authSecret": "VURzSm1Sb3Z3dFh1S1pMWQ",
+        "privateKey": "ImVWRWtIdU8tYkJrOkFQQTkxYkhYc1U4SXBXMWFvcUw",
+        "publicKey": "a3pDNzdEajVMNFlGTG8yUWlMeXpTTTdseTJQOHFRY2hvMzk1WEdWVUxsejhZcGRiUndhTkxlZVU1TThBOWJaSFU"
+    },
+    "subscriptions": []
 }

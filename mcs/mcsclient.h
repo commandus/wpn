@@ -22,6 +22,7 @@
 
 #include <thread>
 #include <sstream>
+#include <algorithm>
 #include <iostream>
 #include <inttypes.h>
 
@@ -93,6 +94,10 @@ public:
 	}
 	friend CallbackLogger& operator<<(CallbackLogger &out, const std::string &v) {
 		out.onLog(out.onLogEnv, out.verbosity, v.c_str());
+		return out;
+	}
+	friend CallbackLogger& operator<<(CallbackLogger &out, int v) {
+		out.onLog(out.onLogEnv, out.verbosity, std::to_string(v).c_str());
 		return out;
 	}
 };

@@ -13,13 +13,7 @@
 #endif
 #include <string.h>
 
-#define ERROR_COUNT 6
-#define ERR_OK		0
-#define ERR_INIT	-1
-#define ERR_CONTEXT	-2
-#define ERR_SESSION	-3
-#define ERR_RESOLVE	-4
-#define ERR_CONNECT	-5
+#define ERROR_COUNT	7
 
 void initSSL()
 {
@@ -35,7 +29,8 @@ static const char *ERR_SSL[ERROR_COUNT] = {
 	"Can not create a new SSL context",
 	"Can not build a SSL session",
 	"Can not resolve host name",
-	"Can not connect to host"
+	"Can not connect to host",
+	"SSL not initialized"
 };
 
 static const char *getErrorDescription(int error)
