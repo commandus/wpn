@@ -111,12 +111,11 @@ int main(int argc, char **argv)
 	curl_global_init(CURL_GLOBAL_ALL);
 	OpenSSL_add_all_algorithms();
 
-	std::string endPoint = "https://fcm.googleapis.com/fcm/send/" + source_pubkey;
 	// Make subscription
 	int r = subscribeC(retval, sizeof(retval), headers, sizeof(headers),
 		token, sizeof(token), pushset, sizeof(pushset),
 		android_id.c_str(), security_number.c_str(), appId.c_str(),
-		endPoint.c_str(),
+		source_pubkey.c_str(),
 		verbosity
 	);
 	if ((r >= 200) && (r < 300)) {
