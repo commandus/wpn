@@ -935,3 +935,92 @@ Authorization: 'WebPush eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJhdWQiOiJodHRwczo
 
  ./wpnlinkj client01.js client02.js
 cf0RQup540Q:APA91bEGU-1DKuQ9QryhiAEFwjGrynylOZQsneXKXwiSKPXCVdTkbWskN5nZWHngTgaKOGoHAEDjXgr_Wet9iZQpFR1d1JzID_xJ134p-dwccMi4hcVm
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+./wpnlinkj client01.js client02.js -vvvv
+Subscribe Android id: 5646527008009148435, security token: 1342333400734878259, application id: etIGLqm_NH0
+Send: app=org.chromium.linux&X-subtype=wp%3Ahttps%3A%2F%2Ffcm.googleapis.com%2Ffcm%2Fsend%2F%23BOW-7fEceN7nS7GOIyqUu-03D1e-1hPVBvkQ436yG6L4mTWkPUrOILwlAocGODI5hTsWXSDJ4WMmltw9RGwMz70&device=5646527008009148435&sender=BOW-7fEceN7nS7GOIyqUu-03D1e-1hPVBvkQ436yG6L4mTWkPUrOILwlAocGODI5hTsWXSDJ4WMmltw9RGwMz70&appid=etIGLqm_NH0&scope=GCM&X-scope=GCM&gmsv=72 to https://android.clients.google.com/c2dm/register3
+auth: 5646527008009148435:1342333400734878259
+HTTP/1.1 200 OK
+Content-Type: text/plain; charset=UTF-8
+Date: Fri, 09 Nov 2018 12:45:05 GMT
+Expires: Fri, 09 Nov 2018 12:45:05 GMT
+Cache-Control: private, max-age=0
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+X-XSS-Protection: 1; mode=block
+Server: GSE
+Alt-Svc: quic=":443"; ma=2592000; v="44,43,39,35"
+Accept-Ranges: none
+Vary: Accept-Encoding
+Transfer-Encoding: chunked
+
+
+Headers received: HTTP/1.1 200 OK
+Content-Type: text/plain; charset=UTF-8
+Date: Fri, 09 Nov 2018 12:45:05 GMT
+Expires: Fri, 09 Nov 2018 12:45:05 GMT
+Cache-Control: private, max-age=0
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+X-XSS-Protection: 1; mode=block
+Server: GSE
+Alt-Svc: quic=":443"; ma=2592000; v="44,43,39,35"
+Accept-Ranges: none
+Vary: Accept-Encoding
+Transfer-Encoding: chunked
+
+
+Receive response code: 200, body:
+token=dhlwkXBku94:APA91bH9Sb3ETgjHs7vjoL4LjifetV6S13V-6aaMZ2kYJluuhrWc4B3ImuFCwx_16vEyRab6peVrrTAMF9EKWvuqfLX_-_sj4dkWi5QmXoup012S4wihWtNB8WfzZ9xuT9o0XdEdtAv9
+from https://android.clients.google.com/c2dm/register3
+dhlwkXBku94:APA91bH9Sb3ETgjHs7vjoL4LjifetV6S13V-6aaMZ2kYJluuhrWc4B3ImuFCwx_16vEyRab6peVrrTAMF9EKWvuqfLX_-_sj4dkWi5QmXoup012S4wihWtNB8WfzZ9xuT9o0XdEdtAv9
+andrei@lenovo:~/src/wpn$ ./wpnwj client01.js client02.js message.json -vvvv
+to: dhlwkXBku94:APA91bH9Sb3ETgjHs7vjoL4LjifetV6S13V-6aaMZ2kYJluuhrWc4B3ImuFCwx_16vEyRab6peVrrTAMF9EKWvuqfLX_-_sj4dkWi5QmXoup012S4wihWtNB8WfzZ9xuT9o0XdEdtAv9
+endpoint: https://fcm.googleapis.com/wp/dhlwkXBku94:APA91bH9Sb3ETgjHs7vjoL4LjifetV6S13V-6aaMZ2kYJluuhrWc4B3ImuFCwx_16vEyRab6peVrrTAMF9EKWvuqfLX_-_sj4dkWi5QmXoup012S4wihWtNB8WfzZ9xuT9o0XdEdtAv9
+privateKey: 6374EqpEKomYPWf6vehFx0rfyyudHH7PN0t8-KNxe64
+publicKey: BOW-7fEceN7nS7GOIyqUu-03D1e-1hPVBvkQ436yG6L4mTWkPUrOILwlAocGODI5hTsWXSDJ4WMmltw9RGwMz70
+andrei@lenovo:~/src/wpn$ ./wpnwj client01.js client02.js message.json -vvvv
+to: dhlwkXBku94:APA91bH9Sb3ETgjHs7vjoL4LjifetV6S13V-6aaMZ2kYJluuhrWc4B3ImuFCwx_16vEyRab6peVrrTAMF9EKWvuqfLX_-_sj4dkWi5QmXoup012S4wihWtNB8WfzZ9xuT9o0XdEdtAv9
+endpoint: https://fcm.googleapis.com/wp/dhlwkXBku94:APA91bH9Sb3ETgjHs7vjoL4LjifetV6S13V-6aaMZ2kYJluuhrWc4B3ImuFCwx_16vEyRab6peVrrTAMF9EKWvuqfLX_-_sj4dkWi5QmXoup012S4wihWtNB8WfzZ9xuT9o0XdEdtAv9
+privateKey: 6374EqpEKomYPWf6vehFx0rfyyudHH7PN0t8-KNxe64
+publicKey: BOW-7fEceN7nS7GOIyqUu-03D1e-1hPVBvkQ436yG6L4mTWkPUrOILwlAocGODI5hTsWXSDJ4WMmltw9RGwMz70
+andrei@lenovo:~/src/wpn$ ./wpnr -c client01.js -vvvv
+Android id: 648114349 security token: -1553441711
+Login to mtalk.google.com
+Saved persistent ids:
+Send version: 29
+Send tag: 0295010a126368726f6d652d36332e302e333233342e30120f6d63732e616e64726f69642e636f6d1a13353033333237333632323233343439333130312213353033333237333632323233343439333130312a13363238393338343931333637363831393533373218616e64726f69642d34356439633762313236613137306164420b0a066e65775f766312013160007001800102880101
+Enter q to quit
+https://fcm.googleapis.com/fcm/send/fGipvD6zGWk:APA91bEgiKxlhkFcukirEIT15SGUdKnYxRqaVa0H1B_qiDDlw-5wtx-m3hwmb8to9j5qpgwR35lPvsNLm7PGKjsIz5oGWnkkpyXzy7OdyTpIALkkSWPFDUp3zs-GeR2SAmzE8Ol5auQQ
+Listen loop started
+{
+  "androidId": 5033273622234493101,
+  "appId": "c2PVUNAG4mA",
+  "authSecret": "cJ9tgPSsIaSM1lkQ7TQCQQ",
+  "privateKey": "6374EqpEKomYPWf6vehFx0rfyyudHH7PN0t8-KNxe64",
+  "provider": "chrome",
+  "publicKey": "BOW-7fEceN7nS7GOIyqUu-03D1e-1hPVBvkQ436yG6L4mTWkPUrOILwlAocGODI5hTsWXSDJ4WMmltw9RGwMz70",
+  "registrationId": "fGipvD6zGWk:APA91bEgiKxlhkFcukirEIT15SGUdKnYxRqaVa0H1B_qiDDlw-5wtx-m3hwmb8to9j5qpgwR35lPvsNLm7PGKjsIz5oGWnkkpyXzy7OdyTpIALkkSWPFDUp3zs-GeR2SAmzE8Ol5auQQ",
+  "securityToken": 6289384913676819537
+}
+MCS version: 41
+Read 1 byte(s)
+<<<  Tag 3 size 86  >>>
+Tag: 3 size: 86: 0a126368726f6d652d36332e302e333233342e30123735303333323733363232323334343933313031406d63732e616e64726f69642e636f6d2f35303333323733363232323334343933313031300140d98b8ec4ef2c
+Read 88 byte(s)
+<<<  Tag 7 size 103  >>>
+Tag: 7 size: 103: 10011a084639304338314544220f6d63732e616e64726f69642e636f6d2a3735303333323733363232323334343933313031406d63732e616e64726f69642e636f6d2f353033333237333632323233343439333130313a04080c120058ffffffffffffffffff01
+Read 105 byte(s)

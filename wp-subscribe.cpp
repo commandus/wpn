@@ -234,9 +234,9 @@ int subscribe
 		return ERR_PARAM_AUTH_ENTITY;
 	}
 	std::string mimetype = "application/x-www-form-urlencoded";
-	std::string endPoint = "https://fcm.googleapis.com/fcm/send/" + authorizedEntity;
+	std::string endPoint = "wp:https://fcm.googleapis.com/fcm/send/#" + authorizedEntity;
 	std::string s =
-		"app=" APP_CATEGORY "&X-subtype=" + escapeURLString("wp:" + endPoint)	// TODO
+		"app=" APP_CATEGORY "&X-subtype=" + escapeURLString(endPoint)	// TODO
 		+ "&device=" + escapeURLString(receiverAndroidId)
 		+ "&sender=" + escapeURLString(authorizedEntity)
 		+ "&appid=" + receiverAppId
