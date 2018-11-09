@@ -112,9 +112,9 @@ int main(int argc, char **argv)
 				std::cerr << "Publisher configuration file is invalid." << std::endl;
 				nerrors++;
 			} else {
-				if (pub.registrationId.empty()) {
+				if (pub.publicKey.empty()) {
 					nerrors++;
-					std::cerr << "Publisher registrationId missed." << std::endl;
+					std::cerr << "Publisher publicKey missed." << std::endl;
 				}
 			}
 		}
@@ -182,11 +182,11 @@ int main(int argc, char **argv)
 	OpenSSL_add_all_algorithms();
 
 	// User can subscribe one or more subscribers to the publisher
-	std::string endPoint = "https://fcm.googleapis.com/fcm/send/" + pub.registrationId;	// publicKey
+	std::string endPoint = "https://fcm.googleapis.com/fcm/send/" + pub.publicKey;
 	if (verbosity > 1) {
-		std::cerr << "Endpoint: https://fcm.googleapis.com/fcm/send/" << pub.registrationId << std::endl;
+		std::cerr << "Endpoint: https://fcm.googleapis.com/fcm/send/" << pub.publicKey << std::endl;
 	}
-	
+
 	for (std::vector<ClientConfig>::const_iterator it(tos.begin()); it != tos.end(); ++it) 
 	{
 		char retval[2048];
