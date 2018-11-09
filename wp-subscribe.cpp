@@ -201,15 +201,14 @@ static const std::string TOKEN_PREFIX = "token=";
  * Make subscription VAPID
  * authorizedEntity MUST BE "103953800507"
  * @see https://firebase.google.com/docs/cloud-messaging/js/client
- * @param retVal can be NULL
- * @param retHeaders can be NULL
- * @param retToken return subscription token
- * @param retPushSet return subscription push set. Not implemented. Returns empty string
+ * @param retVal returns error text description. Can be NULL
+ * @param retHeaders returns headers. Can be NULL
+ * @param retToken returns subscription token
+ * @param retPushSet returns subscription push set. Not implemented. Returns empty string
  * @param receiverAndroidId receiver Android id
  * @param receiverSecurityToken receiver security number
  * @param receiverAppId application identifier
- * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
- * @param authorizedEntity usual decimal number string "103953800507"
+ * @param authorizedEntity VAPID: Sender public key; GCM: project decimal number string "103953800507"
  * @param verbosity default 0- none
  * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
  */
@@ -222,19 +221,12 @@ int subscribe
 	const std::string &receiverAndroidId,
 	const std::string &receiverSecurityToken,
 	const std::string &receiverAppId,
-	const std::string &endPoint,
 	const std::string &authorizedEntity,
 	int verbosity
 )
 {
 	int r = 0;
 
-	if (endPoint.empty())
-	{
-		if (retVal)
-			*retVal = "Endpoint is empty";
-		return ERR_PARAM_ENDPOINT;
-	}
 	if (authorizedEntity.empty())
 	{
 		if (retVal)
@@ -242,9 +234,9 @@ int subscribe
 		return ERR_PARAM_AUTH_ENTITY;
 	}
 	std::string mimetype = "application/x-www-form-urlencoded";
-
+	std::string endPoint = "https://fcm.googleapis.com/fcm/send/" + authorizedEntity;
 	std::string s =
-		"app=" APP_CATEGORY "&X-subtype=wp:" + std::string(endPoint)
+		"app=" APP_CATEGORY "&X-subtype=" + escapeURLString("wp:" + endPoint)	// TODO
 		+ "&device=" + escapeURLString(receiverAndroidId)
 		+ "&sender=" + escapeURLString(authorizedEntity)
 		+ "&appid=" + receiverAppId

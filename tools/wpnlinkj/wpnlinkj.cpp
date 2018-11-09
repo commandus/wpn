@@ -182,10 +182,7 @@ int main(int argc, char **argv)
 	OpenSSL_add_all_algorithms();
 
 	// User can subscribe one or more subscribers to the publisher
-	std::string endPoint = "https://fcm.googleapis.com/fcm/send/" + pub.publicKey;
-	if (verbosity > 1) {
-		std::cerr << "Endpoint: https://fcm.googleapis.com/fcm/send/" << pub.publicKey << std::endl;
-	}
+	std::string authorizedEntity = pub.publicKey;
 
 	for (std::vector<ClientConfig>::const_iterator it(tos.begin()); it != tos.end(); ++it) 
 	{
@@ -203,7 +200,7 @@ int main(int argc, char **argv)
 		int r = subscribeC(retval, sizeof(retval), headers, sizeof(headers),
 			token, sizeof(token), pushset, sizeof(pushset),
 			std::to_string(it->androidId).c_str(),  std::to_string(it->securityToken).c_str(), it->appId.c_str(),
-			endPoint.c_str(),
+			authorizedEntity.c_str(),
 			verbosity
 		);
 		if ((r >= 200) && (r < 300)) {

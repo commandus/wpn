@@ -21,7 +21,6 @@
  * @param receiverPublicKey receiver public key
  * @param receiverAuth receiver auth secret
  * @param receiverAppId application identifier 
- * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
  * @param verbosity default 0- none
  * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
  */
@@ -34,7 +33,6 @@ int subscribe
 	const std::string &receiverPublicKey,
 	const std::string &receiverAuth,
 	const std::string &receiverAppId,
-	const std::string &endPoint,
 	const std::string &authorizedEntity,
 	int verbosity
 );

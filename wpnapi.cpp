@@ -412,7 +412,7 @@ EXPORTDLL size_t endpointC(
  * @param receiverAndroidId receiver Android id
  * @param receiverSecurityToken receiver security number
  * @param receiverAppId application identifier 
- * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
+ * @param authorizedEntity VAPID: Sender public key; GCM: project decimal number string "103953800507"
  * @param verbosity default 0- none
  * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
  */
@@ -429,7 +429,7 @@ EXPORTDLL int subscribeC
 	const char *receiverAndroidId,
 	const char *receiverSecurityToken,
 	const char *receiverAppId,
-	const char *endPoint,
+	const char *authorizedEntity,
 	int verbosity
 )
 {
@@ -438,7 +438,7 @@ EXPORTDLL int subscribeC
 	std::string retToken;
 	std::string retPushSet;
 	int r = subscribe(&retVal, &retHeaders, retToken, retPushSet, 
-		receiverAndroidId, receiverSecurityToken, receiverAppId, endPoint, GCM_SENDER_ID, verbosity);
+		receiverAndroidId, receiverSecurityToken, receiverAppId, authorizedEntity, verbosity);
 	int e = 0;
 	STR2PCHAR(e, retval, retvalsize, retVal)
 	STR2PCHAR(e, retheaders, retheaderssize, retHeaders)

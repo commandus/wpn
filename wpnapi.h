@@ -272,7 +272,7 @@ EXPORTDLL void stopClient
  * @param receiverAndroidId receiver Android id
  * @param receiverSecurityToken receiver security number
  * @param receiverAppId application identifier
- * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
+ * @param authorizedEntity VAPID: Sender public key; GCM: project decimal number string "103953800507"
  * @param verbosity default 0- none
  * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
  */
@@ -289,7 +289,7 @@ EXPORTDLL int subscribeC
 	const char *receiverAndroidId,
 	const char *receiverSecurityToken,
 	const char *receiverAppId,
-	const char *endPoint,
+	const char *authorizedEntity,
 	int verbosity
 );
 
