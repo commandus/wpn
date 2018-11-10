@@ -1160,3 +1160,48 @@ int MCSClient::read()
 	}
 	return r;
 }
+
+/**
+ * Start client
+ * @param retcode can be NULL
+ */
+void *startClient
+(
+	int *retcode,
+	const std::string &privateKey,
+	const std::string &authSecret,
+	uint64_t androidId,
+	uint64_t securityToken,
+	OnNotifyC onNotify,
+	void *onNotifyEnv,
+	OnLogC onLog,
+	void *onLogEnv,
+	int verbosity
+)
+{
+	MCSClient *client = new MCSClient(
+		privateKey,
+		authSecret,
+		androidId,
+		securityToken,
+		onNotify, onNotifyEnv, onLog, onLogEnv,
+		verbosity
+	);
+	int r = client->connect();
+	if (retcode)
+		*retcode = r;
+	return client;
+}
+
+/**
+ * Stop client
+ */
+void stopClient
+(
+	void *client
+)
+{
+	if (client) {
+		delete ((MCSClient*)client);
+	}
+}

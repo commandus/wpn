@@ -27,6 +27,7 @@
 #include <inttypes.h>
 
 #include <google/protobuf/message.h>
+#include <ece.h>
 
 #include "wpn-notify.h"
 #include "sslfactory.h"
@@ -200,5 +201,31 @@ public:
 
 	CallbackLogger log;
 };
+
+/**
+ * Start client
+ * @param retcode can be NULL
+ */
+void *startClient
+(
+	int *retcode,
+	const std::string &privateKey,
+	const std::string &authSecret,
+	uint64_t androidId,
+	uint64_t securityToken,
+	OnNotifyC onNotify,
+	void *onNotifyEnv,
+	OnLogC onLog,
+	void *onLogEnv,
+	int verbosity
+);
+
+/**
+ * Stop client
+ */
+void stopClient
+(
+	void *client
+);
 
 #endif // MCSCLIENT_H

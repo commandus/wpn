@@ -35,6 +35,8 @@
 
 #include "utilinstance.h"
 #include "utilfile.h"
+#include "utilrecv.h"
+#include "utilvapid.h"
 #include "sslfactory.h"
 
 #include "config-filename.h"
@@ -177,8 +179,8 @@ int main(int argc, char **argv)
 	}
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
-	char privateKeyC[96];
-	char publicKeyC[240];
+	std::string privateKey;
+	std::string publicKey;
 	std::string appId;
 
 	// In windows, this will init the winsock stuff
@@ -188,48 +190,45 @@ int main(int argc, char **argv)
 	int r  = 0;
 
 	// write
-	char retval[4096];
-	char endpoint[256];
-	endpointC(endpoint, sizeof(endpoint), registrationid.c_str(), 1, (int) provider);	///< 0- Chrome, 1- Firefox
+	std::string retval;
+	std::string endPoint = endpoint(registrationid, 1, (int) provider);	///< 0- Chrome, 1- Firefox
 
-	strncpy(privateKeyC, force_privatekey.c_str(), sizeof(privateKeyC));
-	strncpy(publicKeyC, force_publickey.c_str(), sizeof(publicKeyC));
+	privateKey = force_privatekey;
+	publicKey =  force_publickey;
 
 	if (verbosity > 0)
 	{
 		std::cerr
-			<< "endpoint: " << endpoint << std::endl
+			<< "endpoint: " << endPoint << std::endl
 			<< "provider: " << (provider == PROVIDER_FIREFOX ? "firefox" : "chrome") << std::endl
-			<< "privateKey: " << privateKeyC << std::endl
-			<< "publicKey: " << publicKeyC << std::endl;
+			<< "privateKey: " << privateKey << std::endl
+			<< "publicKey: " << publicKey << std::endl;
 	}
 	
 	std::string msg  = mkNotificationJson(registrationid, subject, body, icon, link);
 	time_t t = time(NULL) + 86400 - 60;
 	if (verbosity > 1)
 	{
-		r = webpushVapidCmdC(
-			retval, sizeof(retval),
-			publicKeyC,
-			privateKeyC,
-			cmdFileName.c_str(),
-			endpoint,
-			p256dh.c_str(),
-			auth.c_str(),
-			msg.c_str(),
-			contact.c_str(),
+		retval = webpushVapidCmd(
+			publicKey,
+			privateKey,
+			cmdFileName,
+			endPoint,
+			p256dh,
+			auth,
+			msg,
+			contact,
 			aesgcm ? AESGCM : AES128GCM,
 			t
 		);
-		if (r > 0)
-			std::cerr << "curl: " << std::endl << retval << std::endl;
+		std::cerr << "curl: " << std::endl << retval << std::endl;
 	}
 	
-	r = webpushVapidC(
-		retval, sizeof(retval),
-		publicKeyC,
-		privateKeyC,
-		endpoint,
+	r = webpushVapid(
+		retval, 
+		publicKey,
+		privateKey,
+		endPoint,
 		p256dh.c_str(),
 		auth.c_str(),
 		msg.c_str(),

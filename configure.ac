@@ -55,8 +55,8 @@ if [test "$build_linux" = "yes"]; then
 fi
 
 # Checks for header files. Add /usr/local/include for IS X.
-AC_CHECK_HEADERS([curl/curl.h], [], AC_MSG_ERROR([Could not find curl/curl.h. Try $ ./configure CFLAGS='-Iyour-curl-include-path]))
 CFLAGS="$CFLAGS -I/usr/local/include"
+AC_CHECK_HEADERS([curl/curl.h], [], AC_MSG_ERROR([Could not find curl/curl.h. Try $ ./configure CFLAGS='-Iyour-curl-include-path]))
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h string.h sys/time.h termios.h unistd.h])
 # AC_CHECK_HEADERS([argtable3.h], [], AC_MSG_ERROR([Could not find argtable3.h. Try $ ./configure CFLAGS='-Iyour-argtable3-include-path]))
 AC_CHECK_HEADERS([ece.h], [], AC_MSG_ERROR([Could not find ece.h. Try $ ./configure CFLAGS='-Iyour-ece-include-path]))

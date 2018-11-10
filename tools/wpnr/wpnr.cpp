@@ -36,9 +36,10 @@
 #include "sslfactory.h"
 
 #include "config-filename.h"
-#include "wpnapi.h"
 #include "utilfile.h"
 #include "utilinstance.h"
+#include "utilrecv.h"
+#include <mcs/mcsclient.h>
 
 static const char* progname = "wpnr";
 #define DEF_FILE_NAME			".wpnr.js"
@@ -136,19 +137,14 @@ int main(int argc, char **argv)
 	}
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
-	char registrationIdC[256];
-	char privateKeyC[96];
-	char publicKeyC[240];
-	char authSecretC[48];
-	uint64_t androidId;
-	uint64_t securityToken;
-	std::string appId;
-	
 	std::string registrationId;
 	std::string privateKey;
 	std::string publicKey;
 	std::string authSecret;
-
+	uint64_t androidId;
+	uint64_t securityToken;
+	std::string appId;
+	
 	// load config file
 	int r = readConfig(
 		filename,
@@ -163,11 +159,6 @@ int main(int argc, char **argv)
 	);
 	if (r)  {
 		std::cerr << "Error parse " << filename << std::endl;
-	} else {
-		strncpy(registrationIdC, registrationId.c_str(), sizeof(registrationIdC));
-		strncpy(privateKeyC, privateKey.c_str(), sizeof(privateKeyC));
-		strncpy(publicKeyC, publicKey.c_str(), sizeof(publicKeyC));
-		strncpy(authSecretC, authSecret.c_str(), sizeof(authSecretC));
 	}
 
 	// In windows, this will init the winsock stuff
@@ -179,16 +170,7 @@ int main(int argc, char **argv)
 		// generate a new application name. Is it required?
 		appId = mkInstanceId();
 		// Initialize client
-		r = initClientC(
-			registrationIdC, sizeof(registrationIdC),
-			privateKeyC, sizeof(privateKeyC),
-			publicKeyC, sizeof(publicKeyC),
-			authSecretC, sizeof(authSecretC),
-			&androidId,
-			&securityToken,
-			appId.c_str(),
-			verbosity
-		);
+		r = initClient(registrationId, privateKey, publicKey, authSecret, &androidId, &securityToken, appId, verbosity);
 		if ((r < 200) || (r >= 300))
 		{
 			std::cerr << "Error " << r << " on client registration. Check Internet connection and try again." << std::endl;
@@ -201,10 +183,10 @@ int main(int argc, char **argv)
 		r = writeConfig(
 			filename,
 			provider,
-			registrationIdC,
-			privateKeyC,
-			publicKeyC,
-			authSecretC,
+			registrationId.c_str(),
+			privateKey.c_str(),
+			publicKey.c_str(),
+			authSecret.c_str(),
 			androidId,
 			securityToken,
 			appId
@@ -217,8 +199,8 @@ int main(int argc, char **argv)
 	int retcode;
 	void *client = startClient(
 		&retcode,
-		privateKeyC,
-		authSecretC,
+		privateKey,
+		authSecret,
 		androidId,
 		securityToken,
 		onNotify,
@@ -233,15 +215,14 @@ int main(int argc, char **argv)
 		return r;
 	} 
 	std::cout << "Enter q to quit" << std::endl;
-	char endpoint[255];
-	endpointC(endpoint, sizeof(endpoint), registrationIdC, 0, (int) provider);	///< 0- Chrome, 1- Firefox
-	std::cout << endpoint << std::endl;
+	std::string endPoint = endpoint(registrationId, 0, (int) provider);	///< 0- Chrome, 1- Firefox
+	std::cout << endPoint << std::endl;
 	std::cout << jsonConfig(
 		provider,
-		registrationIdC,
-		privateKeyC,
-		publicKeyC,
-		authSecretC,
+		registrationId.c_str(),
+		privateKey.c_str(),
+		publicKey.c_str(),
+		authSecret.c_str(),
 		androidId,
 		securityToken,
 		appId
