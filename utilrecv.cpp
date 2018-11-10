@@ -16,6 +16,7 @@
 
 #include "utilvapid.h"
 #include "utilstring.h"
+#include "wp-storage-file.h"
 
 static const std::string DEF_CHROME_VER("63.0.3234.0");
 
@@ -288,6 +289,56 @@ std::string tagNmessageToString
 	delete codedOutput;
 	delete rawOutput;
 	return ss.str();
+}
+
+#define TRIES	5
+
+/**
+ * Calls generateVAPIDKeys() and checkIn()
+ * @return from checkIn()
+ */
+int initClient
+(
+	std::string &retRegistrationId,
+	std::string &privateKey,
+	std::string &publicKey,
+	std::string &authSecret,
+	uint64_t *androidId,
+	uint64_t *securityToken,
+	std::string &appId,
+	int verbosity
+)
+{
+	generateVAPIDKeys(
+		privateKey,
+		publicKey,
+		authSecret
+	);
+	*androidId = 0;
+	*securityToken = 0;
+	int r = checkIn(
+		androidId,
+		securityToken,
+		verbosity
+	);
+	if (r < 200 || r >= 300)
+		return r;
+
+	for (int i = 0; i < TRIES; i++)
+	{
+		r = registerDevice(
+			&retRegistrationId,
+			*androidId,
+			*securityToken,
+			appId,
+			verbosity
+		);
+		if (r >= 200 && r < 300)
+			break;
+	}
+
+	int e;
+	return r;
 }
 
 #endif

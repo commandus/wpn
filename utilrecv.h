@@ -64,4 +64,20 @@ std::string endpoint(
 	const int browser = 0						///< 0- Chrome, 1- Firefox
 );
 
+/**
+ * Calls generateVAPIDKeys() and checkIn()
+ * @return from checkIn()
+ */
+int initClient
+(
+	std::string &retRegistrationId,
+	std::string &privateKey,
+	std::string &publicKey,
+	std::string &authSecret,
+	uint64_t *androidId,
+	uint64_t *securityToken,
+	std::string &appId,
+	int verbosity
+);
+
 #endif

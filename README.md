@@ -595,13 +595,14 @@ Check list:
 See below how to install too,s and dependencies.
 
 After check completed, build:
-
 ```
 cd wpn
 ./autogen.sh
 ./configure
 make
 ```
+
+You can not build outside the source tree.
 
 If you want, install:
 

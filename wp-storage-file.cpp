@@ -906,3 +906,18 @@ json Subscriptions::toJson(
 	}
 	return subscriptions;
 }
+
+void generateVAPIDKeys
+(
+	std::string &privateKey,
+	std::string &publicKey,
+	std::string &authSecret
+)
+{
+	WpnKeys k;
+	k.generate();
+
+	privateKey = k.getPrivateKey();
+	publicKey = k.getPublicKey();
+	authSecret = k.getAuthSecret();
+}

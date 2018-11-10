@@ -334,4 +334,11 @@ public:
 	) const;
 };
 
+void generateVAPIDKeys
+(
+	std::string &privateKey,
+	std::string &publicKey,
+	std::string &authSecret
+);
+
 #endif

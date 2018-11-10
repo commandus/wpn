@@ -16,7 +16,9 @@ bin_PROGRAMS = \
 commoncppflags = -O2 -I/usr/local/include -Imcs/gen -Ithird_party
 commoncppflags += -I/usr/local/opt/openssl@1.1/include
 
-commonlibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl -lece -lnghttp2 -lprotobuf
+curllibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl
+mcslibs = -lprotobuf
+commonlibs = $(curllibs) $(mcslibs) -lece -lnghttp2 
 # -lglog -lunwind
 commonlibs += -L/usr/local/opt/openssl@1.1/lib
 
@@ -116,9 +118,75 @@ webpush_curl_LDADD = $(commonlibs)
 webpush_curl_CPPFLAGS = $(commoncppflags)
 
 #
-# ----- With shared libraries, shared library first -----
+# ----- Static -----
 #
 
+#
+#	wpnr
+#
+wpnr_SOURCES = \
+	tools/wpnr/wpnr.cpp config-filename.cpp utilfile.cpp \
+	utilinstance.cpp utilrecv.cpp utilvapid.cpp utilstring.cpp mcs/mcsclient.cpp wp-storage-file.cpp sslfactory.cpp \
+	$(gengrpcs_c) \
+	$(common_src)
+
+wpnr_LDADD = $(curllibs) $(mcslibs)
+wpnr_CPPFLAGS = $(commoncppflags)
+
+#
+#	wpnw
+#
+wpnw_SOURCES= \
+	tools/wpnw/wpnw.cpp config-filename.cpp utilfile.cpp \
+	utilinstance.cpp utilrecv.cpp utilvapid.cpp sslfactory.cpp utilstring.cpp wp-storage-file.cpp \
+	$(gengrpcs_c) \
+	$(common_src)
+wpnw_LDADD = $(curllibs) $(mcslibs)
+wpnw_CPPFLAGS = $(commoncppflags)
+
+#
+#	wpnwj
+#
+wpnwj_SOURCES= \
+	tools/wpnwj/wpnwj.cpp config-filename.cpp utilfile.cpp \
+	$(common_src)
+
+wpnwj_LDADD = -L.libs -lwpnapi $(commonlibs)
+wpnwj_CPPFLAGS = $(commoncppflags)
+
+#
+#	wpnadd
+#
+wpnadd_SOURCES= \
+	tools/wpnadd/wpnadd.cpp config-filename.cpp utilfile.cpp \
+	$(common_src)
+
+wpnadd_LDADD = -L.libs -lwpnapi $(commonlibs)
+wpnadd_CPPFLAGS = $(commoncppflags)
+
+#
+#	wpnlink
+#
+wpnlink_SOURCES= \
+	tools/wpnlink/wpnlink.cpp config-filename.cpp \
+	$(common_src)
+
+wpnlink_LDADD = -L.libs -lwpnapi $(commonlibs)
+wpnlink_CPPFLAGS = $(commoncppflags)
+
+#
+#	wpnlinkj
+#
+wpnlinkj_SOURCES= \
+	tools/wpnlinkj/wpnlinkj.cpp config-filename.cpp utilfile.cpp \
+	$(common_src)
+
+wpnlinkj_LDADD = -L.libs -lwpnapi $(commonlibs)
+wpnlinkj_CPPFLAGS = $(commoncppflags)
+
+#
+# ----- With shared libraries, shared library first -----
+#
 tools/wpnr/wpnr.cpp : libwpnapi.la
 tools/wpnw/wpnw.cpp : libwpnapi.la
 tools/wpnwj/wpnwj.cpp : libwpnapi.la
@@ -129,62 +197,12 @@ tools/wpnlink/wpnlinkj.cpp : libwpnapi.la
 #
 #	wpnr (with shared library)
 #
-wpnr_SOURCES = \
+wpnrs_SOURCES = \
 	tools/wpnr/wpnr.cpp config-filename.cpp utilfile.cpp \
 	$(common_src)
 
-wpnr_LDADD = -L.libs -lwpnapi $(commonlibs)
-wpnr_CPPFLAGS = $(commoncppflags)
-
-#
-#	wpnw (with shared library)
-#
-wpnw_SOURCES= \
-	tools/wpnw/wpnw.cpp config-filename.cpp utilfile.cpp \
-	$(common_src)
-
-wpnw_LDADD = -L.libs -lwpnapi $(commonlibs)
-wpnw_CPPFLAGS = $(commoncppflags)
-
-#
-#	wpnw (with shared library)
-#
-wpnwj_SOURCES= \
-	tools/wpnwj/wpnwj.cpp config-filename.cpp utilfile.cpp \
-	$(common_src)
-
-wpnwj_LDADD = -L.libs -lwpnapi $(commonlibs)
-wpnwj_CPPFLAGS = $(commoncppflags)
-
-#
-#	wpnadd (with shared library)
-#
-wpnadd_SOURCES= \
-	tools/wpnadd/wpnadd.cpp config-filename.cpp utilfile.cpp \
-	$(common_src)
-
-wpnadd_LDADD = -L.libs -lwpnapi $(commonlibs)
-wpnadd_CPPFLAGS = $(commoncppflags)
-
-#
-#	wpnlink (with shared library)
-#
-wpnlink_SOURCES= \
-	tools/wpnlink/wpnlink.cpp config-filename.cpp \
-	$(common_src)
-
-wpnlink_LDADD = -L.libs -lwpnapi $(commonlibs)
-wpnlink_CPPFLAGS = $(commoncppflags)
-
-#
-#	wpnlinkj (with shared library)
-#
-wpnlinkj_SOURCES= \
-	tools/wpnlinkj/wpnlinkj.cpp config-filename.cpp utilfile.cpp \
-	$(common_src)
-
-wpnlinkj_LDADD = -L.libs -lwpnapi $(commonlibs)
-wpnlinkj_CPPFLAGS = $(commoncppflags)
+wpnrs_LDADD = -L.libs -lwpnapi $(commonlibs)
+wpnrs_CPPFLAGS = $(commoncppflags) -DUSELIB
 
 #
 #	Configs, readme, CMake etc.

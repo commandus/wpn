@@ -315,7 +315,7 @@ EXPORTDLL int registerDeviceC(
  * @param value string to conversion
  * @param mode 0- pseudo graphics
  */
-EXPORTDLL size_t qr2pchar
+EXPORTDLL size_t qr2pcharC
 (
 	char *retval,
 	size_t retsize,
@@ -339,7 +339,7 @@ EXPORTDLL size_t qr2pchar
  * Start client
  * @param retcode can be NULL
  */
-EXPORTDLL void *startClient
+EXPORTDLL void *startClientC
 (
 	int *retcode,
 	const char *privateKey,
@@ -370,7 +370,7 @@ EXPORTDLL void *startClient
 /**
  * Stop client
  */
-EXPORTDLL void stopClient
+EXPORTDLL void stopClientC
 (
 	void *client
 )
@@ -388,7 +388,7 @@ EXPORTDLL size_t endpointC(
 	char* retval,
 	size_t retsize,
 	const char *registrationId,			///< GCMToken
-	const int send,					///< 1- send, 0- receiver
+	const int send,						///< 1- send, 0- receiver
 	const int browser					///< 0- Chrome, 1- Firefox
 )
 {
