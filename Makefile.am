@@ -9,9 +9,7 @@ lib_LTLIBRARIES = \
 
 #	Binaries
 bin_PROGRAMS = \
-	wpn \
-	webpush-curl \
-	wpnr wpnw wpnlink wpnlinkj wpnadd wpnwj
+	wpn webpush-curl wpnr wpnw wpnlink wpnlinkj wpnadd wpnwj
 
 commoncppflags = -O2 -I/usr/local/include -Imcs/gen -Ithird_party
 commoncppflags += -I/usr/local/opt/openssl@1.1/include
