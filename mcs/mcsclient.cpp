@@ -520,9 +520,21 @@ static void doSmth
 		DataMessageStanza* r = (DataMessageStanza*)message;
 		std::string cryptoKeyHeader;
 		std::string encryptionHeader;
+		std::string subtype;
+
+		DataMessageStanza* dms = (DataMessageStanza*) message;
+		for (int a = 0; a < dms->app_data_size(); a++)
+		{
+			if (dms->app_data(a).key() == "crypto-key")
+				cryptoKeyHeader = dms->app_data(a).value();
+			if (dms->app_data(a).key() == "encryption")
+				encryptionHeader = dms->app_data(a).value();
+			if (dms->app_data(a).key() == "subtype")
+				subtype = dms->app_data(a).value();
+		}
+
 		std::string persistent_id = r->persistent_id();
 		std::string from = r->from();
-		std::string subtype;
 		std::string appName = "";
 		std::string appId = "";
 		int64_t sent = r->sent();
