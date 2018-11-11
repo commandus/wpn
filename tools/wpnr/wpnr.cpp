@@ -56,14 +56,14 @@ void onNotify
 	const NotifyMessageC *msg
 )
 {
-	std::cerr<< "Notify " 
-		<< "persistent_id: " << persistent_id
-		<< "from: " << from
-		<< "appName: " << appName
-		<< "appId: " << appId
-		<< "sent: " << sent
-		<< std::endl;
-	if (msg) std::cout 
+	time_t t = sent / 1000;
+	struct tm *tm = localtime(&t);
+	std::cerr<< "Notify " << "persistent_id: " << persistent_id << std::endl
+		<< "from: " << from << std::endl
+		<< "sent: " << std::asctime(tm) << std::endl
+		<< std::endl << std::endl;
+	if (msg) {
+		std::cout 
 		<< msg->title << std::endl
 		<< msg->category << std::endl
 		<< msg->extra << std::endl
@@ -75,6 +75,7 @@ void onNotify
 		<< msg->urgency << std::endl
 		<< msg->body << std::endl
 		<< std::endl;
+	}
 }
 
 void onLog

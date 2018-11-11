@@ -527,9 +527,6 @@ static void doSmth
 		std::string appId = "";
 		int64_t sent = r->sent();
 
-		NotifyMessage notification;
-		client->notify(persistent_id, from, appName, appId, sent, notification);
-
 		MessageLite *messageAck = mkAck(persistent_id);
 		if (messageAck) {
 			int r = client->send(kIqStanzaTag, messageAck);
@@ -538,8 +535,7 @@ static void doSmth
 		if (r->has_raw_data())
 		{
 			std::string d;
-			int dr = decode(d, 
-				client->privateKey, client->authSecret, r->raw_data(), cryptoKeyHeader, encryptionHeader);
+			int dr = decode(d, client->privateKey, client->authSecret, r->raw_data(), cryptoKeyHeader, encryptionHeader);
 			if (dr == 0)
 			{
 				std::string appName;
@@ -607,12 +603,22 @@ static void doSmth
 								{
 								}
 							}
+						} else {
+							notification.data = "Error parse " + notification.data;
+							client->notify(persistent_id, from, appName, appId, sent, notification);
 						}
 					}
 					break;
 				default:
 					break;
 				}
+			} else {
+				client->log << severity(0) << "Decoding error "
+				<< " private key: " << base64UrlEncode(client->privateKey, ECE_WEBPUSH_PRIVATE_KEY_LENGTH) << "\n"
+				<< " auth secret: " << base64UrlEncode(client->authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH) << "\n"
+				<< " Header: cryptoKey: " << cryptoKeyHeader << "\n"
+				<< " Header: encryptionHeader: " << encryptionHeader << "\n"
+				<< "\n";
 			}
 		}
 	}
@@ -1139,7 +1145,7 @@ int MCSClient::process()
 			enum MCSProtoTag tag;
 			sz = nextMessage(&tag, &m, mStream, verbosity, &log);
 			if (!m) {
-				log << severity(0) << "Error get message, tag: " << (int) tag << "\n";
+				// That's ok
 				continue;
 			}
 			logMessage(tag, m, verbosity, &log);
