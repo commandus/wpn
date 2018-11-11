@@ -123,12 +123,11 @@ webpush_curl_CPPFLAGS = $(commoncppflags)
 #	wpnr
 #
 wpnr_SOURCES = \
-	tools/wpnr/wpnr.cpp config-filename.cpp utilfile.cpp \
+	tools/wpnr/wpnr.cpp config-filename.cpp utilfile.cpp commandoutput.cpp params.cpp wp-push.cpp \
 	utilinstance.cpp utilrecv.cpp utilvapid.cpp utilstring.cpp mcs/mcsclient.cpp wp-storage-file.cpp sslfactory.cpp \
 	$(gengrpcs_c) \
 	$(common_src)
-
-wpnr_LDADD = $(curllibs) $(mcslibs)
+wpnr_LDADD = $(curllibs) $(mcslibs) -lece
 wpnr_CPPFLAGS = $(commoncppflags)
 
 #

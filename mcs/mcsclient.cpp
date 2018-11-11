@@ -520,10 +520,16 @@ static void doSmth
 		DataMessageStanza* r = (DataMessageStanza*)message;
 		std::string cryptoKeyHeader;
 		std::string encryptionHeader;
-		std::string persistent_id;
-		std::string from;
+		std::string persistent_id = r->persistent_id();
+		std::string from = r->from();
 		std::string subtype;
-		int64_t sent;
+		std::string appName = "";
+		std::string appId = "";
+		int64_t sent = r->sent();
+
+		NotifyMessage notification;
+		client->notify(persistent_id, from, appName, appId, sent, notification);
+
 		MessageLite *messageAck = mkAck(persistent_id);
 		if (messageAck) {
 			int r = client->send(kIqStanzaTag, messageAck);
@@ -673,7 +679,7 @@ static MessageLite *createMessage
 
 static int nextMessage(
 	enum MCSProtoTag *retTag,
-	MessageLite *retMessage,
+	MessageLite **retMessage,
 	std::string &buffer,
 	int verbosity,
 	CallbackLogger *log
@@ -686,14 +692,14 @@ static int nextMessage(
 	uint8_t tag;
 	bool r = codedInput.ReadRaw(&tag, 1);	// 1 byte long
 	if (!r) {
-		retMessage = NULL;
+		*retMessage = NULL;
 		return 0;
 	}
 
 	uint32_t msgSize;
 	r = codedInput.ReadVarint32(&msgSize);
 	if (!r) {
-		retMessage = NULL;
+		*retMessage = NULL;
 		return 0;
 	}
 
@@ -702,15 +708,15 @@ static int nextMessage(
 
 	*retTag = (enum MCSProtoTag) tag;
 	google::protobuf::io::CodedInputStream::Limit limit = codedInput.PushLimit(msgSize);
-	retMessage = createMessage(tag);
-	if (retMessage)
+	*retMessage = createMessage(tag);
+	if (*retMessage)
 	{
-		r = retMessage->ParsePartialFromCodedStream(&codedInput);
+		r = (*retMessage)->ParsePartialFromCodedStream(&codedInput);
 		if (!r)
 			return 0;
 		r = codedInput.ConsumedEntireMessage();
 		std::string d;
-		retMessage->SerializeToString(&d);
+		(*retMessage)->SerializeToString(&d);
 		if (log && (verbosity >= 1))
 			*log << severity(1) << "Tag: " << (int) tag << " size: " << msgSize << ": " << hexString(d) << "\n";
 	}
@@ -1131,9 +1137,11 @@ int MCSClient::process()
 		else {
 			MessageLite *m = NULL;
 			enum MCSProtoTag tag;
-			sz = nextMessage(&tag, m, mStream, verbosity, &log);
-			if (!m)
+			sz = nextMessage(&tag, &m, mStream, verbosity, &log);
+			if (!m) {
+				log << severity(0) << "Error get message, tag: " << (int) tag << "\n";
 				continue;
+			}
 			logMessage(tag, m, verbosity, &log);
 			doSmth(tag, m, this);
 			delete m;

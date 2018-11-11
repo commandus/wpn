@@ -53,11 +53,27 @@ void onNotify
 	const char *appName,
 	const char *appId,
 	int64_t sent,
-	const NotifyMessageC *request
+	const NotifyMessageC *msg
 )
 {
-	std::cerr << "Notify " 
+	std::cerr<< "Notify " 
 		<< "persistent_id: " << persistent_id
+		<< "from: " << from
+		<< "appName: " << appName
+		<< "appId: " << appId
+		<< "sent: " << sent
+		<< std::endl;
+	if (msg) std::cout 
+		<< msg->title << std::endl
+		<< msg->category << std::endl
+		<< msg->extra << std::endl
+		<< msg->icon << std::endl
+		<< msg->link << std::endl
+		<< msg->linkType << std::endl
+		<< msg->sound << std::endl
+		<< msg->timeout << std::endl
+		<< msg->urgency << std::endl
+		<< msg->body << std::endl
 		<< std::endl;
 }
 
@@ -233,7 +249,7 @@ int main(int argc, char **argv)
 	do {
 		std::cin >> l;
 	} while (l != "q");
-	
+
 	stopClient(client);
 	return r;
 }
