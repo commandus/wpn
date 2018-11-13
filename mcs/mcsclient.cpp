@@ -339,6 +339,7 @@ static void logMessage
 		std::string persistent_id;
 		std::string from;
 		std::string subtype;
+		std::string content_encoding;
 		int64_t sent;
 
 		if (log && (verbosity >= 3))
@@ -354,6 +355,8 @@ static void logMessage
 				encryptionHeader = r->app_data(a).value();
 			if (r->app_data(a).key() == "subtype")
 				subtype = r->app_data(a).value();
+			if (r->app_data(a).key() == "content-encoding")
+				content_encoding = r->app_data(a).value();	// aes128gcm
 		}
 		if (r->has_id())
 			if (log && (verbosity >= 3))
