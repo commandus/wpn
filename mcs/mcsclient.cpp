@@ -445,10 +445,10 @@ static void logMessage
 }
 
 /**
- * Decode string
+ * aesgcm Decode string
  * @see https://tools.ietf.org/html/draft-ietf-webpush-encryption-03
  */
-static int decode
+static int decode_aesgcm
 (
 	std::string &retval,
 	const uint8_t *privateKeyArray,
@@ -502,6 +502,36 @@ static int decode
 	return 0;
 }
 
+/**
+ * aesgcm Decode string
+ * @see https://tools.ietf.org/html/draft-ietf-webpush-encryption-03
+ */
+static int decode_aes128gcm
+(
+	std::string &retval,
+	const uint8_t *privateKeyArray,
+	const uint8_t *authSecretArray,
+	const std::string &source
+)
+{
+	size_t outSize = ece_aes128gcm_plaintext_max_length((const uint8_t*) source.c_str(), source.size());
+	if (outSize == 0)
+	{
+		return ERR_MEM;
+	}
+
+	if (outSize < 4096)
+		outSize = 4096;
+	retval = std::string(outSize, '\0');
+
+	int r = ece_webpush_aes128gcm_decrypt(
+		privateKeyArray, ECE_WEBPUSH_PRIVATE_KEY_LENGTH, authSecretArray, ECE_WEBPUSH_AUTH_SECRET_LENGTH,
+		(const uint8_t*) source.c_str(), source.size(), (uint8_t*) retval.c_str(), &outSize
+	);
+	retval.resize(outSize);
+	return r;
+}
+
 static void doSmth
 (
 	enum MCSProtoTag tag,
@@ -524,6 +554,7 @@ static void doSmth
 		std::string cryptoKeyHeader;
 		std::string encryptionHeader;
 		std::string subtype;
+		std::string content_encoding;
 
 		DataMessageStanza* dms = (DataMessageStanza*) message;
 		for (int a = 0; a < dms->app_data_size(); a++)
@@ -534,6 +565,8 @@ static void doSmth
 				encryptionHeader = dms->app_data(a).value();
 			if (dms->app_data(a).key() == "subtype")
 				subtype = dms->app_data(a).value();
+			if (dms->app_data(a).key() == "content-encoding")
+				content_encoding = dms->app_data(a).value();	// "aes128gcm"
 		}
 
 		std::string persistent_id = r->persistent_id();
@@ -550,7 +583,12 @@ static void doSmth
 		if (r->has_raw_data())
 		{
 			std::string d;
-			int dr = decode(d, client->privateKey, client->authSecret, r->raw_data(), cryptoKeyHeader, encryptionHeader);
+			int dr;
+			if (content_encoding == "aes128gcm") {
+				dr = decode_aes128gcm(d, client->privateKey, client->authSecret, r->raw_data());
+			} else {
+				dr = decode_aesgcm(d, client->privateKey, client->authSecret, r->raw_data(), cryptoKeyHeader, encryptionHeader);
+			}
 			if (dr == 0)
 			{
 				std::string appName;
