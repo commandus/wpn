@@ -34,10 +34,12 @@
 #include "nlohmann/json.hpp"
 
 #include "utilinstance.h"
+#include "endpoint.h"
+#include "wp-subscribe.h"
+#include "utilfile.h"
 #include "sslfactory.h"
 
 #include "config-filename.h"
-#include "wpnapi.h"
 
 using json = nlohmann::json;
 
@@ -102,20 +104,20 @@ int main(int argc, char **argv)
 	}
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
-	char retval[2048];
-	char headers[2048];
-	char token[128];
-	char pushset[128];
+	std::string retval;
+	std::string headers;
+	std::string token;
+	std::string pushset;
 
 	// In windows, this will init the winsock stuff
 	curl_global_init(CURL_GLOBAL_ALL);
 	OpenSSL_add_all_algorithms();
 
 	// Make subscription
-	int r = subscribeC(retval, sizeof(retval), headers, sizeof(headers),
-		token, sizeof(token), pushset, sizeof(pushset),
-		android_id.c_str(), security_number.c_str(), appId.c_str(),
-		source_pubkey.c_str(),
+	int r = subscribe(&retval, &headers,
+		token, pushset, 
+		android_id, security_number, appId,
+		source_pubkey,
 		verbosity
 	);
 	if ((r >= 200) && (r < 300)) {
