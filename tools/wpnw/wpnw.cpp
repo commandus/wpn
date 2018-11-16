@@ -37,6 +37,7 @@
 #include "utilfile.h"
 #include "utilrecv.h"
 #include "utilvapid.h"
+#include "endpoint.h"
 #include "sslfactory.h"
 
 #include "config-filename.h"

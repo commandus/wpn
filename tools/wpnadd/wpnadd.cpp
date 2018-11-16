@@ -37,7 +37,9 @@
 #include "sslfactory.h"
 
 #include "config-filename.h"
-#include "wpnapi.h"
+#include "endpoint.h"
+#include "utilvapid.h"
+#include "utilrecv.h"
 #include "utilfile.h"
 #include "utilinstance.h"
 
@@ -119,23 +121,18 @@ int main(int argc, char **argv)
 	}
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
-	char registrationIdC[256];
-	char privateKeyC[96];
-	char publicKeyC[240];
-	char authSecretC[48];
 	uint64_t androidId;
 	uint64_t securityToken;
 	std::string appId;
+	std::string registrationId;
+	std::string privateKey;
+	std::string publicKey;
+	std::string authSecret;
 
 	// load config file
 	bool isNew = true;
 	if (!filename.empty())
 	{
-		std::string registrationId;
-		std::string privateKey;
-		std::string publicKey;
-		std::string authSecret;
-
 		int r = readConfig(
 			filename,
 			provider,
@@ -150,10 +147,6 @@ int main(int argc, char **argv)
 		if (r < 0)  {
 			std::cerr << "Error parse " << filename << std::endl;
 		} else {
-			strncpy(registrationIdC, registrationId.c_str(), sizeof(registrationIdC));
-			strncpy(privateKeyC, privateKey.c_str(), sizeof(privateKeyC));
-			strncpy(publicKeyC, publicKey.c_str(), sizeof(publicKeyC));
-			strncpy(authSecretC, authSecret.c_str(), sizeof(authSecretC));
 			isNew = false;
 		}
 	}
@@ -167,14 +160,14 @@ int main(int argc, char **argv)
 		// generate a new application name.
 		appId = mkInstanceId();
 		// Initialize client
-		r = initClientC(
-			registrationIdC, sizeof(registrationIdC),
-			privateKeyC, sizeof(privateKeyC),
-			publicKeyC, sizeof(publicKeyC),
-			authSecretC, sizeof(authSecretC),
+		r = initClient(
+			registrationId,
+			privateKey,
+			publicKey,
+			authSecret,
 			&androidId,
 			&securityToken,
-			appId.c_str(),
+			appId,
 			verbosity
 		);
 		if ((r < 200) || (r >= 300))
@@ -192,10 +185,10 @@ int main(int argc, char **argv)
 		r = writeConfig(
 			filename,
 			provider,
-			registrationIdC,
-			privateKeyC,
-			publicKeyC,
-			authSecretC,
+			registrationId.c_str(),
+			privateKey.c_str(),
+			publicKey.c_str(),
+			authSecret.c_str(),
 			androidId,
 			securityToken,
 			appId
@@ -210,10 +203,10 @@ int main(int argc, char **argv)
 		{
 		s = tabConfig(
 			provider,
-			registrationIdC,
-			privateKeyC,
-			publicKeyC,
-			authSecretC,
+			registrationId.c_str(),
+			privateKey.c_str(),
+			publicKey.c_str(),
+			authSecret.c_str(),
 			androidId,
 			securityToken,
 			appId
@@ -222,19 +215,17 @@ int main(int argc, char **argv)
 		break;
 	case FORMAT_TYPE_ENDPOINT:
 		{
-		char endpoint[255];
-		endpointC(endpoint, sizeof(endpoint), registrationIdC, 0, (int) provider);	///< 0- Chrome, 1- Firefox
-		s = endpoint;
+		s = endpoint(registrationId, false, (int) provider);	///< 0- Chrome, 1- Firefox
 		}
 		break;
 	default:
 		{
 		s = jsonConfig(
 			provider,
-			registrationIdC,
-			privateKeyC,
-			publicKeyC,
-			authSecretC,
+			registrationId.c_str(),
+			privateKey.c_str(),
+			publicKey.c_str(),
+			authSecret.c_str(),
 			androidId,
 			securityToken,
 			appId

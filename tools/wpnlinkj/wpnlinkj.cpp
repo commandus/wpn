@@ -40,7 +40,9 @@
 #include "config-filename.h"
 #include "utilfile.h"
 #include "utilstring.h"
-#include "wpnapi.h"
+#include "endpoint.h"
+#include "wp-subscribe.h"
+
 
 using json = nlohmann::json;
 
@@ -185,10 +187,10 @@ int main(int argc, char **argv)
 
 	for (std::vector<ClientConfig>::const_iterator it(tos.begin()); it != tos.end(); ++it) 
 	{
-		char retval[2048];
-		char headers[2048];
-		char token[255];		///< returns subscription token
-		char pushset[255];		///< returns pushset. Not implemented. Returns empty string
+		std::string retval;
+		std::string headers;
+		std::string token;		///< returns subscription token
+		std::string pushset;		///< returns pushset. Not implemented. Returns empty string
 
 		if (verbosity > 1) {
 			std::cerr << "Subscribe Android id: " 
@@ -196,10 +198,10 @@ int main(int argc, char **argv)
 			<< std::endl;
 		}
 		// Make subscription
-		int r = subscribeC(retval, sizeof(retval), headers, sizeof(headers),
-			token, sizeof(token), pushset, sizeof(pushset),
-			std::to_string(it->androidId).c_str(),  std::to_string(it->securityToken).c_str(), it->appId.c_str(),
-			pub.publicKey.c_str(),
+		int r = subscribe(&retval, &headers, 
+			token, pushset, 
+			std::to_string(it->androidId),  std::to_string(it->securityToken), it->appId,
+			pub.publicKey,
 			verbosity
 		);
 		if ((r >= 200) && (r < 300)) {

@@ -39,6 +39,7 @@
 #include "utilfile.h"
 #include "utilinstance.h"
 #include "utilrecv.h"
+#include "endpoint.h"
 #include <mcs/mcsclient.h>
 
 static const char* progname = "wpnr";

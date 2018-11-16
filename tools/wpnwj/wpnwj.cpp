@@ -36,10 +36,12 @@
 #include "utilinstance.h"
 #include "utilstring.h"
 #include "utilfile.h"
+#include "utilvapid.h"
+#include "endpoint.h"
+#include "utilrecv.h"
 #include "sslfactory.h"
 
 #include "config-filename.h"
-#include "wpnapi.h"
 
 static const char* progname = "wpnw";
 #define DEF_FILE_NAME			".wpnw.js"
@@ -202,36 +204,31 @@ int main(int argc, char **argv)
 	curl_global_init(CURL_GLOBAL_ALL);
 	OpenSSL_add_all_algorithms();
 
-	char endpoint[256];
-	endpointC(endpoint, sizeof(endpoint), notificationData.to.c_str(), 1, (int) to.provider);	///< 0- Chrome, 1- Firefox
+	std::string endPoint = endpoint(notificationData.to, true, (int) to.provider);	///< 0- Chrome, 1- Firefox
 	if (verbosity > 0)
 	{
 		std::cerr
 			<< "to: " << notificationData.to << std::endl
-			<< "endpoint: " << endpoint << std::endl
+			<< "endpoint: " << endPoint << std::endl
 			<< "privateKey: " << from.privateKey << std::endl
 			<< "publicKey: " << from.publicKey << std::endl;
 	}
 
-	char privateKeyC[255];
-	char publicKeyC[255];
-	char retval[4096];
-	strncpy(privateKeyC, from.privateKey.c_str(), sizeof(privateKeyC));
-	strncpy(publicKeyC, from.publicKey.c_str(), sizeof(publicKeyC));
-
+	std::string retval;
+	
 	std::string msg  = mkNotificationJson(notificationData.to, notificationData.title, notificationData.body, notificationData.icon, notificationData.click_action);
 	time_t t = time(NULL) + 86400 - 60;
 
 	// write
-	int r = webpushVapidC(
-		retval, sizeof(retval),
-		publicKeyC,
-		privateKeyC,
-		endpoint,
-		to.publicKey.c_str(),
-		to.authSecret.c_str(),
-		msg.c_str(),
-		contact.c_str(),
+	int r = webpushVapid(
+		retval,
+		from.publicKey,
+		from.privateKey,
+		endPoint,
+		to.publicKey,
+		to.authSecret,
+		msg,
+		contact,
 		aesgcm ? AESGCM : AES128GCM,
 		t
 	);
