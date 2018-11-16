@@ -49,7 +49,7 @@ wpn_lib_source = \
 	sslfactory.cpp \
 	mcs/mcsclient.cpp \
 	$(gengrpcs_c) \
-	utilstring.cpp params.cpp commandoutput.cpp \
+	utilstring.cpp params.cpp commandoutput.cpp endpoint.cpp \
 	utilqr.cpp $(QRSOURCES) \
 	utilvapid.cpp utilrecv.cpp utilinstance.cpp
 AM_CXXFLAGS = -std=c++11 
@@ -95,7 +95,7 @@ common_src = $(ARGT3SOURCES)
 wpn_SOURCES= \
 	wpn-config.cpp wpn.cpp wp-storage-file.cpp \
 	wp-push.cpp wp-subscribe.cpp wp-connection.cpp sslfactory.cpp \
-	mcs/mcsclient.cpp \
+	mcs/mcsclient.cpp endpoint.cpp \
 	utilstring.cpp params.cpp commandoutput.cpp \
 	utilqr.cpp $(QRSOURCES) \
 	utilvapid.cpp utilrecv.cpp utilinstance.cpp config-filename.cpp \
@@ -123,7 +123,7 @@ webpush_curl_CPPFLAGS = $(commoncppflags)
 #	wpnr
 #
 wpnr_SOURCES = \
-	tools/wpnr/wpnr.cpp config-filename.cpp utilfile.cpp commandoutput.cpp params.cpp wp-push.cpp \
+	tools/wpnr/wpnr.cpp config-filename.cpp utilfile.cpp commandoutput.cpp params.cpp wp-push.cpp endpoint.cpp \
 	utilinstance.cpp utilrecv.cpp utilvapid.cpp utilstring.cpp mcs/mcsclient.cpp wp-storage-file.cpp sslfactory.cpp \
 	$(gengrpcs_c) \
 	$(common_src)
@@ -134,51 +134,55 @@ wpnr_CPPFLAGS = $(commoncppflags)
 #	wpnw
 #
 wpnw_SOURCES= \
-	tools/wpnw/wpnw.cpp config-filename.cpp utilfile.cpp \
-	utilinstance.cpp utilrecv.cpp utilvapid.cpp sslfactory.cpp utilstring.cpp wp-storage-file.cpp \
-	$(gengrpcs_c) \
+	tools/wpnw/wpnw.cpp config-filename.cpp utilfile.cpp endpoint.cpp \
+	utilinstance.cpp utilvapid.cpp sslfactory.cpp utilstring.cpp wp-storage-file.cpp \
 	$(common_src)
-wpnw_LDADD = $(curllibs) $(mcslibs)
+wpnw_LDADD = $(curllibs)
 wpnw_CPPFLAGS = $(commoncppflags)
 
 #
 #	wpnwj
 #
 wpnwj_SOURCES= \
-	tools/wpnwj/wpnwj.cpp config-filename.cpp utilfile.cpp \
+	tools/wpnwj/wpnwj.cpp config-filename.cpp utilfile.cpp endpoint.cpp \
+	utilinstance.cpp utilvapid.cpp sslfactory.cpp utilstring.cpp wp-storage-file.cpp \
 	$(common_src)
 
-wpnwj_LDADD = -L.libs -lwpnapi $(commonlibs)
+wpnwj_LDADD = $(curllibs)
 wpnwj_CPPFLAGS = $(commoncppflags)
 
 #
 #	wpnadd
 #
 wpnadd_SOURCES= \
-	tools/wpnadd/wpnadd.cpp config-filename.cpp utilfile.cpp \
+	tools/wpnadd/wpnadd.cpp config-filename.cpp utilfile.cpp endpoint.cpp \
+	utilinstance.cpp utilvapid.cpp utilrecv.cpp sslfactory.cpp utilstring.cpp wp-storage-file.cpp \
+	$(gengrpcs_c) \
 	$(common_src)
 
-wpnadd_LDADD = -L.libs -lwpnapi $(commonlibs)
+wpnadd_LDADD = $(curllibs) $(mcslibs)
 wpnadd_CPPFLAGS = $(commoncppflags)
 
 #
 #	wpnlink
 #
 wpnlink_SOURCES= \
-	tools/wpnlink/wpnlink.cpp config-filename.cpp \
+	tools/wpnlink/wpnlink.cpp config-filename.cpp endpoint.cpp utilinstance.cpp wp-subscribe.cpp \
+	utilfile.cpp utilvapid.cpp utilstring.cpp \
 	$(common_src)
 
-wpnlink_LDADD = -L.libs -lwpnapi $(commonlibs)
+wpnlink_LDADD = $(curllibs)
 wpnlink_CPPFLAGS = $(commoncppflags)
 
 #
 #	wpnlinkj
 #
 wpnlinkj_SOURCES= \
-	tools/wpnlinkj/wpnlinkj.cpp config-filename.cpp utilfile.cpp \
+	tools/wpnlinkj/wpnlinkj.cpp config-filename.cpp endpoint.cpp utilinstance.cpp wp-subscribe.cpp \
+	utilfile.cpp utilvapid.cpp utilstring.cpp \
 	$(common_src)
 
-wpnlinkj_LDADD = -L.libs -lwpnapi $(commonlibs)
+wpnlinkj_LDADD = $(curllibs)
 wpnlinkj_CPPFLAGS = $(commoncppflags)
 
 #

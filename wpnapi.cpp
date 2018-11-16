@@ -7,6 +7,7 @@
 #include "wp-storage-file.h"
 #include "wp-subscribe.h"
 #include "mcs/mcsclient.h"
+#include "endpoint.h"
 
 #define TRIES	5
 

@@ -4,6 +4,7 @@
 #include <fstream>
 #include "nlohmann/json.hpp"
 #include "utilrecv.h"
+#include "endpoint.h"
 
 using json = nlohmann::json;
 

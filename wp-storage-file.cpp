@@ -5,6 +5,7 @@
 #include "wp-storage-file.h"
 #include "utilstring.h"
 #include "utilvapid.h"
+#include "endpoint.h"
 
 // --------------- AndroidCredentials ---------------
 
