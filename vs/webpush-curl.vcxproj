@@ -87,11 +87,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>C:\git\curl\include;C:\lib\openssl110h\include;C:\git\ecec\include;C:\s\wpn;C:\s\wpn\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>C:\git\curl\builds\libcurl-vc-x86-release-dll-ipv6-sspi-winssl\lib;C:\lib\openssl110h\lib\VC;C:\git\ecec\build\Release;$(LibraryPath)</LibraryPath>
+    <LibraryPath>D:\git\ecec\build64\Release;D:\l\curl\builds\libcurl-vc-x64-release-static-ipv6-sspi\lib;D:\git\openssl\build\static\x64\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\git\curl\include;C:\lib\openssl110h\include;C:\git\ecec\include;C:\s\wpn;C:\s\wpn\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>C:\git\curl\builds\libcurl-vc-x86-release-dll-ipv6-sspi-winssl\lib;C:\lib\openssl110h\lib\VC;C:\git\ecec\build\Release;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\mcs\gen;D:\git\grpc\third_party\protobuf\src;c:\git\grpc\third_party\protobuf\src;C:\git\curl\include;D:\l\curl-7.54.1\include;D:\git\openssl\include;C:\lib\openssl110h\include;D:\git\ecec\include;C:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>D:\git\ecec\build64\Release;D:\l\curl\builds\libcurl-vc-x64-release-static-ipv6-sspi\lib;D:\git\openssl\build\static\x64\lib;C:\git\ecec\build\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -101,12 +101,12 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CURL_STATICLIB;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>libcurl_imp.lib;ece.lib;libcrypto32MT.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcurl_imp.lib;ece.lib;libcrypto.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -115,7 +115,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CURL_STATICLIB;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>libcurl_imp.lib;ece.lib;libcrypto.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -127,9 +127,10 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>CURL_STATICLIB;SSL_STATIC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libcurl.lib;ece.lib;libcrypto32MT.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcurl_a.lib;ece.lib;libcrypto.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -140,11 +141,12 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>CURL_STATICLIB;SSL_STATIC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>libcurl.lib;ece.lib;libcrypto32MT.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcurl_a.lib;ece.lib;libcrypto.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -154,6 +156,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\utilvapid.h" />
+    <ClInclude Include="resource1.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="webpush-curl.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\doc\ic_launcher.png" />
+    <Image Include="icon1.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

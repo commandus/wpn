@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClCompile Include="..\commandoutput.cpp" />
     <ClCompile Include="..\config-filename.cpp" />
+    <ClCompile Include="..\endpoint.cpp" />
     <ClCompile Include="..\mcs\gen\android_checkin.pb.cc" />
     <ClCompile Include="..\mcs\gen\checkin.pb.cc" />
     <ClCompile Include="..\mcs\gen\mcs.pb.cc" />
@@ -157,6 +158,7 @@
   <ItemGroup>
     <ClInclude Include="..\commandoutput.h" />
     <ClInclude Include="..\config.h" />
+    <ClInclude Include="..\endpoint.h" />
     <ClInclude Include="..\utilfile.h" />
     <ClInclude Include="..\utilinstance.h" />
     <ClInclude Include="params.h" />

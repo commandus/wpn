@@ -62,7 +62,7 @@ static const char vapid_hex_table[] = "0123456789abcdef";
 /**
   * Writes a Unicode escape sequence for a control character.
   */
-static inline size_t vapid_json_escape_unicode(
+static inline int vapid_json_escape_unicode(
 	char c,
 	int position,
 	std::string &result
