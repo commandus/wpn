@@ -918,3 +918,12 @@ mailq
 sudo postsuper -d ALL
 
 ```
+
+### curl (static)
+cd curl
+cd winbuild64
+nmake /g Makefile.vc mode=static WITH_SSL=D:\git\openssl\build\static\x64 WITH_ZLIB=D:\l\zlib-1.2.11\contrib\vstudio\vc14\x64\ZlibStatRelease
+cd ..
+cd winbuild
+nmake /g Makefile.vc mode=static WITH_SSL=D:\git\openssl\build\static\x86 WITH_ZLIB=D:\l\zlib-1.2.11\contrib\vstudio\vc14\x86\ZlibStatRelease\ 
+
