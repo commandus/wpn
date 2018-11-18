@@ -920,10 +920,14 @@ sudo postsuper -d ALL
 ```
 
 ### curl (static)
+
+Directory D:\l\deps\zlib_x86_static contains precompiled OpenSSL libs and headers
+```
 cd curl
 cd winbuild64
-nmake /g Makefile.vc mode=static WITH_SSL=D:\git\openssl\build\static\x64 WITH_ZLIB=D:\l\zlib-1.2.11\contrib\vstudio\vc14\x64\ZlibStatRelease
+nmake /f Makefile.vc mode=static nmake /f Makefile.vc mode=static VC=15 RTLIBCFG=static WITH_SSL=static WITH_DEVEL=D:\l\deps\zlib_x64_static
+
 cd ..
 cd winbuild
-nmake /g Makefile.vc mode=static WITH_SSL=D:\git\openssl\build\static\x86 WITH_ZLIB=D:\l\zlib-1.2.11\contrib\vstudio\vc14\x86\ZlibStatRelease\ 
-
+nmake /f Makefile.vc mode=static nmake /f Makefile.vc mode=static VC=15 RTLIBCFG=static WITH_SSL=static WITH_DEVEL=D:\l\deps\zlib_x64_static
+```

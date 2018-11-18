@@ -39,6 +39,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -65,25 +66,25 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\mcs\gen;D:\git\grpc\third_party\protobuf\src;c:\git\grpc\third_party\protobuf\src;C:\git\curl\include;D:\l\curl-7.54.1\include;D:\git\openssl\include;C:\lib\openssl110h\include;D:\git\ecec\include;C:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>D:\git\grpc\.build\third_party\protobuf\Debug;c:\git\grpc\.build\third_party\protobuf\Debug;C:\git\curl\builds\libcurl-vc-x86-release-dll-ipv6-sspi-winssl\lib;D:\l\curl-7.54.1\lib\Debug;d:\git\openssl;C:\lib\openssl110h\lib\VC;D:\git\ecec\build\Debug;C:\git\ecec\build\Release;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
+    <IncludePath>..\mcs\gen;D:\git\grpc\third_party\protobuf\src;D:\l\curl\include;D:\git\openssl\include;D:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>D:\git\ecec\build\Release;D:\l\curl\builds\libcurl-vc15-x86-release-static-ssl-static-ipv6-sspi\lib;D:\git\openssl\build\static\x86\lib;D:\git\grpc\.build\third_party\protobuf\Debug;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\mcs\gen;D:\git\grpc\third_party\protobuf\src;c:\git\grpc\third_party\protobuf\src;C:\git\curl\include;D:\l\curl-7.54.1\include;D:\git\openssl\include;C:\lib\openssl110h\include;D:\git\ecec\include;C:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>c:\git\grpc\.build\third_party\protobuf\Release;D:\git\grpc\.build\third_party\protobuf\Release;C:\git\curl\builds\libcurl-vc-x86-release-dll-ipv6-sspi-winssl\lib;D:\l\curl-7.54.1\lib\Release;d:\git\openssl;C:\lib\openssl110h\lib\VC;C:\git\ecec\build\Release;D:\git\ecec\build\Release;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
+    <IncludePath>..\mcs\gen;D:\git\grpc\third_party\protobuf\src;D:\l\curl\include;D:\git\openssl\include;D:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>D:\git\ecec\build\Release;D:\l\curl\builds\libcurl-vc15-x86-release-static-ssl-static-ipv6-sspi\lib;D:\git\openssl\build\static\x86\lib;D:\git\grpc\.build\third_party\protobuf\Release;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>..;..\mcs\gen;D:\git\ecec\include;D:\git\grpc\third_party\protobuf\src;..\third_party;C:\Program Files (x86)\OpenSSL\include;D:\l\curl\include;C:\lib\argtable2-13\src;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\git\ecec\build\Release;D:\git\grpc\.build\third_party\protobuf\Release;C:\Program Files (x86)\OpenSSL\lib;D:\l\curl\lib\Release;C:\lib\argtable2-13\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+    <LibraryPath>D:\git\ecec\build64\Release;D:\l\curl\builds\libcurl-vc15-x64-release-static-ssl-static-ipv6-sspi\lib;D:\git\openssl\build\static\x64\lib;D:\git\grpc\third_party\protobuf\cmake\sln_x64\Debug;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>..;..\mcs\gen;D:\git\ecec\include;D:\git\grpc\third_party\protobuf\src;..\third_party;C:\Program Files (x86)\OpenSSL\include;D:\l\curl\include;C:\lib\argtable2-13\src;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\git\ecec\build\Release;D:\git\grpc\.build\third_party\protobuf\Release;C:\Program Files (x86)\OpenSSL\lib;D:\l\curl\lib\Release;C:\lib\argtable2-13\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+    <LibraryPath>D:\git\ecec\build64\Release;D:\l\curl\builds\libcurl-vc15-x64-release-static-ssl-static-ipv6-sspi\lib;D:\git\openssl\build\static\x64\lib;D:\git\grpc\third_party\protobuf\cmake\sln_x64\Release;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>NO_CURL_STATICLIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CURL_STATICLIB;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -93,12 +94,12 @@
       <TargetMachine>MachineX86</TargetMachine>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>Userenv.lib;ece.lib;libssl.lib;libcrypto.lib;libcurl_imp.lib;libprotobufd.lib;Ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ece.lib;libssl.lib;libcrypto.lib;libprotobufd.lib;libcurl_a.lib;Ws2_32.lib;Userenv.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>NO_CURL_STATICLIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CURL_STATICLIB;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -109,23 +110,27 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>Userenv.lib;ece.lib;libssl.lib;libcrypto.lib;libcurl_imp.lib;libprotobuf.lib;Ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ece.lib;libssl.lib;libcrypto.lib;libprotobuf.lib;libcurl_a.lib;Ws2_32.lib;Userenv.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
-      <AdditionalDependencies>Userenv.lib;ece.lib;libssl.lib;libcrypto.lib;libprotobuf.lib;libcurl_imp.lib;argtable2.lib;Ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ece.lib;libssl.lib;libcrypto.lib;libprotobufd.lib;libcurl_a.lib;Ws2_32.lib;Userenv.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreAllDefaultLibraries>
+      </IgnoreAllDefaultLibraries>
     </Link>
     <ClCompile>
       <PreprocessorDefinitions>CURL_STATICLIB;</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
-      <AdditionalDependencies>Userenv.lib;ece.lib;libssl.lib;libcrypto.lib;libprotobuf.lib;libcurl_imp.lib;argtable2.lib;Ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ece.lib;libssl.lib;libcrypto.lib;libprotobuf.lib;libcurl_a.lib;Ws2_32.lib;Userenv.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
       <PreprocessorDefinitions>CURL_STATICLIB;</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
