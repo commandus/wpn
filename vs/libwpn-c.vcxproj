@@ -31,6 +31,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -38,6 +39,7 @@
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -72,23 +74,23 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\mcs\gen;D:\git\grpc\third_party\protobuf\src;c:\git\grpc\third_party\protobuf\src;C:\git\curl\include;D:\l\curl-7.54.1\include;D:\git\openssl\include;C:\lib\openssl110h\include;D:\git\ecec\include;C:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>D:\git\grpc\.build\third_party\protobuf\Debug;c:\git\grpc\.build\third_party\protobuf\Debug;C:\git\curl\builds\libcurl-vc-x86-release-dll-ipv6-sspi-winssl\lib;D:\l\curl-7.54.1\lib\Debug;d:\git\openssl;C:\lib\openssl110h\lib\VC;D:\git\ecec\build\Debug;C:\git\ecec\build\Release;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
+    <IncludePath>..\mcs\gen;D:\git\grpc\third_party\protobuf\src;D:\l\curl\builds\libcurl-vc15-x86-release-static-ssl-static-ipv6-sspi\include;D:\git\openssl\include;D:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>D:\git\ecec\build\Release;D:\l\curl\builds\libcurl-vc15-x86-release-static-ssl-static-ipv6-sspi\lib;D:\git\openssl\build\static\x86\lib;D:\git\grpc\third_party\protobuf\cmake\sln_x86\Debug;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\mcs\gen;D:\git\grpc\third_party\protobuf\src;c:\git\grpc\third_party\protobuf\src;C:\git\curl\include;D:\l\curl-7.54.1\include;D:\git\openssl\include;C:\lib\openssl110h\include;D:\git\ecec\include;C:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>D:\git\grpc\.build\third_party\protobuf\Debug;c:\git\grpc\.build\third_party\protobuf\Debug;C:\git\curl\builds\libcurl-vc-x86-release-dll-ipv6-sspi-winssl\lib;D:\l\curl-7.54.1\lib\Debug;d:\git\openssl;C:\lib\openssl110h\lib\VC;D:\git\ecec\build\Debug;C:\git\ecec\build\Release;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+    <IncludePath>..\mcs\gen;D:\git\grpc\third_party\protobuf\src;D:\l\curl\builds\libcurl-vc15-x64-release-static-ssl-static-ipv6-sspi\include;D:\git\openssl\include;D:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>D:\git\ecec\build64\Release;D:\l\curl\builds\libcurl-vc15-x64-release-static-ssl-static-ipv6-sspi\lib;D:\git\openssl\build\static\x64\lib;D:\git\grpc\third_party\protobuf\cmake\sln_x64\Debug;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\mcs\gen;D:\git\grpc\third_party\protobuf\src;c:\git\grpc\third_party\protobuf\src;C:\git\curl\include;D:\l\curl-7.54.1\include;D:\git\openssl\include;C:\lib\openssl110h\include;D:\git\ecec\include;C:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>c:\git\grpc\.build\third_party\protobuf\Release;D:\git\grpc\.build\third_party\protobuf\Release;C:\git\curl\builds\libcurl-vc-x86-release-dll-ipv6-sspi-winssl\lib;D:\l\curl-7.54.1\lib\Release;d:\git\openssl;C:\lib\openssl110h\lib\VC;C:\git\ecec\build\Release;D:\git\ecec\build\Release;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
+    <IncludePath>..\mcs\gen;D:\git\grpc\third_party\protobuf\src;D:\l\curl\builds\libcurl-vc15-x86-release-static-ssl-static-ipv6-sspi\include;D:\git\openssl\include;D:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>D:\git\ecec\build\Release;D:\l\curl\builds\libcurl-vc15-x86-release-static-ssl-static-ipv6-sspi\lib;D:\git\openssl\build\static\x86\lib;D:\git\grpc\third_party\protobuf\cmake\sln_x86\Release;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\mcs\gen;D:\git\grpc\third_party\protobuf\src;c:\git\grpc\third_party\protobuf\src;C:\git\curl\include;D:\l\curl-7.54.1\include;D:\git\openssl\include;C:\lib\openssl110h\include;D:\git\ecec\include;C:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>c:\git\grpc\.build\third_party\protobuf\Release;D:\git\grpc\.build\third_party\protobuf\Release;C:\git\curl\builds\libcurl-vc-x86-release-dll-ipv6-sspi-winssl\lib;D:\l\curl-7.54.1\lib\Release;d:\git\openssl;C:\lib\openssl110h\lib\VC;C:\git\ecec\build\Release;D:\git\ecec\build\Release;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
+    <IncludePath>..\mcs\gen;D:\git\grpc\third_party\protobuf\src;D:\l\curl\builds\libcurl-vc15-x64-release-static-ssl-static-ipv6-sspi\include;D:\git\openssl\include;D:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>D:\git\ecec\build64\Release;D:\l\curl\builds\libcurl-vc15-x64-release-static-ssl-static-ipv6-sspi\lib;D:\git\openssl\build\static\x64\lib;D:\git\grpc\third_party\protobuf\cmake\sln_x64\Release;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -96,15 +98,17 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>EXPORT_C_DLL;_WINSOCK_DEPRECATED_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;LIBWPNDYNAMIC_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CURL_STATICLIB;EXPORT_C_DLL;_WINSOCK_DEPRECATED_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;LIBWPNDYNAMIC_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/wd4146</AdditionalOptions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libprotobufd.lib;ece.lib;libssl.lib;libcrypto.lib;libcurl_imp.lib;Ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ece.lib;libssl.lib;libcrypto.lib;libprotobufd.lib;libcurl_a.lib;Ws2_32.lib;Userenv.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)wpn-c$(TargetExt)</OutputFile>
+      <AdditionalOptions> /NODEFAULTLIB:MSVCRT %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -113,14 +117,15 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>EXPORT_C_DLL;_WINSOCK_DEPRECATED_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_DEBUG;LIBWPNDYNAMIC_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CURL_STATICLIB;EXPORT_C_DLL;_WINSOCK_DEPRECATED_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_DEBUG;LIBWPNDYNAMIC_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/wd4146</AdditionalOptions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libprotobufd.lib;ece.lib;libssl.lib;libcrypto.lib;libcurl_imp.lib;Ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ece.lib;libssl.lib;libcrypto.lib;libprotobufd.lib;libcurl_a.lib;Ws2_32.lib;Userenv.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)wpn-c$(TargetExt)</OutputFile>
     </Link>
   </ItemDefinitionGroup>
@@ -132,17 +137,19 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>EXPORT_C_DLL;_WINSOCK_DEPRECATED_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;LIBWPNDYNAMIC_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CURL_STATICLIB;EXPORT_C_DLL;_WINSOCK_DEPRECATED_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;LIBWPNDYNAMIC_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/wd4146</AdditionalOptions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libprotobuf.lib;ece.lib;libssl.lib;libcrypto.lib;libcurl_imp.lib;Ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ece.lib;libssl.lib;libcrypto.lib;libprotobuf.lib;libcurl_a.lib;Ws2_32.lib;Userenv.lib;winmm.lib;libcmtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)wpn-c$(TargetExt)</OutputFile>
+      <AdditionalOptions> /NODEFAULTLIB:MSVCRT %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -153,16 +160,17 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>EXPORT_C_DLL;_WINSOCK_DEPRECATED_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;NDEBUG;LIBWPNDYNAMIC_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CURL_STATICLIB;EXPORT_C_DLL;_WINSOCK_DEPRECATED_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;NDEBUG;LIBWPNDYNAMIC_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/wd4146</AdditionalOptions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libprotobuf.lib;ece.lib;libssl.lib;libcrypto.lib;libcurl_imp.lib;Ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ece.lib;libssl.lib;libcrypto.lib;libprotobuf.lib;libcurl_a.lib;Ws2_32.lib;Userenv.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)wpn-c$(TargetExt)</OutputFile>
     </Link>
   </ItemDefinitionGroup>

@@ -313,7 +313,6 @@ int initClient
 			break;
 	}
 
-	int e;
 	return r;
 }
 
