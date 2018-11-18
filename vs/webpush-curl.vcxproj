@@ -78,12 +78,12 @@
     <LibraryPath>C:\git\curl\builds\libcurl-vc-x86-release-dll-ipv6-sspi-winssl\lib;C:\lib\openssl110h\lib\VC;C:\git\ecec\build\Debug;$(LibraryPath);C:\git\curl\builds\libcurl-vc-x86-release-dll-ipv6-sspi-winssl\lib;C:\lib\openssl110h\lib\VC;C:\git\ecec\build\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>D:\l\curl-7.54.1\lib\Debug;..\mcs\gen;D:\git\grpc\third_party\protobuf\src;c:\git\grpc\third_party\protobuf\src;C:\git\curl\include;D:\l\curl-7.54.1\include;D:\git\openssl\include;C:\lib\openssl110h\include;D:\git\ecec\include;C:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>D:\git\ecec\build\Release;D:\l\curl\builds\libcurl-vc15-x86-release-static-ipv6-sspi\lib;D:\git\openssl\build\static\x86\lib;$(LibraryPath);$(LibraryPath)</LibraryPath>
+    <IncludePath>..\mcs\gen;D:\git\grpc\third_party\protobuf\src;D:\l\curl\include;D:\git\openssl\include;D:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>D:\git\ecec\build\Release;D:\l\curl\builds\libcurl-vc15-x86-release-static-ssl-static-ipv6-sspi\lib;D:\git\openssl\build\static\x86\lib;$(LibraryPath);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>..\mcs\gen;D:\git\grpc\third_party\protobuf\src;c:\git\grpc\third_party\protobuf\src;C:\git\curl\include;D:\l\curl-7.54.1\include;D:\git\openssl\include;C:\lib\openssl110h\include;D:\git\ecec\include;C:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>D:\git\ecec\build\Release;D:\l\curl\builds\libcurl-vc15-x86-release-static-ipv6-sspi\lib;D:\git\openssl\build\static\x86\lib;$(LibraryPath);$(LibraryPath)</LibraryPath>
+    <IncludePath>..\mcs\gen;D:\git\grpc\third_party\protobuf\src;D:\l\curl\include;D:\git\openssl\include;D:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>D:\git\ecec\build\Release;D:\l\curl\builds\libcurl-vc15-x86-release-static-ssl-static-ipv6-sspi\lib;D:\git\openssl\build\static\x86\lib;$(LibraryPath);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>..\mcs\gen;D:\git\grpc\third_party\protobuf\src;D:\l\curl\include;D:\git\openssl\include;D:\git\ecec\include;..;..\third_party;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>

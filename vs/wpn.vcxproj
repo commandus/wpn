@@ -167,6 +167,7 @@
     <ClInclude Include="..\utilfile.h" />
     <ClInclude Include="..\utilinstance.h" />
     <ClInclude Include="params.h" />
+    <ClInclude Include="resource2.h" />
     <CustomBuild Include="..\mcs\gen\mcs.pb.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">protoc -I ../mcs --cpp_out=../mcs/gen ../mcs/mcs.proto ../mcs/android_checkin.proto ../mcs/checkin.proto</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">protoc -I ../mcs --cpp_out=../mcs/gen ../mcs/mcs.proto ../mcs/android_checkin.proto ../mcs/checkin.proto</Command>
@@ -197,6 +198,12 @@
     <ClInclude Include="..\wpn-config.h" />
     <ClInclude Include="..\wpn-notify.h" />
     <ClInclude Include="..\wpn.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="wpn.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="icon1.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
