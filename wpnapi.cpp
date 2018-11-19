@@ -449,3 +449,53 @@ EXPORTDLL int subscribeC
 		return e;
 	return r;
 }
+
+/**
+ * Unsubscribe
+ * @param retval can be NULL
+ * @param retvalsize buffer size, can be 0
+ * @param retheaders can be NULL
+ * @param retheaderssize buffer size, can be 0 
+ * @param rettoken return subscription token
+ * @param rettokensize buffer size, can be 0
+ * @param retpushset return subscription push set
+ * @param retpushsetsize buffer size, can be 0
+ * @param receiverAndroidId receiver Android id
+ * @param receiverSecurityToken receiver security number
+ * @param receiverAppId application identifier 
+ * @param authorizedEntity VAPID: Sender public key; GCM: project decimal number string "103953800507"
+ * @param verbosity default 0- none
+ * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
+ */
+EXPORTDLL int unsubscribeC
+(
+	char *retval,
+	size_t retvalsize,
+	char *retheaders,
+	size_t retheaderssize,
+ 	char *rettoken,
+	size_t rettokensize,
+	char *retpushset,
+	size_t retpushsetsize,
+	const char *receiverAndroidId,
+	const char *receiverSecurityToken,
+	const char *receiverAppId,
+	const char *authorizedEntity,
+	int verbosity
+)
+{
+	std::string retVal;
+	std::string retHeaders;
+	std::string retToken;
+	std::string retPushSet;
+	int r = unsubscribe(&retVal, &retHeaders, retToken, retPushSet, 
+		receiverAndroidId, receiverSecurityToken, receiverAppId, authorizedEntity, verbosity);
+	int e = 0;
+	STR2PCHAR(e, retval, retvalsize, retVal)
+	STR2PCHAR(e, retheaders, retheaderssize, retHeaders)
+	STR2PCHAR(e, rettoken, rettokensize, retToken)
+	STR2PCHAR(e, retpushset, retpushsetsize, retPushSet)
+	if (e)
+		return e;
+	return r;
+}

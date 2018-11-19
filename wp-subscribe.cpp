@@ -196,6 +196,7 @@ int subscribeFCM
 
 static const std::string REGISTER_URL("https://android.clients.google.com/c2dm/register3");
 static const std::string TOKEN_PREFIX = "token=";
+static const std::string SUBTYPE_PREFIX = "wp:https://localhost/#";
 
 /**
  * Make subscription VAPID
@@ -226,7 +227,7 @@ int subscribe
 )
 {
 	int r = 0;
-
+	// app=org.chromium.linux&X-subtype=wp%3Ahttps%3A%2F%2F221.commandus.com%2F%23B00BF282-42F7-4565-A4FA-45C264F57-V2&device=5325522952818999865&scope=GCM&X-scope=GCM&gmsv=72&appid=cWSR5kxCeIU&sender=BOW-7fEceN7nS7GOIyqUu-03D1e-1hPVBvkQ436yG6L4mTWkPUrOILwlAocGODI5hTsWXSDJ4WMmltw9RGwMz70
 	if (authorizedEntity.empty())
 	{
 		if (retVal)
@@ -234,12 +235,12 @@ int subscribe
 		return ERR_PARAM_AUTH_ENTITY;
 	}
 	std::string mimetype = "application/x-www-form-urlencoded";
-	std::string endPoint = "wp:https://fcm.googleapis.com/fcm/send/#" + authorizedEntity;
+	std::string endPoint = SUBTYPE_PREFIX + authorizedEntity;
 	std::string s =
 		"app=" APP_CATEGORY "&X-subtype=" + escapeURLString(endPoint)	// TODO
 		+ "&device=" + escapeURLString(receiverAndroidId)
 		+ "&sender=" + escapeURLString(authorizedEntity)
-		+ "&appid=" + receiverAppId
+		+ "&appid=" + escapeURLString(receiverAppId)
 		+ "&scope=GCM&X-scope=GCM&gmsv=72"
 	;
 	std::string auth = receiverAndroidId + ":" + receiverSecurityToken;
@@ -247,6 +248,88 @@ int subscribe
 		std::cerr << "Send: " << s << " to " << REGISTER_URL << std::endl
 		<< "auth: " << auth << std::endl;
 	r = curlPost(REGISTER_URL, mimetype, auth, s, retHeaders,  retVal, verbosity);
+	if (verbosity > 2)
+		std::cerr << "Headers received: " << *retHeaders << std::endl;
+	retPushSet = "";
+	retToken = "";
+	if (retVal) {
+		if (verbosity > 2)
+			std::cerr << "Receive response code: "<< r << ", body:" << std::endl 
+			<< *retVal << std::endl << "from " << REGISTER_URL << std::endl;
+		if (r >= 200 && r < 300)
+		{
+			size_t token_pos = retVal->find(TOKEN_PREFIX);
+			if (token_pos != std::string::npos) {
+				retToken = retVal->substr(token_pos + TOKEN_PREFIX.length());
+			}
+		}
+	}
+	return r;
+}
+
+/**
+ * Unsubscribe VAPID
+ * @param retVal returns error text description. Can be NULL
+ * @param retHeaders returns headers. Can be NULL
+ * @param retToken returns subscription token
+ * @param retPushSet returns subscription push set. Not implemented. Returns empty string
+ * @param receiverAndroidId receiver Android id
+ * @param receiverSecurityToken receiver security number
+ * @param receiverAppId application identifier
+ * @param authorizedEntity VAPID: Sender public key; GCM: project decimal number string "103953800507"
+ * @param verbosity default 0- none
+ * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
+ * POST 
+ * Authorization: AidLogin 53255....:85850.....
+ * Content-Type: application/x-www-form-urlencoded
+ * app=org.chromium.linux
+ * X-subtype=wp%3Ahttps%3A%2F%2F221.commandus.com%2F%2371D9CCFB-21D7-499D-8691-6E50FCC87-V2
+ * device=5325522952818999865
+ * delete=true
+ * appid=cX-mLPZhCf0
+ * sender=* (%2A)
+ * scope=* (%2A)
+ * X-scope=* (%2A)
+ * gmsv=72
+ **/
+int unsubscribe
+(
+	std::string *retVal,
+	std::string *retHeaders,
+	std::string &retToken,
+	std::string &retPushSet,
+	const std::string &receiverAndroidId,
+	const std::string &receiverSecurityToken,
+	const std::string &receiverAppId,
+	const std::string &authorizedEntity,
+	int verbosity
+)
+{
+	// app=org.chromium.linux&X-subtype=wp%3Ahttps%3A%2F%2F221.commandus.com%2F%2371D9CCFB-21D7-499D-8691-6E50FCC87-V2&device=5325522952818999865&delete=true&appid=cX-mLPZhCf0&sender=%2A&scope=%2A&X-scope=%2A&gmsv=72
+	int r = 0;
+	if (authorizedEntity.empty())
+	{
+		if (retVal)
+			*retVal = "Authorized entity is empty";
+		return ERR_PARAM_AUTH_ENTITY;
+	}
+	std::string endPoint = SUBTYPE_PREFIX + authorizedEntity;
+	std::string s =
+		"app=" APP_CATEGORY "&X-subtype=" + escapeURLString(endPoint)	// TODO
+		+ "&device=" + escapeURLString(receiverAndroidId)
+		+ "&delete=true"
+		+ "&sender=" + escapeURLString("*")
+		+ "&appid=" + escapeURLString(receiverAppId)
+		+ "&scope=" + escapeURLString("*")
+		+ "&X-scope=" + escapeURLString("*")
+		+ "&gmsv=72"
+	;
+	std::string auth = receiverAndroidId + ":" + receiverSecurityToken;
+	if (verbosity > 2)
+		std::cerr << "Send: " << s << " to " << REGISTER_URL << std::endl
+		<< "auth: " << auth << std::endl;
+	r = curlPost(REGISTER_URL, "application/x-www-form-urlencoded", 
+				 auth, s, retHeaders,  retVal, verbosity);
 	if (verbosity > 2)
 		std::cerr << "Headers received: " << *retHeaders << std::endl;
 	retPushSet = "";

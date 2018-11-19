@@ -38,6 +38,31 @@ int subscribe
 );
 
 /**
+ * Unsubscribe VAPID
+ * @param retVal can be NULL
+ * @param retHeaders can be NULL
+ * @param retToken return subscription token
+ * @param retPushSet return subscription push set. Not implemented. Returns empty string
+ * @param receiverPublicKey receiver public key
+ * @param receiverAuth receiver auth secret
+ * @param receiverAppId application identifier 
+ * @param verbosity default 0- none
+ * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
+ **/
+int unsubscribe
+(
+	std::string *retVal,
+	std::string *retHeaders,
+	std::string &retToken,
+	std::string &retPushSet,
+	const std::string &receiverPublicKey,
+	const std::string &receiverAuth,
+	const std::string &receiverAppId,
+	const std::string &authorizedEntity,
+	int verbosity
+);
+
+/**
  * Make subscription FCM
  * authorizedEntity MUST BE "103953800507"
  * @see https://firebase.google.com/docs/cloud-messaging/js/client
