@@ -211,9 +211,11 @@ wpnrs_CPPFLAGS = $(commoncppflags) -DUSELIB
 configdir = $(datadir)
 dist_config_DATA = \
 	$(proto) \
-	vs/wpn.sln vs/libwpn-dynamic.vcxproj vs/libwpn-static.vcxproj vs/webpush-curl.vcxproj vs/wpn.vcxproj vs/dllmain.cpp \
+	vs/dllmain.cpp vs/libwpn-c.vcxproj vs/resource-webpush-curl.h vs/webpush-curl.vcxproj vs/wpn.sln \
+	vs/icon1.ico vs/libwpn-c.vcxproj.user vs/resource-wpn.h vs/webpush-curl.vcxproj.user vs/wpn.vcxproj \
+	vs/libwpn-c.rc vs/resource-libwpn-c.h vs/webpush-curl.rc vs/wpn.rc vs/wpn.vcxproj.user \
 	CMakeLists.txt \
 	tools/mkcert tools/curl/README \
 	tools/wpnr/README.md tools/wpnw/README.md tools/wpnlink/README.md \
-	LICENSE COPYING CODE_OF_CONDUCT.md CONTRIBUTING.md HISTORY README.md \
+	LICENSE COPYING CODE_OF_CONDUCT.md CONTRIBUTING.md HISTORY README.md TODO \
 	autogen.sh email-template.html
