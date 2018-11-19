@@ -76,7 +76,7 @@ libwpnapi_la_LDFLAGS = -version-info 0:2:0
 
 nobase_dist_include_HEADERS = \
 	platform.h \
-	wpn-config.h wpn.h wpn-notify.h utilvapid.h utilrecv.h \
+	wpn-config.h wpn.h wpn-notify.h utilvapid.h utilrecv.h endpoint.h \
 	wp-storage-file.h wp-subscribe.h wp-connection.h wp-push.h \
 	wpnapi.h sslfactory.h utilstring.h utilinstance.h utilfile.h commandoutput.h params.h \
 	mcs/mcsclient.h \
@@ -218,4 +218,5 @@ dist_config_DATA = \
 	tools/mkcert tools/curl/README \
 	tools/wpnr/README.md tools/wpnw/README.md tools/wpnlink/README.md \
 	LICENSE COPYING CODE_OF_CONDUCT.md CONTRIBUTING.md HISTORY README.md TODO \
-	autogen.sh email-template.html
+	autogen.sh \
+	incoming-call email-template.html
