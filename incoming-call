@@ -1,0 +1,4 @@
+#!/bin/sh
+
+echo "Incoming call $1"
+exit 0
