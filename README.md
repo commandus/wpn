@@ -198,9 +198,53 @@ Value of authorized-entity is decimal number identifies subscription if FCM.
 
 ["authorized_entity":"103953800507"](https://firebase.google.com/docs/cloud-messaging/js/client)
 
+#### wpnadd
+
+Add a new client and store client properties in JSON file.
+
+Option -c overrides default file name.
+
+```
+./wpnadd -c client11.js
+```
+
 #### wplink
+
 ```
 ./wpnlink -s eBj1u43iA9Q:APA91bHz7hxB0ImaMZM_4G1K9Lv8MPgIu_Ta0r5Gt9LtI_Gm34B9nkTEOZVZxiZu2YjAIpWo5aZ1SaoBy3n8t_F_lqTsGhwzjdVVhf9kGT6E8KH7CGZBggrKxDxBgj21gb6MlyzTxrbr -k BM97-HP_Pw_RIrkp1mwVaYTEgR21Pl4PD1QYzDGYi5o7mp-YB6Cr9Pbz7_D7l3r5Zb4Ji-pLKubCza_lE4SsZIA -a 0L9jlM_NNYaurD3SSp_ZDg -vvv
+```
+
+#### wpnlinkj
+
+Subscribe client to recieve messages from another client:
+
+wpnlinkj <sender JSON file> <receiver JSON file>
+
+In the example below:
+
+```
+./wpnlinkj client11.js client12.js 
+```
+
+client12 'll receive messages sent by client11
+
+wpnlinkj produces VAPID public key (subscription VAPID key). 
+
+Sender must must provide this key in the "To" field.
+
+You can not send message using reciever's VAPID public key of the receiver, you 'll need subscription's key.
+
+Complete example how to create two new clients and send message in one direction:ß
+```
+./wpnadd -c client11.js
+./wpnadd -c client12.js
+./wpnlinkj client11.js client12.js 
+cbcGO31NFjY:APA91bEqATE-_V...
+
+cp message.js message11-to-12.js
+code message11-to-12.js <- "to": cbcGO31NFjY:APA91bEqATE-_V...
+./wpnwj client11.js client12.js message11-to-12.js 
+wpnr -c client12.js 
 ```
 
 #### curl
