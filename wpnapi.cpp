@@ -343,6 +343,7 @@ EXPORTDLL size_t qr2pcharC
 EXPORTDLL void *startClientC
 (
 	int *retcode,
+	const char *lastPersistentId,
 	const char *privateKey,
 	const char *authSecret,
 	uint64_t androidId,
@@ -355,6 +356,7 @@ EXPORTDLL void *startClientC
 )
 {
 	MCSClient *client = new MCSClient(
+		lastPersistentId? std::string(lastPersistentId) : "",
 		std::string(privateKey),
 		std::string(authSecret),
 		androidId,

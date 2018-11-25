@@ -629,6 +629,7 @@ static void doSmth
 		break;
 	case kIqStanzaTag:
 		{
+		/*
 		if (!((IqStanza*) message)->has_extension())
 			break;
 		const mcs_proto::Extension& iqExtension =  ((IqStanza*) message)->extension();
@@ -656,9 +657,9 @@ static void doSmth
 						delete resp;
 					}
 				}
-				return;
 			}
 		}
+		*/
 		}
 		break;
 	case kDataMessageStanzaTag:
@@ -688,6 +689,7 @@ static void doSmth
 		std::string appId = "";
 		int64_t sent = r->sent();
 
+		/*
 		MessageLite *messageAck = mkStreamAck();
 		if (messageAck) {
 			int r = client->send(kIqStanzaTag, messageAck);
@@ -707,6 +709,7 @@ static void doSmth
 				client->log << severity(0) << "Sent ACK id: " << persistent_id << " successfully " << r << " bytes\n";
 			delete messageAck;
 		}
+		*/
 		
 		if (r->has_raw_data())
 		{
@@ -737,6 +740,7 @@ static void doSmth
 				{
 					// TODO save persistent
 					// if (!client->getConfig()->setPersistentId(notification.authorizedEntity, persistent_id))
+					client->setLastPersistentId(persistent_id);
 				}
 				int mt = client->parseJSONNotifyMessage(notification, d);
 				switch (mt) {
@@ -931,7 +935,18 @@ static int nextMessage(
 
 //----------------------------- MCSClient -----------------------------
 
+void MCSClient::setLastPersistentId(const std::string &value)
+{
+	mLastPersistentId = value;
+}
+
+const std::string &MCSClient::getLastPersistentId()
+{
+	return mLastPersistentId;
+}
+
 MCSClient::MCSClient(
+	const std::string &lastPersistentId,
 	const std::string &privateKey,
 	const std::string &authSecret,
 	uint64_t androidId,
@@ -942,7 +957,7 @@ MCSClient::MCSClient(
 	void *onLogEnv,
 	int verbosity
 )
-	: state(STATE_VERSION), listenerThread(NULL)
+	: mLastPersistentId(lastPersistentId), state(STATE_VERSION), listenerThread(NULL)
 {
 	ece_base64url_decode(privateKey.c_str(), privateKey.size(), ECE_BASE64URL_REJECT_PADDING, this->privateKey, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
 	ece_base64url_decode(authSecret.c_str(), authSecret.size(), ECE_BASE64URL_REJECT_PADDING, this->authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
@@ -1059,8 +1074,11 @@ int MCSClient::logIn()
 
 	std::vector<std::string> persistentIds;
 	// TODO get persistent ids
-	// mConfig->getPersistentIds(persistentIds);
-	
+	if (!mLastPersistentId.empty())
+	{
+		persistentIds.push_back(mLastPersistentId);
+	}
+
 	if (verbosity >= 3)
 	{
 		log << severity(3) << "Saved persistent ids:" << "\n";
@@ -1371,6 +1389,7 @@ int MCSClient::read()
 void *startClient
 (
 	int *retcode,
+	const std::string &lastPersistentId,
 	const std::string &privateKey,
 	const std::string &authSecret,
 	uint64_t androidId,
@@ -1383,6 +1402,7 @@ void *startClient
 )
 {
 	MCSClient *client = new MCSClient(
+		lastPersistentId,
 		privateKey,
 		authSecret,
 		androidId,

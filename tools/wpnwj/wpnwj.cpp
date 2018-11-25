@@ -112,7 +112,8 @@ int main(int argc, char **argv)
 				from.authSecret,
 				from.androidId,
 				from.securityToken,
-				from.appId
+				from.appId,
+				from.lastPersistentId
 			);
 			if (r != 0) {
 				std::cerr << "From configuration file is invalid." << std::endl;
@@ -138,7 +139,8 @@ int main(int argc, char **argv)
 				to.authSecret,
 				to.androidId,
 				to.securityToken,
-				to.appId
+				to.appId,
+				to.lastPersistentId
 			);
 			if (r != 0) {
 				std::cerr << "To configuration file is invalid." << std::endl;

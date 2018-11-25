@@ -73,7 +73,7 @@ WpnConfig::WpnConfig()
 	vapid_sender_contact(""), vapid_recipient_p256dh(""), vapid_recipient_auth(""),
 	private_key(""), public_key(""), auth_secret(""), sub(""),
 	subject(""), body(""), icon(""), link(""), command(""), 
-	notifyFunctionName(DEF_FUNC_NOTIFY), invert_qrcode(false), email_template(""), cn("")
+	notifyFunctionName(DEF_FUNC_NOTIFY), invert_qrcode(false), email_template(""), cn(""), lastPersistentId("")
 {
 }
 	
@@ -163,6 +163,9 @@ int WpnConfig::parseCmd
 	struct arg_str *a_vapid_public_key = arg_str0("k", "public-key", "<base64>", "Override VAPID public key");
 	struct arg_str *a_vapid_auth_secret = arg_str0(NULL, "auth-secret", "<base64>", "Override VAPID auth secret");
 
+	// last
+	struct arg_str *a_last_persistent_id = arg_str0(NULL, "last", "<id>", "Last persistent id");
+
 	// helper options
 	struct arg_lit *a_generatevapidkeys = arg_lit0(NULL, "generate-vapid-keys", "Generate VAPID keys");
 
@@ -180,6 +183,7 @@ int WpnConfig::parseCmd
 		a_aesgcm, a_verbosity, a_vapid_private_key, a_vapid_public_key, a_vapid_auth_secret,
 		a_endpoint, 
 		a_generatevapidkeys,
+		a_last_persistent_id,
 		a_help, a_end 
 	};
 
@@ -294,6 +298,10 @@ int WpnConfig::parseCmd
 	if (a_vapid_auth_secret->count) {
 		subscriptionMode = SUBSCRIBE_FORCE_VAPID;;
 		vapid_recipient_auth = *a_vapid_auth_secret->sval;
+	}
+
+	if (a_last_persistent_id->count) {
+		lastPersistentId = *a_last_persistent_id->sval;
 	}
 
 	if (a_contact->count) {

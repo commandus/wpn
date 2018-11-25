@@ -108,7 +108,8 @@ int main(int argc, char **argv)
 				pub.authSecret,
 				pub.androidId,
 				pub.securityToken,
-				pub.appId
+				pub.appId,
+				pub.lastPersistentId
 			);
 			if (r != 0) {
 				std::cerr << "Publisher configuration file is invalid." << std::endl;
@@ -140,7 +141,8 @@ int main(int argc, char **argv)
 						c.authSecret,
 						c.androidId,
 						c.securityToken,
-						c.appId
+						c.appId,
+						c.lastPersistentId
 					);
 					if (r != 0) {
 						std::cerr << "Subscriber configuration file " << a_receivers->sval[i] << " is invalid." << std::endl;

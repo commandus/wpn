@@ -93,6 +93,7 @@ public:
 	bool invert_qrcode;
 	std::string email_template;						/// email template. $subject $name, $body
 	std::string cn;									/// email template $name value
+	std::string lastPersistentId;
 	
 	WpnConfig();
 	WpnConfig

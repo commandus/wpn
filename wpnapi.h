@@ -37,6 +37,7 @@ struct ClientConfig {
 	uint64_t androidId;
 	uint64_t securityToken;
 	std::string appId;
+	std::string lastPersistentId;
 };
 
 struct NotificationData {
@@ -240,6 +241,7 @@ EXPORTDLL size_t qr2pcharC
 EXPORTDLL void *startClientC
 (
 	int *retcode,
+	const char *lastPersistentId,
 	const char *privateKey,
 	const char *authSecret,
 	uint64_t androidId,

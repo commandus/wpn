@@ -156,6 +156,7 @@ int main(int argc, char **argv)
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
 	std::string registrationId;
+	std::string lastPersistentId;
 	std::string privateKey;
 	std::string publicKey;
 	std::string authSecret;
@@ -173,7 +174,8 @@ int main(int argc, char **argv)
 		authSecret,
 		androidId,
 		securityToken,
-		appId
+		appId,
+		lastPersistentId
 	);
 	if (r)  {
 		std::cerr << "Error parse " << filename << std::endl;
@@ -197,6 +199,7 @@ int main(int argc, char **argv)
 			// HTTP 200 -> 0
 			r = 0;
 		}
+		
 		// save 
 		r = writeConfig(
 			filename,
@@ -207,7 +210,8 @@ int main(int argc, char **argv)
 			authSecret.c_str(),
 			androidId,
 			securityToken,
-			appId
+			appId,
+			lastPersistentId
 		);
 	}
 	if (r < 0)
@@ -215,8 +219,9 @@ int main(int argc, char **argv)
 
 	// read
 	int retcode;
-	void *client = startClient(
+	MCSClient *client = (MCSClient*) startClient(
 		&retcode,
+		lastPersistentId,
 		privateKey,
 		authSecret,
 		androidId,
@@ -243,7 +248,8 @@ int main(int argc, char **argv)
 		authSecret.c_str(),
 		androidId,
 		securityToken,
-		appId
+		appId,
+		lastPersistentId
 	) << std::endl;
 
 	// loop
@@ -252,6 +258,28 @@ int main(int argc, char **argv)
 		std::cin >> l;
 	} while (l != "q");
 
+	// save 
+	lastPersistentId = client->getLastPersistentId();
+	r = writeConfig(
+		filename,
+		provider,
+		registrationId.c_str(),
+		privateKey.c_str(),
+		publicKey.c_str(),
+		authSecret.c_str(),
+		androidId,
+		securityToken,
+		appId,
+		lastPersistentId
+	);
+	if (r) 
+	{
+		std::cerr << "Save client configiration error " << retcode << std::endl;
+		return r;
+	} 
+
+
+	std::cout << client->getLastPersistentId() << std::endl;
 	stopClient(client);
 	return r;
 }
