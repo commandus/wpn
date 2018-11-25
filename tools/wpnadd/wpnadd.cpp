@@ -128,6 +128,7 @@ int main(int argc, char **argv)
 	std::string privateKey;
 	std::string publicKey;
 	std::string authSecret;
+	std::string lastPersistentId;
 
 	// load config file
 	bool isNew = true;
@@ -142,7 +143,8 @@ int main(int argc, char **argv)
 			authSecret,
 			androidId,
 			securityToken,
-			appId
+			appId,
+			lastPersistentId
 		);
 		if (r < 0)  {
 			std::cerr << "Error parse " << filename << std::endl;
@@ -191,7 +193,8 @@ int main(int argc, char **argv)
 			authSecret.c_str(),
 			androidId,
 			securityToken,
-			appId
+			appId,
+			lastPersistentId
 		);
 		if (r < 0)
 			std::cerr << "Error write " << filename << std::endl;
@@ -209,7 +212,8 @@ int main(int argc, char **argv)
 			authSecret.c_str(),
 			androidId,
 			securityToken,
-			appId
+			appId,
+			lastPersistentId
 		);
 		}
 		break;
@@ -228,7 +232,8 @@ int main(int argc, char **argv)
 			authSecret.c_str(),
 			androidId,
 			securityToken,
-			appId
+			appId,
+			lastPersistentId
 		);
 		}
 		break;
