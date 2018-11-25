@@ -134,6 +134,21 @@ static MessageLite *mkSelectiveAck
 	return req;
 }
 
+static MessageLite *mkSelectiveAck1
+(
+	const std::string &id
+) 
+{
+	IqStanza *req = new IqStanza();
+	req->set_type(mcs_proto::IqStanza::SET);
+	req->set_id("");
+	req->mutable_extension()->set_id(kSelectiveAck);
+	SelectiveAck ack;
+	ack.add_id(id);
+	req->mutable_extension()->set_data(ack.SerializeAsString());
+	return req;
+}
+
 /**
  * @param androidId 0- before register
  * @param securityToken 0- before register
@@ -682,6 +697,17 @@ static void doSmth
 				client->log << severity(0) << "Sent ACK id: " << persistent_id << " successfully " << r << " bytes\n";
 			delete messageAck;
 		}
+		
+		MessageLite *messageAck1 = mkSelectiveAck1(persistent_id);
+		if (messageAck1) {
+			int r = client->send(kIqStanzaTag, messageAck1);
+			if (r < 0)
+				client->log << severity(3) << "Send ACK id: " << persistent_id << " with error " << r << "\n";
+			else
+				client->log << severity(0) << "Sent ACK id: " << persistent_id << " successfully " << r << " bytes\n";
+			delete messageAck;
+		}
+		
 		if (r->has_raw_data())
 		{
 			std::string d;
