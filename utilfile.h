@@ -13,7 +13,8 @@ std::string jsonConfig
 	const char* authSecretC,
 	uint64_t androidId,
 	uint64_t securityToken,
-	const std::string &appId
+	const std::string &appId,
+	const std::string &lastPersistentId
 );
 
 std::string tabConfig
@@ -25,7 +26,8 @@ std::string tabConfig
 	const char* authSecretC,
 	uint64_t androidId,
 	uint64_t securityToken,
-	const std::string &appId
+	const std::string &appId,
+	const std::string &lastPersistentId
 );
 
 int writeConfig
@@ -38,7 +40,8 @@ int writeConfig
 	const char* authSecretC,
 	uint64_t androidId,
 	uint64_t securityToken,
-	const std::string &appId
+	const std::string &appId,
+	const std::string &lastPersistentId
 );
 
 /**
@@ -49,13 +52,14 @@ int readConfig
 (
 	const std::string &filename,
 	enum VAPID_PROVIDER &provider,
- 	std::string &registrationId,
+	std::string &registrationId,
 	std::string &privateKey,
 	std::string &publicKey,
 	std::string &authSecret,
 	uint64_t &androidId,
 	uint64_t &securityToken,
-	std::string &appId
+	std::string &appId,
+	std::string &lastPersistentId
 );
 
 /**
@@ -72,7 +76,8 @@ int parseConfig
 	std::string &authSecret,
 	uint64_t &androidId,
 	uint64_t &securityToken,
-	std::string &appId
+	std::string &appId,
+	std::string &lastPersistentId
 );
 
 std::string mkNotificationJson

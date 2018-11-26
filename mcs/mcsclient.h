@@ -111,6 +111,7 @@ private:
 	SSLFactory mSSLFactory;
 	int mSocket;
 	std::string mStream;
+	std::string mLastPersistentId;
 	bool mStop;
 	SSL *mSsl;
 	bool hasIdNToken();
@@ -126,7 +127,6 @@ public:
 	uint8_t authSecret[ECE_WEBPUSH_AUTH_SECRET_LENGTH];
 	uint64_t androidId;
 	uint64_t securityToken;
-
 	OnNotifyC onNotify;
 	void *onNotifyEnv;
 	OnLogC onLog;
@@ -134,8 +134,11 @@ public:
 
 	int verbosity;
 	// const std::string gcmToken;
+	const std::string &getLastPersistentId();
+	void setLastPersistentId(const std::string &value);
 
 	MCSClient(
+		const std::string &lastPersistentId,
 		const std::string &privateKey,
 		const std::string &authSecret,
 		uint64_t androidId,
@@ -209,6 +212,7 @@ public:
 void *startClient
 (
 	int *retcode,
+	const std::string &lastPersistentId,
 	const std::string &privateKey,
 	const std::string &authSecret,
 	uint64_t androidId,

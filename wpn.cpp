@@ -480,6 +480,7 @@ int main(int argc, char** argv)
 				{
 				}
 				MCSClient client(
+					config.lastPersistentId,
 					config.wpnKeys->getPrivateKey(),
 					config.wpnKeys->getAuthSecret(),
 					config.androidCredentials->getAndroidId(),

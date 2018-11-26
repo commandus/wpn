@@ -18,6 +18,7 @@ static const std::string KEY_PUBLICKEY = "publicKey";
 static const std::string KEY_AUTHSECRET = "authSecret";
 static const std::string KEY_ANDROIDID = "androidId";
 static const std::string KEY_SECURITYTOKEN = "securityToken";
+static const std::string KEY_LASTPESISTENTID = "lastPersistentId";
 
 std::string jsonConfig
 (
@@ -28,7 +29,8 @@ std::string jsonConfig
 	const char* authSecretC,
 	uint64_t androidId,
 	uint64_t securityToken,
-	const std::string &appId
+	const std::string &appId,
+	const std::string &lastPersistentId
 )
 {
 	json json = {
@@ -39,7 +41,9 @@ std::string jsonConfig
 		{ KEY_PUBLICKEY, publicKeyC },
 		{ KEY_AUTHSECRET, authSecretC },
 		{ KEY_ANDROIDID, androidId },
-		{ KEY_SECURITYTOKEN, securityToken }
+		{ KEY_SECURITYTOKEN, securityToken },
+		{ KEY_LASTPESISTENTID, lastPersistentId },
+		
 	};
 	return json.dump(2);
 }
@@ -53,7 +57,8 @@ std::string tabConfig
 	const char* authSecretC,
 	uint64_t androidId,
 	uint64_t securityToken,
-	const std::string &appId
+	const std::string &appId,
+	const std::string &lastPersistentId
 )
 {
 	std::stringstream ss;
@@ -66,7 +71,8 @@ std::string tabConfig
 	<< "\t" << authSecretC
 	<< "\t" << androidId
 	<< "\t" << securityToken
-	<< "\t" << e;
+	<< "\t" << e
+	<< "\t" << lastPersistentId;
 	return ss.str();
 }
 
@@ -80,7 +86,8 @@ int writeConfig
 	const char* authSecretC,
 	uint64_t androidId,
 	uint64_t securityToken,
-	const std::string &appId
+	const std::string &appId,
+	const std::string &lastPersistentId
 )
 {
 	int r = 0;
@@ -92,7 +99,8 @@ int writeConfig
 		authSecretC,
 		androidId,
 		securityToken,
-		appId
+		appId,
+		lastPersistentId
 	);
 	std::ofstream ostrm(filename);
 	try {
@@ -119,7 +127,8 @@ int parseConfig
 	std::string &authSecret,
 	uint64_t &androidId,
 	uint64_t &securityToken,
-	std::string &appId
+	std::string &appId,
+	std::string &lastPersistentId
 )
 {
 	appId = "";
@@ -172,6 +181,10 @@ int parseConfig
 				securityToken = j.at(KEY_SECURITYTOKEN);
 			else
 				securityToken = 0;
+			if (j.count(KEY_LASTPESISTENTID))
+				lastPersistentId = j.at(KEY_LASTPESISTENTID);
+			else
+				lastPersistentId = "";
 		} catch(...) {
 			r = -2;
 		}
@@ -187,13 +200,14 @@ int readConfig
 (
 	const std::string &filename,
 	enum VAPID_PROVIDER &provider,
- 	std::string &registrationId,
+	std::string &registrationId,
 	std::string &privateKey,
 	std::string &publicKey,
 	std::string &authSecret,
 	uint64_t &androidId,
 	uint64_t &securityToken,
-	std::string &appId
+	std::string &appId,
+	std::string &lastPersistentId
 )
 {
 	std::ifstream strm(filename);
@@ -208,7 +222,8 @@ int readConfig
 		authSecret,
 		androidId,
 		securityToken,
-		appId
+		appId,
+		lastPersistentId
 	);
 }
 
