@@ -24,13 +24,13 @@ LDFLAGS="$LDFLAGS -L/usr/local/lib -L/usr/local/opt/openssl@1.1/lib"
 # Checks for libraries. Add /usr/local/lib for OS X
 AC_CHECK_LIB(curl, curl_easy_init, [], AC_MSG_ERROR([Could not find libcurl. Try $ ./configure LDFLAGS='-Lyour-curl-lib-path']))
 AC_CHECK_LIB([crypto], [EVP_CIPHER_CTX_reset], [], AC_MSG_ERROR([Could not find openssl >= 1.1.0. Try $ ./configure LDFLAGS='-Lyour-openssl2-lib-path']))
-AC_CHECK_LIB([ece], [ece_webpush_generate_keys], [], AC_MSG_ERROR([Could not find ecec. Try $ ./configure LDFLAGS='-Lyour-ecec-lib-path']))
+# AC_CHECK_LIB([ece], [ece_webpush_generate_keys], [], AC_MSG_ERROR([Could not find ecec. Try $ ./configure LDFLAGS='-Lyour-ecec-lib-path']))
 
 # Checks for header files. Add /usr/local/include for IS X.
 CFLAGS="$CFLAGS -I/usr/local/include"
 AC_CHECK_HEADERS([curl/curl.h], [], AC_MSG_ERROR([Could not find curl/curl.h. Try $ ./configure CFLAGS='-Iyour-curl-include-path]))
 AC_CHECK_HEADERS([fcntl.h limits.h stdint.h string.h sys/time.h termios.h unistd.h])
-AC_CHECK_HEADERS([ece.h], [], AC_MSG_ERROR([Could not find ece.h. Try $ ./configure CFLAGS='-Iyour-ece-include-path]))
+# AC_CHECK_HEADERS([ece.h], [], AC_MSG_ERROR([Could not find ece.h. Try $ ./configure CFLAGS='-Iyour-ece-include-path]))
 
 # Checks for typedefs, structures, and compiler characteristics.
 # AC_CHECK_HEADER_STDBOOL
