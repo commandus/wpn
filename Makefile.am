@@ -153,7 +153,7 @@ wpnw_SOURCES= \
 	tools/wpnw/wpnw.cpp config-filename.cpp utilfile.cpp endpoint.cpp \
 	utilinstance.cpp utilvapid.cpp sslfactory.cpp utilstring.cpp wp-storage-file.cpp \
 	$(common_src)
-wpnw_LDADD = $(curllibs)
+wpnw_LDADD = $(curllibs) -L. -lece
 wpnw_CPPFLAGS = $(commoncppflags)
 
 #
@@ -164,7 +164,7 @@ wpnwj_SOURCES= \
 	utilinstance.cpp utilvapid.cpp sslfactory.cpp utilstring.cpp wp-storage-file.cpp \
 	$(common_src)
 
-wpnwj_LDADD = $(curllibs)
+wpnwj_LDADD = $(curllibs) -L. -lece
 wpnwj_CPPFLAGS = $(commoncppflags)
 
 #
@@ -186,7 +186,7 @@ wpnlink_SOURCES= \
 	utilfile.cpp utilvapid.cpp utilstring.cpp \
 	$(common_src)
 
-wpnlink_LDADD = $(curllibs)
+wpnlink_LDADD = $(curllibs) -L. -lece
 wpnlink_CPPFLAGS = $(commoncppflags)
 
 #
@@ -197,7 +197,7 @@ wpnlinkj_SOURCES= \
 	utilfile.cpp utilvapid.cpp utilstring.cpp \
 	$(common_src)
 
-wpnlinkj_LDADD = $(curllibs)
+wpnlinkj_LDADD = $(curllibs) -L. -lece
 wpnlinkj_CPPFLAGS = $(commoncppflags)
 
 #
