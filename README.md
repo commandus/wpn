@@ -671,11 +671,11 @@ sudo apt install autoconf libtool g++ cmake
 
 - curl https://github.com/curl/curl
 - openssl 1.1.0 https://github.com/openssl/openssl
-- ecec https://github.com/web-push-libs/ecec
 - Protobuf
-- argtable3 https://github.com/argtable/argtable3 https://www.argtable.org/ BSD (included in thirdparty/ )
-- JSON for Modern C++ 3.1.2 https://github.com/nlohmann/json (included in thirdparty/ )
-- QR-Code-generator https://github.com/nayuki/QR-Code-generator (included in thirdparty/ )
+- ecec https://github.com/web-push-libs/ecec (included in third_party- a few changes added(see ecec section))
+- argtable3 https://github.com/argtable/argtable3 https://www.argtable.org/ BSD (included in third_party/ )
+- JSON for Modern C++ 3.1.2 https://github.com/nlohmann/json (included in third_party/ )
+- QR-Code-generator https://github.com/nayuki/QR-Code-generator (included in third_party/ )
 
 #### Install most of libs
 
@@ -835,14 +835,9 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 This software depends on libraries which has differen licenses:
 
 - curl  is licensed under MIT
-- openssl 1.1.0  is licensed under original SSL license, original SSLeay License
-- nghttp2  is licensed under MIT
-- ecec  is licensed under MIT
-- JSON for Modern C++  is licensed under MIT
-- Sole, lightweight C++11 library to generate universally unique identificators is licensed under  zlib/libpng licensed.
-- glog Copyright (c) 2006, Google Inc.
-- unwind is licensed under MIT license
-- JSON for Modern C++ 3.1.2 is licensed under MIT
+- openssl is licensed under original SSL license, original SSLeay License
+- ecec is licensed under MIT
+- JSON for Modern C++ is licensed under MIT
 - QR-Code-generator is licensed under MIT
 
 ## Dialogs
@@ -884,6 +879,26 @@ curl -i -H "Accept:application/json" -H "Content-Type:application/json" -X POST 
 ```
 
 ## Issues
+
+### OpenSSL
+
+Script to build NDK toolchain and compile OpenSSL
+
+https://github.com/leenjewel/openssl_for_ios_and_android
+
+If error
+
+```
+... -mandroid
+```
+
+occured means OpenSSL Perl build script is uncompatible with newer NDK versions (since version 14),
+
+- In OpenSSL's configdata.pm delete -mandroid
+- In ~/git/openssl_for_ios_and_android/tools/build-openssl4android.sh comment line: rm -rf "${LIB_NAME}"
+- In ~/git/openssl_for_ios_and_android/tools/build-openssl4android.sh comment line: tar xfz "${LIB_NAME}.tar.gz"
+
+because script untar downloaded OpenSSL tarball each time and overrides changes in the source directory
 
 ### Library choice
 
@@ -970,4 +985,3 @@ cd ..
 cd winbuild
 nmake /f Makefile.vc mode=static nmake /f Makefile.vc mode=static VC=15 RTLIBCFG=static WITH_SSL=static WITH_DEVEL=D:\l\deps\zlib_x64_static
 ```
-

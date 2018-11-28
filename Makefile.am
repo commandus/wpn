@@ -3,7 +3,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 #	Libraries
 lib_LIBRARIES = \
-	libwpn.a
+	libece.a libwpn.a
 lib_LTLIBRARIES = \
 	libwpn.la libwpnapi.la
 
@@ -16,7 +16,7 @@ commoncppflags += -I/usr/local/opt/openssl@1.1/include
 
 curllibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl
 mcslibs = -lprotobuf
-commonlibs = $(curllibs) $(mcslibs) -lece -lnghttp2 
+commonlibs = $(curllibs) $(mcslibs) -L. -lece
 commonlibs += -L/usr/local/opt/openssl@1.1/lib
 
 #
@@ -42,6 +42,12 @@ QRSOURCES = third_party/nayuki/QR-Code-generator/BitBuffer.cpp third_party/nayuk
 ARGT3HEADERS = third_party/argtable3/argtable3.h
 ARGT3SOURCES = third_party/argtable3/argtable3.c
 
+ECECSOURCES = \
+	third_party/ecec/base64url.c  third_party/ecec/decrypt.c  third_party/ecec/encrypt.c  third_party/ecec/keys.c \
+	third_party/ecec/params.c  third_party/ecec/trailer.c
+ECECHEADERS = \
+	third_party/ecec/ece.h \
+	third_party/ecec/ece/keys.h	third_party/ecec/ece/trailer.h
 wpn_lib_source = \
 	wp-storage-file.cpp \
 	wp-push.cpp wp-subscribe.cpp wp-connection.cpp \
@@ -52,6 +58,12 @@ wpn_lib_source = \
 	utilqr.cpp $(QRSOURCES) \
 	utilvapid.cpp utilrecv.cpp utilinstance.cpp
 AM_CXXFLAGS = -std=c++11 
+
+#
+#	libece.a
+#
+libece_a_SOURCES = $(ECECSOURCES)
+libece_a_CPPFLAGS = $(commoncppflags) -Ithird_party/ecec
 
 #
 #	libwpn.a
@@ -81,7 +93,7 @@ nobase_dist_include_HEADERS = \
 	mcs/mcsclient.h \
 	onullstream.hpp \
 	third_party/nlohmann/json.hpp \
-	utilqr.h $(QRHEADERS) \
+	utilqr.h $(QRHEADERS) $(ECECHEADERS) \
 	$(ARGT3HEADERS) \
 	$(gengrpcs_h) \
 	config-filename.h
@@ -183,6 +195,11 @@ wpnlinkj_SOURCES= \
 
 wpnlinkj_LDADD = $(curllibs)
 wpnlinkj_CPPFLAGS = $(commoncppflags)
+
+#
+# ----- Build library first -----
+#
+$(commonlibs) : libece.a
 
 #
 # ----- With shared libraries, shared library first -----
