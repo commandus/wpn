@@ -636,7 +636,7 @@ Check list:
 - Tools
 - Libraries
 
-See below how to install too,s and dependencies.
+See below how to install tools and dependencies.
 
 After check completed, build:
 ```
@@ -670,17 +670,12 @@ sudo apt install autoconf libtool g++ cmake
 ### Dependencies
 
 - curl https://github.com/curl/curl
-- argtable3 https://github.com/argtable/argtable3 https://www.argtable.org/ BSD (included in thirdparty/ )
 - openssl 1.1.0 https://github.com/openssl/openssl
-- nghttp2 https://github.com/nghttp2/nghttp2
 - ecec https://github.com/web-push-libs/ecec
-- JSON for Modern C++ https://nlohmann.github.io/json/	https://github.com/nlohmann/json
-- Sole- lightweight C++11 library to generate universally unique identificators https://github.com/r-lyeh/sole (included in thirdparty/ )
-- glog https://github.com/google/glog
-- unwind https://github.com/libunwind/libunwind
+- Protobuf
+- argtable3 https://github.com/argtable/argtable3 https://www.argtable.org/ BSD (included in thirdparty/ )
 - JSON for Modern C++ 3.1.2 https://github.com/nlohmann/json (included in thirdparty/ )
 - QR-Code-generator https://github.com/nayuki/QR-Code-generator (included in thirdparty/ )
-- Protobuf
 
 #### Install most of libs
 

@@ -17,7 +17,6 @@ commoncppflags += -I/usr/local/opt/openssl@1.1/include
 curllibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl
 mcslibs = -lprotobuf
 commonlibs = $(curllibs) $(mcslibs) -lece -lnghttp2 
-# -lglog -lunwind
 commonlibs += -L/usr/local/opt/openssl@1.1/lib
 
 #
