@@ -2,7 +2,7 @@ AC_PREREQ([2.63])
 AC_INIT([ece], [0.9], [andrei.i.ivanov@commandus.com])
 AM_INIT_AUTOMAKE([1.11 foreign no-define subdir-objects])
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_SRCDIR([encrypt.c])
+AC_CONFIG_SRCDIR([../../third_party/ecec/encrypt.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 

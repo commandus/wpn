@@ -1,4 +1,9 @@
 SUBDIRS = .
+# In case of not protoc is available, copy precompiled protobuf
+EXT_PRE = /home/andrei/src/wpn/mcs/gen
+EXTGENMCS = $(EXT_PRE)/mcs.pb.h $(EXT_PRE)/android_checkin.pb.h $(EXT_PRE)/checkin.pb.h \
+	$(EXT_PRE)/mcs.pb.cc $(EXT_PRE)/android_checkin.pb.cc $(EXT_PRE)/checkin.pb.cc
+
 ACLOCAL_AMFLAGS = -I m4
 
 #	Libraries
@@ -27,7 +32,7 @@ gengrpcs_h = mcs/gen/mcs.pb.h mcs/gen/android_checkin.pb.h mcs/gen/checkin.pb.h
 gengrpcs_c = mcs/gen/mcs.pb.cc mcs/gen/android_checkin.pb.cc mcs/gen/checkin.pb.cc
 gengrpcs = $(gengrpcs_h) $(gengrpcs_c)
 $(gengrpcs): Makefile
-	protoc -I ./mcs --cpp_out=mcs/gen $(proto)
+	protoc -I ./mcs --cpp_out=mcs/gen $(proto) || cp $(EXTGENMCS) mcs/gen
 
 #
 #	Exclude generated sources from distribution
@@ -170,8 +175,7 @@ wpnadd_SOURCES= \
 	utilinstance.cpp utilvapid.cpp utilrecv.cpp sslfactory.cpp utilstring.cpp wp-storage-file.cpp \
 	$(gengrpcs_c) \
 	$(common_src)
-
-wpnadd_LDADD = $(curllibs) $(mcslibs)
+wpnadd_LDADD = $(commonlibs)
 wpnadd_CPPFLAGS = $(commoncppflags)
 
 #
