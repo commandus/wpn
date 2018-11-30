@@ -19,9 +19,6 @@
 /* Define to 1 if you have the `crypto' library (-lcrypto). */
 #define HAVE_LIBCRYPTO 1
 
-/* Define to 1 if you have the `curl' library (-lcurl). */
-#define HAVE_LIBCURL 1
-
 /* Define to 1 if you have the <limits.h> header file. */
 #define HAVE_LIMITS_H 1
 
@@ -33,6 +30,9 @@
 
 /* Define to 1 if you have the `memset' function. */
 #define HAVE_MEMSET 1
+
+/* Define to 1 if you have the <openssl/ssl.h> header file. */
+#define HAVE_OPENSSL_SSL_H 1
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1

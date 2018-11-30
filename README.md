@@ -670,6 +670,7 @@ sudo apt install autoconf libtool g++ cmake
 ### Dependencies
 
 - curl https://github.com/curl/curl
+- zlib https://zlib.net/ (curl dependency)
 - openssl 1.1.0 https://github.com/openssl/openssl
 - Protobuf
 - ecec https://github.com/web-push-libs/ecec (included in third_party- a few changes added(see ecec section))
@@ -834,7 +835,8 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
 This software depends on libraries which has differen licenses:
 
-- curl  is licensed under MIT
+- curl is licensed under MIT
+- zlib is licensed under zlib License
 - openssl is licensed under original SSL license, original SSLeay License
 - ecec is licensed under MIT
 - JSON for Modern C++ is licensed under MIT
