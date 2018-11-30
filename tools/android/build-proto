@@ -1,6 +1,0 @@
-#!/bin/sh
-# File: build-proto
-GEN='../../mcs/gen/*.cc ../../mcs/gen/*.h'
-mkdir -p gen
-cp $GEN gen
-exit 0
