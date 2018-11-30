@@ -1,19 +1,16 @@
 #!/bin/bash
 set -u
-
 TOOLS_ROOT=`pwd`
-# ARCHS=("android" "android-armeabi" "android-x86")
-# ABIS=("armeabi" "armeabi-v7a" "x86")
-ARCHS=("android")
-ABIS=("armeabi")
 ANDROID_API=${ANDROID_API:-21}
+ARCHS=("android" "android-armeabi" "android-x86" "android-mips")
+ABIS=("armeabi" "armeabi-v7a" "x86" "mips")
+# ARCHS=("android" "android-armeabi" "android64-aarch64" "android-x86" "android64" "android-mips" "android-mips64")
+# ABIS=("armeabi" "armeabi-v7a" "arm64-v8a" "x86" "x86_64" "mips" "mips64")
 NDK=${ANDROID_NDK}
 
 # Setup architectures, library name and other vars + cleanup from previous runs
-LIB_NAME="wpn-0.2"
+LIB_NAME="wpnc-1.0.0"
 LIB_DEST_DIR=${TOOLS_ROOT}/libs
-[ -d ${LIB_DEST_DIR} ] && rm -rf ${LIB_DEST_DIR}
-[ -f "${LIB_NAME}.tar.gz" ] || wget -O ${LIB_NAME}.tar.gz https://gitlab.com/commandus/wpn/-/archive/master/wpn-master.tar.gz;
 
 #
 # configureEnv arch output clang
@@ -91,60 +88,82 @@ configureEnv() {
   export STRIP=${NDK_TOOLCHAIN_BASENAME}-strip
   export CPPFLAGS=${CPPFLAGS:-""}
   export LIBS=${LIBS:-""}
-  export CFLAGS="${ARCH_FLAGS} -fpic -ffunction-sections -funwind-tables -fstack-protector -fno-strict-aliasing"
-  // -finline-limit=64
-  export CXXFLAGS="${CFLAGS} -std=c++11 -frtti -fexceptions -I${SYSROOT}/usr/include"
-  export LDFLAGS="${ARCH_LINK} -L${SYSROOT}/usr/lib -lz -lstdc++"
+  export CFLAGS="${ARCH_FLAGS} -fpic -ffunction-sections -funwind-tables -fstack-protector -fno-strict-aliasing -finline-limit=64"
+  export CXXFLAGS="${CFLAGS} -std=c++11 -frtti -fexceptions"
+  export LDFLAGS="${ARCH_LINK}"
 }
 
-configure_make() {
-  configureEnv $*
-  ARCH=$1; ABI=$2;
-  # Copy libraries
+echoEnv() {
+  echo "Uses:"
+  echo
+  echo "use ANDROID_API=${ANDROID_API}"
+  echo "use NDK=${NDK}"
+  echo "export ARCH=${ARCH}"
+  echo "export NDK_TOOLCHAIN_BASENAME=${NDK_TOOLCHAIN_BASENAME}"
+  echo "export SYSROOT=${SYSROOT}"
+  echo "export CC=${CC}"
+  echo "export CXX=${CXX}"
+  echo "export LINK=${LINK}"
+  echo "export LD=${LD}"
+  echo "export AR=${AR}"
+  echo "export RANLIB=${RANLIB}"
+  echo "export STRIP=${STRIP}"
+  echo "export CPPFLAGS=${CPPFLAGS}"
+  echo "export CFLAGS=${CFLAGS}"
+  echo "export CXXFLAGS=${CXXFLAGS}"
+  echo "export LDFLAGS=${LDFLAGS}"
+  echo "export LIBS=${LIBS}"
+  echo 
+}
+#-----------------------------------------------------------------------------
+
+configureMake() {
+  ARCH=$1
+  ABI=$2
+  configureEnv $ARCH $ABI $LIB_NAME
+  # fix me
   cp ${TOOLS_ROOT}/../output/android/openssl-${ABI}/lib/libssl.a ${SYSROOT}/usr/lib
   cp ${TOOLS_ROOT}/../output/android/openssl-${ABI}/lib/libcrypto.a ${SYSROOT}/usr/lib
   cp -r ${TOOLS_ROOT}/../output/android/openssl-${ABI}/include/openssl ${SYSROOT}/usr/include
 
-  cp ${TOOLS_ROOT}/../output/android/curl-${ABI}/lib/libcurl.a ${SYSROOT}/usr/lib
-  cp -r ${TOOLS_ROOT}/../output/android/curl-${ABI}/include/curl ${SYSROOT}/usr/include
-
-  cp ${TOOLS_ROOT}/../output/android/protobuf-${ABI}/lib/libprotobuf.a ${SYSROOT}/usr/lib
-  cp -r ${TOOLS_ROOT}/../output/android/protobuf-${ABI}/include/protobuf ${SYSROOT}/usr/include
-
-  # Unarchive library, then configure and make for specified architectures
-  if [ ! -d ${LIB_NAME} ]; then
-    tar xfz "${LIB_NAME}.tar.gz"
-  fi;
-  pushd "${LIB_NAME}"
-
   mkdir -p ${LIB_DEST_DIR}/${ABI}
-#  ./autogen.sh
-  ./configure \
-    --prefix=${LIB_DEST_DIR}/${ABI} \
-    --with-sysroot=${SYSROOT} \
-    --host=${TOOL} \
-    --enable-static
+  ./configure --prefix=${LIB_DEST_DIR}/${ABI} \
+              --with-sysroot=${SYSROOT} \
+              --host=${TOOL} \
+              --with-ssl=/usr \
+              --enable-ipv6 \
+              --enable-static \
+              --enable-threaded-resolver \
+              --disable-dict \
+              --disable-gopher \
+              --disable-ldap --disable-ldaps \
+              --disable-manual \
+              --disable-pop3 --disable-smtp --disable-imap \
+              --disable-rtsp \
+              --disable-shared \
+              --disable-smb \
+              --disable-telnet \
+              --disable-verbose
   PATH=$TOOLCHAIN_PATH:$PATH
   make clean
-  if make -j4; then
+  if make -j4
+  then
     make install
-    OUTPUT_ROOT=${TOOLS_ROOT}/../output/android/wpn-${ABI}
+
+    OUTPUT_ROOT=${TOOLS_ROOT}/../output/android/curl-${ABI}
     [ -d ${OUTPUT_ROOT}/include ] || mkdir -p ${OUTPUT_ROOT}/include
-    cp -r ${LIB_DEST_DIR}/${ABI}/include/wpn ${OUTPUT_ROOT}/include
+    cp -r ${LIB_DEST_DIR}/${ABI}/include/curl ${OUTPUT_ROOT}/include
 
     [ -d ${OUTPUT_ROOT}/lib ] || mkdir -p ${OUTPUT_ROOT}/lib
-    cp ${LIB_DEST_DIR}/${ABI}/lib/libwpn.a ${OUTPUT_ROOT}/lib
+    cp ${LIB_DEST_DIR}/${ABI}/lib/libcurl.a ${OUTPUT_ROOT}/lib
   fi;
-#  arm-linux-androideabi-readelf -A build/lib/libprotobuf-lite.a
-  popd
+  popd;
 }
 
 for ((i=0; i < ${#ARCHS[@]}; i++))
 do
   if [[ $# -eq 0 ]] || [[ "$1" == "${ARCHS[i]}" ]]; then
-    # Do not build 64 bit arch if ANDROID_API is less than 21 which is
-    # the minimum supported API level for 64 bit.
     [[ ${ANDROID_API} < 21 ]] && ( echo "${ABIS[i]}" | grep 64 > /dev/null ) && continue;
-    configure_make "${ARCHS[i]}" "${ABIS[i]}"
+    configureMake "${ARCHS[i]}" "${ABIS[i]}"
   fi
 done

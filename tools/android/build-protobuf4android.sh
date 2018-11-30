@@ -89,9 +89,8 @@ configureEnv() {
   export RANLIB=${NDK_TOOLCHAIN_BASENAME}-ranlib
   export STRIP=${NDK_TOOLCHAIN_BASENAME}-strip
   export CPPFLAGS=${CPPFLAGS:-""}
-  export LIBS=${LIBS:-""}
+  export LIBS="${LIBS:-""} -llog"
   export CFLAGS="${ARCH_FLAGS} -fpic -ffunction-sections -funwind-tables -fstack-protector -fno-strict-aliasing -finline-limit=64"
-  export CXXFLAGS="${CFLAGS} -std=c++11 -frtti -fexceptions"
   export LDFLAGS="${ARCH_LINK}"
 
 #  CFLAGS="-march=${ABI} -mfloat-abi=softfp -DGOOGLE_PROTOBUF_NO_RTTI" \
@@ -102,6 +101,9 @@ configureEnv() {
 configure_make() {
   configureEnv $*
   ARCH=$1; ABI=$2;
+  export CXXSTL=${NDK}/sources/cxx-stl/llvm-libc++
+  export CXXFLAGS="${CFLAGS} -std=c++11 -frtti -fexceptions -I${CXXSTL}/include -I${CXXSTL}/libs/${ABI}/include"
+
   # Copy libraries
   cp ${TOOLS_ROOT}/../output/android/openssl-${ABI}/lib/libssl.a ${SYSROOT}/usr/lib
   cp ${TOOLS_ROOT}/../output/android/openssl-${ABI}/lib/libcrypto.a ${SYSROOT}/usr/lib
@@ -128,10 +130,8 @@ echo "prefix=${LIB_DEST_DIR}/${ABI} host=${TOOL} with-sysroot=${SYSROOT} march $
   --with-sysroot=${SYSROOT} \
   --disable-shared \
   --enable-cross-compile \
-  --with-protoc=protoc \
-  LIBS="-llog"
+  --with-protoc=protoc
 
-# -I${CXXSTL}/include -I${CXXSTL}/libs/${ABI}/include
 #   --with-protoc=protoc \
 #  CFLAGS="-march=${ABI} -mfloat-abi=softfp -DGOOGLE_PROTOBUF_NO_RTTI" \
 #  CPPFLAGS="-march=${ABI}" \
