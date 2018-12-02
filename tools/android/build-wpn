@@ -73,10 +73,9 @@ configureEnv() {
   fi;
 
   [ -d ${TOOLCHAIN_ROOT} ] || python $NDK/build/tools/make_standalone_toolchain.py \
-                                     --api ${ANDROID_API} \
-                                     --stl libc++ \
-                                     --install-dir=${TOOLCHAIN_ROOT} \
-                                     $NDK_FLAGS
+    --api ${ANDROID_API} \
+    --install-dir=${TOOLCHAIN_ROOT} \
+    $NDK_FLAGS
 
   export TOOLCHAIN_PATH=${TOOLCHAIN_ROOT}/bin
   export NDK_TOOLCHAIN_BASENAME=${TOOLCHAIN_PATH}/${TOOL}
@@ -93,7 +92,7 @@ configureEnv() {
   export LIBS=${LIBS:-""}
   export CFLAGS="${ARCH_FLAGS} -fpic -ffunction-sections -funwind-tables -fstack-protector -fno-strict-aliasing"
   # -finline-limit=64
-  export CXXFLAGS="${CFLAGS} -std=c++11 -frtti -fexceptions -I${SYSROOT}/usr/include"
+  #export CXXFLAGS="${CFLAGS} -std=c++11 -frtti -fexceptions -I${SYSROOT}/usr/include"
   export LDFLAGS="${ARCH_LINK} -L${SYSROOT}/usr/lib -lz -lstdc++"
 }
 
@@ -101,39 +100,47 @@ configure_make() {
   configureEnv $*
   ARCH=$1; ABI=$2;
   # Copy libraries
-  cp ${TOOLS_ROOT}/../output/android/openssl-${ABI}/lib/libssl.a ${SYSROOT}/usr/lib
-  cp ${TOOLS_ROOT}/../output/android/openssl-${ABI}/lib/libcrypto.a ${SYSROOT}/usr/lib
-  cp -r ${TOOLS_ROOT}/../output/android/openssl-${ABI}/include/openssl ${SYSROOT}/usr/include
+  cp ${TOOLS_ROOT}/out/openssl-${ABI}/lib/libssl.a ${SYSROOT}/usr/lib
+  cp ${TOOLS_ROOT}/out/openssl-${ABI}/lib/libcrypto.a ${SYSROOT}/usr/lib
+  cp -r ${TOOLS_ROOT}/out/openssl-${ABI}/include/openssl ${SYSROOT}/usr/include
 
-  cp ${TOOLS_ROOT}/../output/android/curl-${ABI}/lib/libcurl.a ${SYSROOT}/usr/lib
-  cp -r ${TOOLS_ROOT}/../output/android/curl-${ABI}/include/curl ${SYSROOT}/usr/include
+  cp ${TOOLS_ROOT}/out/curl-${ABI}/lib/libcurl.a ${SYSROOT}/usr/lib
+  cp -r ${TOOLS_ROOT}/out/curl-${ABI}/include/curl ${SYSROOT}/usr/include
 
-  cp ${TOOLS_ROOT}/../output/android/protobuf-${ABI}/lib/libprotobuf.a ${SYSROOT}/usr/lib
-  cp -r ${TOOLS_ROOT}/../output/android/protobuf-${ABI}/include/protobuf ${SYSROOT}/usr/include
+  cp ${TOOLS_ROOT}/out/protobuf-${ABI}/lib/libprotobuf.a ${SYSROOT}/usr/lib
+  cp -r ${TOOLS_ROOT}/out/protobuf-${ABI}/include/protobuf ${SYSROOT}/usr/include
 
   # Unarchive library, then configure and make for specified architectures
   if [ ! -d ${LIB_NAME} ]; then
     tar xfz "${LIB_NAME}.tar.gz"
+    mv wpn-master ${LIB_NAME}
+    pushd "${LIB_NAME}"
+    ./autogen.sh
+    popd
   fi;
   pushd "${LIB_NAME}"
-
+  
   mkdir -p ${LIB_DEST_DIR}/${ABI}
-#  ./autogen.sh
+  echo "./configure --prefix=${LIB_DEST_DIR}/${ABI} --with-sysroot=${SYSROOT} --host=${TOOL} --enable-static"
   ./configure \
+    --enable-cross-compile \
     --prefix=${LIB_DEST_DIR}/${ABI} \
-    --with-sysroot=${SYSROOT} \
     --host=${TOOL} \
-    --enable-static
+    --with-sysroot=${SYSROOT} \
+    LDFLAGS="-static-libstdc++"
+
   PATH=$TOOLCHAIN_PATH:$PATH
   make clean
-  if make -j4; then
+  if make -j4 libwpn.a; then
     make install
-    OUTPUT_ROOT=${TOOLS_ROOT}/../output/android/wpn-${ABI}
+    OUTPUT_ROOT=${TOOLS_ROOT}/out/wpn-${ABI}
     [ -d ${OUTPUT_ROOT}/include ] || mkdir -p ${OUTPUT_ROOT}/include
     cp -r ${LIB_DEST_DIR}/${ABI}/include/wpn ${OUTPUT_ROOT}/include
 
     [ -d ${OUTPUT_ROOT}/lib ] || mkdir -p ${OUTPUT_ROOT}/lib
     cp ${LIB_DEST_DIR}/${ABI}/lib/libwpn.a ${OUTPUT_ROOT}/lib
+  else
+    exit 1
   fi;
   popd
 }
@@ -141,9 +148,11 @@ configure_make() {
 for ((i=0; i < ${#ARCHS[@]}; i++))
 do
   if [[ $# -eq 0 ]] || [[ "$1" == "${ARCHS[i]}" ]]; then
-    # Do not build 64 bit arch if ANDROID_API is less than 21 which is
-    # the minimum supported API level for 64 bit.
+    # Do not build 64 bit arch if ANDROID_API is less than 21 which is the minimum supported API level for 64 bit.
     [[ ${ANDROID_API} < 21 ]] && ( echo "${ABIS[i]}" | grep 64 > /dev/null ) && continue;
     configure_make "${ARCHS[i]}" "${ABIS[i]}"
+    if [ $? -ne 0 ]; then
+      exit 1
+    fi
   fi
 done

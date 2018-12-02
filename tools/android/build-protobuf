@@ -71,7 +71,6 @@ configureEnv() {
     NDK_FLAGS="--arch=mips64"
   fi;
 
-  echo "NDK FLAGS: $NDK_FLAGS"
   [ -d ${TOOLCHAIN_ROOT} ] || python ${ANDROID_NDK}/build/tools/make_standalone_toolchain.py \
      --api ${ANDROID_API} \
      --install-dir=${TOOLCHAIN_ROOT} \
@@ -129,7 +128,6 @@ configure_make() {
     git submodule update --init --recursive
     ./autogen.sh
   fi
-  echo "prefix=${LIB_DEST_DIR}/${ABI} host=${TOOL} with-sysroot=${SYSROOT} march ${ABI}"
   ./configure \
     --enable-cross-compile \
     --prefix=${LIB_DEST_DIR}/${ABI} \
