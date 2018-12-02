@@ -74,6 +74,7 @@ configureEnv() {
 
   [ -d ${TOOLCHAIN_ROOT} ] || python $NDK/build/tools/make_standalone_toolchain.py \
     --api ${ANDROID_API} \
+    --stl libc++ \
     --install-dir=${TOOLCHAIN_ROOT} \
     $NDK_FLAGS
 
@@ -131,7 +132,7 @@ configure_make() {
 
   PATH=$TOOLCHAIN_PATH:$PATH
   make clean
-  if make -j4 libwpn.a; then
+  if make libwpn.a; then
     make install
     OUTPUT_ROOT=${TOOLS_ROOT}/out/wpn-${ABI}
     [ -d ${OUTPUT_ROOT}/include ] || mkdir -p ${OUTPUT_ROOT}/include

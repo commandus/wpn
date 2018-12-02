@@ -153,7 +153,7 @@ configure_make() {
     make install
     OUTPUT_ROOT=${TOOLS_ROOT}/out/protobuf-${ABI}
     [ -d ${OUTPUT_ROOT}/include ] || mkdir -p ${OUTPUT_ROOT}/include
-    cp -r ${LIB_DEST_DIR}/${ABI}/include/google/protobuf ${OUTPUT_ROOT}/include
+    cp -r ${LIB_DEST_DIR}/${ABI}/include/google ${OUTPUT_ROOT}/include
 
     [ -d ${OUTPUT_ROOT}/lib ] || mkdir -p ${OUTPUT_ROOT}/lib
     cp ${LIB_DEST_DIR}/${ABI}/lib/libprotobuf.a ${OUTPUT_ROOT}/lib
