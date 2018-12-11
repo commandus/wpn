@@ -235,8 +235,7 @@ dist_config_DATA = \
 	vs/icon1.ico vs/libwpn-c.vcxproj.user vs/resource-wpn.h vs/webpush-curl.vcxproj.user vs/wpn.vcxproj \
 	vs/libwpn-c.rc vs/resource-libwpn-c.h vs/webpush-curl.rc vs/wpn.rc vs/wpn.vcxproj.user \
 	CMakeLists.txt \
-	tools/mkcert tools/curl/README \
-	tools/wpnr/README.md tools/wpnw/README.md tools/wpnlink/README.md \
+	tools/mkcert \
 	LICENSE COPYING CODE_OF_CONDUCT.md CONTRIBUTING.md HISTORY README.md TODO \
 	autogen.sh \
 	incoming-call email-template.html
