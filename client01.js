@@ -2,6 +2,7 @@
   "androidId": 5033273622234493101,
   "appId": "c2PVUNAG4mA",
   "authSecret": "cJ9tgPSsIaSM1lkQ7TQCQQ",
+  "lastPersistentId": "",
   "privateKey": "6374EqpEKomYPWf6vehFx0rfyyudHH7PN0t8-KNxe64",
   "provider": "chrome",
   "publicKey": "BOW-7fEceN7nS7GOIyqUu-03D1e-1hPVBvkQ436yG6L4mTWkPUrOILwlAocGODI5hTsWXSDJ4WMmltw9RGwMz70",
