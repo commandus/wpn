@@ -244,7 +244,7 @@ cbcGO31NFjY:APA91bEqATE-_V...
 cp message.js message11-to-12.js
 code message11-to-12.js <- "to": cbcGO31NFjY:APA91bEqATE-_V...
 ./wpnwj client11.js client12.js message11-to-12.js 
-wpnr -c client12.js 
+./wpnr -c client12.js 
 ```
 
 #### curl

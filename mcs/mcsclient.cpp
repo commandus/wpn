@@ -70,6 +70,39 @@ enum MCSProtoTag
 	kNumProtoTypes          = 16
 };
 
+// MCS Message tag names
+static std::string MCSProtoTagNames [18] =
+{
+	"HeartbeatPing",
+	"HeartbeatAck",
+	"LoginRequest",
+	"LoginResponse",
+	"Close",
+	"MessageStanza",
+	"PresenceStanza",
+	"IqStanza",
+	"DataMessageStanza",
+	"BatchPresenceStanza",
+	"StreamErrorStanza",
+	"HttpRequest",
+	"HttpResponse",
+	"BindAccountRequest",
+	"BindAccountResponse",
+	"TalkMetadata",
+	"NumProtoTypes",
+	"Unknown"
+};
+
+static std::string &getTagName
+(
+	uint8_t value
+) {
+	if (value > 18)
+		return MCSProtoTagNames[17];
+	else
+		return MCSProtoTagNames[value];
+};
+
 enum MCSIqStanzaExtension {
   kSelectiveAck = 12,
   kStreamAck = 13,
@@ -332,7 +365,7 @@ static void logMessage
 	{
 		IqStanza* r = (IqStanza*) message;
 		if (log && (verbosity >= 3)) {
-			*log << "IqStanza " << IQTYPE_NAMES[r->type()] << " id: " << r->id() << " ";
+			*log << "IqStanza " << IQTYPE_NAMES[r->type()] << " id: " << r->id();
 			if (r->has_rmq_id())
 				*log << " rmq_id: " << r->rmq_id();
 			if (r->has_from())
@@ -359,7 +392,7 @@ static void logMessage
 			{
 				*log << " extension: {";
 				if (r->extension().has_id())
-					*log << " id: " << r->extension().id() << getExtensionName(r->extension().id());
+					*log << " id: " << getExtensionName(r->extension().id()) << "(" << r->extension().id() << ") ";
 				if (r->extension().has_data())
 				{
 					std::vector<std::string> ackedIds;
@@ -368,13 +401,13 @@ static void logMessage
 						std::stringstream ss;
 						for (std::vector<std::string>::const_iterator it = ackedIds.begin(); it != ackedIds.end(); ++it)
 						{
-							ss << *it << "; ";
+							ss << *it << ", ";
 						}
-						*log << " list " << ss.str();	// \n#0:1541907792665672%7031b2e6f9fd7ecd
+						*log << " list: [" << ss.str() << "]";	// \n#0:1541907792665672%7031b2e6f9fd7ecd
 					}
 					else
 					{
-						*log << " data " << r->extension().data();	// \n#0:1541907792665672%7031b2e6f9fd7ecd
+						*log << " data: " << r->extension().data();	// \n#0:1541907792665672%7031b2e6f9fd7ecd
 					}
 				}
 				*log << "} ";
@@ -901,7 +934,7 @@ static int nextMessage(
 	}
 
 	if (log && (verbosity >= 1))
-		*log << severity(1) << "Tag: " << (int) tag << " size: " << msgSize << ": " << hexString(buffer) << "\n";
+		*log << severity(1) << "Tag: " << getTagName(tag) << "(" << (int) tag << "), size: " << msgSize << ": " << hexString(buffer) << "\n";
 
 	*retTag = (enum MCSProtoTag) tag;
 	google::protobuf::io::CodedInputStream::Limit limit = codedInput.PushLimit(msgSize);
