@@ -3,5 +3,6 @@
 		"stdexcept": "cpp",
 		"string": "cpp",
 		"valarray": "cpp"
-	}
+	},
+	"git.ignoreLimitWarning": true
 }
