@@ -59,7 +59,7 @@ wpn_lib_source = \
 	sslfactory.cpp \
 	mcs/mcsclient.cpp \
 	$(gengrpcs_c) \
-	utilstring.cpp params.cpp commandoutput.cpp endpoint.cpp \
+	utilfile.cpp utilstring.cpp params.cpp commandoutput.cpp endpoint.cpp \
 	utilqr.cpp $(QRSOURCES) \
 	utilvapid.cpp utilrecv.cpp utilinstance.cpp
 AM_CXXFLAGS = -std=c++11 
