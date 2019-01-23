@@ -8,7 +8,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 #	Libraries
 lib_LIBRARIES = \
-	libece.a
+	libece.a libwpnpp.a
 lib_LTLIBRARIES = \
 	libwpn.la libwpnapi.la
 
@@ -74,10 +74,10 @@ libece_a_SOURCES = $(ECECSOURCES)
 libece_a_CPPFLAGS = $(commoncppflags) -Ithird_party/ecec
 
 #
-#	libwpn.a
+#	libwpnpp.a C++ static library
 #
-libwpn_a_SOURCES = $(wpn_lib_source)
-libwpn_a_CPPFLAGS = $(commoncppflags)
+libwpnpp_a_SOURCES = $(wpn_lib_source)
+libwpnpp_a_CPPFLAGS = $(commoncppflags)
 
 #
 #	libwpn.la C++ shared library
