@@ -8,7 +8,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 #	Libraries
 lib_LIBRARIES = \
-	libece.a libwpn.a
+	libece.a
 lib_LTLIBRARIES = \
 	libwpn.la libwpnapi.la
 
@@ -16,10 +16,13 @@ lib_LTLIBRARIES = \
 bin_PROGRAMS = \
 	wpn webpush-curl wpnr wpnw wpnlink wpnlinkj wpnadd wpnwj
 
-commoncppflags = -O2 -I/usr/local/include -Imcs/gen -Ithird_party
+# commoncppflags = -O2 -I/usr/local/include -Imcs/gen -Ithird_party
+# commoncppflags = -O2 -I/usr/include -Imcs/gen -Ithird_party
+commoncppflags = -O2 -I/usr/include -Imcs/gen -Ithird_party
 commoncppflags += -I/usr/local/opt/openssl@1.1/include
 
-curllibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl
+# curllibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl
+curllibs = -L. -lssl -lcrypto -lcurl
 mcslibs = -lprotobuf
 commonlibs = $(curllibs) $(mcslibs) -L. -lece
 commonlibs += -L/usr/local/opt/openssl@1.1/lib
@@ -116,7 +119,6 @@ wpn_SOURCES= \
 	utilqr.cpp $(QRSOURCES) \
 	utilvapid.cpp utilrecv.cpp utilinstance.cpp config-filename.cpp \
 	$(common_src)
-
 wpn_LDADD = $(commonlibs) -ldl
 wpn_CPPFLAGS = $(commoncppflags)
 

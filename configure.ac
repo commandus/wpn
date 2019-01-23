@@ -16,6 +16,11 @@ AC_PROG_LIBTOOL
 
 AM_CONDITIONAL([DEBUG], [test x$debug = xtrue])
 
+PKG_CHECK_MODULES(PROTOBUF, protobuf >= 3.1.0)
+AC_SUBST(PROTOBUF_LIBS)
+AC_SUBST(PROTOBUF_CFLAGS)
+AC_SUBST(PROTOBUF_VERSION)
+
 # MacOS: 
 #   brew install openssl@1.1
 # install openssl into /usr/local/lib/opt/openssl@1.1

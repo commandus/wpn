@@ -5,6 +5,8 @@
 #include <sys/stat.h>
 #include <fstream>
 
+#include "google/protobuf/stubs/common.h"
+
 #include "config-filename.h"
 #ifdef _MSC_VER
 #else
@@ -167,6 +169,7 @@ int WpnConfig::parseCmd
 	struct arg_str *a_last_persistent_id = arg_str0(NULL, "last", "<id>", "Last persistent id");
 
 	// helper options
+	struct arg_lit *a_version = arg_lit0(NULL, "version", "Print version");
 	struct arg_lit *a_generatevapidkeys = arg_lit0(NULL, "generate-vapid-keys", "Generate VAPID keys");
 
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
@@ -182,7 +185,7 @@ int WpnConfig::parseCmd
 		a_output_lib_filenames, a_notify_function_name,
 		a_aesgcm, a_verbosity, a_vapid_private_key, a_vapid_public_key, a_vapid_auth_secret,
 		a_endpoint, 
-		a_generatevapidkeys,
+		a_version, a_generatevapidkeys,
 		a_last_persistent_id,
 		a_help, a_end 
 	};
@@ -280,6 +283,9 @@ int WpnConfig::parseCmd
 										else
 											if (a_generatevapidkeys->count)
 												cmd = CMD_GENERATE_VAPID_KEYS;
+											else
+												if (a_version->count)
+													cmd = CMD_PRINT_VERSION;
 
 	if (a_endpoint->count)
 		fcm_endpoint = *a_endpoint->sval;
@@ -795,4 +801,11 @@ bool WpnConfig::setPersistentId
 	}
 	subscriptions->setReceivedPersistentId(persistentId);
 	return true;
+}
+
+std::string WpnConfig::versionString()
+{
+	std::stringstream r;
+	r << "libprotobuf: " << google::protobuf::internal::VersionString(GOOGLE_PROTOBUF_VERSION);
+	return r.str();
 }

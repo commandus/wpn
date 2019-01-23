@@ -26,6 +26,7 @@ using json = nlohmann::json;
 #define CMD_UNSUBSCRIBE			9
 #define CMD_PUSH				10
 #define CMD_GENERATE_VAPID_KEYS	11
+#define CMD_PRINT_VERSION		12
 
 #define SUBSCRIBE_URL_COUNT		1
 #define SUBSCRIBE_URL_1	 		"https://fcm.googleapis.com/fcm/connect/subscribe"
@@ -145,6 +146,7 @@ public:
 	bool save() const;
 	
 	std::string getDefaultFCMEndPoint();
+	std::string versionString();
 };
 
 #endif

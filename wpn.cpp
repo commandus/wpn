@@ -446,6 +446,11 @@ int main(int argc, char** argv)
 			}
 		}
 			break;
+		case CMD_PRINT_VERSION:
+		{
+			std::cout << config.versionString() << std::endl;
+			break;
+		}
 		case CMD_GENERATE_VAPID_KEYS:
 		{
 			Subscription subscription;
