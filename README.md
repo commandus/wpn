@@ -672,7 +672,7 @@ sudo apt install autoconf libtool g++ cmake
 - curl https://github.com/curl/curl
 - zlib https://zlib.net/ (curl dependency)
 - openssl 1.1.0 https://github.com/openssl/openssl
-- Protobuf
+- Protobuf 2.6.1
 - ecec https://github.com/web-push-libs/ecec (included in third_party- a few changes added(see ecec section))
 - argtable3 https://github.com/argtable/argtable3 https://www.argtable.org/ BSD (included in third_party/ )
 - JSON for Modern C++ 3.1.2 https://github.com/nlohmann/json (included in third_party/ )
@@ -785,6 +785,28 @@ sudo apt install libgoogle-glog-dev
 
 
 ### libprotobuf
+
+
+For wpn-gtk required libprotobuf version 2.6.1.
+
+Use tools/install-protobuf-2.6.1.sh script to install 2.6.1 version.
+
+```
+cd wpn
+cd tools
+./install-protobuf-2.6.1.sh
+cd ..
+make wpn
+./wpn --version
+make libwpn.la
+```
+
+./wpn --version must return:
+```
+libprotobuf: 2.6.1
+```
+
+Otherwise install other version by
 
 ```
 sudo apt install libprotobuf-dev protobuf-compiler
