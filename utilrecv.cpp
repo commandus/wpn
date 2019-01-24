@@ -255,16 +255,15 @@ std::string tagNmessageToString
 	const void *msg
 )
 {
-	std::stringstream ss;
-	google::protobuf::io::OstreamOutputStream *rawOutput = new google::protobuf::io::OstreamOutputStream(&ss);
-	google::protobuf::io::CodedOutputStream *codedOutput = new google::protobuf::io::CodedOutputStream(rawOutput);
+	std::string s;
+	google::protobuf::io::StringOutputStream ss(&s);
+	google::protobuf::io::CodedOutputStream *codedOutput = new google::protobuf::io::CodedOutputStream(&ss);
 	codedOutput->WriteRaw(&tag, 1);
 	int sz = ((google::protobuf::MessageLite*) msg)->ByteSize();
 	codedOutput->WriteVarint32(sz);
 	((google::protobuf::MessageLite*) msg)->SerializeToCodedStream(codedOutput);
 	delete codedOutput;
-	delete rawOutput;
-	return ss.str();
+	return s;
 }
 
 #define TRIES	5

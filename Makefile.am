@@ -23,7 +23,7 @@ commoncppflags += -I/usr/local/opt/openssl@1.1/include
 
 # curllibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl
 curllibs = -L. -lssl -lcrypto -lcurl
-mcslibs = -lprotobuf
+mcslibs = -lprotobuf-lite
 commonlibs = $(curllibs) $(mcslibs) -L. -lece
 commonlibs += -L/usr/local/opt/openssl@1.1/lib
 
@@ -218,7 +218,7 @@ tools/wpnlink/wpnlink.cpp : libwpnapi.la
 tools/wpnlink/wpnlinkj.cpp : libwpnapi.la
 
 #
-#	wpnr (with shared library)
+#	wpnrs (with shared library)
 #
 wpnrs_SOURCES = \
 	tools/wpnr/wpnr.cpp config-filename.cpp utilfile.cpp \
