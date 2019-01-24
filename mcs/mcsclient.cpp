@@ -909,9 +909,7 @@ static int nextMessage(
 	CallbackLogger *log
 )
 {
-	std::stringstream ss(buffer);
-	IstreamInputStream rawInput(&ss);
-	CodedInputStream codedInput(&rawInput);
+	CodedInputStream codedInput((const uint8*) buffer.c_str(), buffer.size());	// 
 	// tag number, size, message
 	uint8_t tag;
 	bool r = codedInput.ReadRaw(&tag, 1);	// 1 byte long
