@@ -6,8 +6,15 @@
 #define ERR_PARSE_RESPONSE			-3
 
 /**
-* Push raw JSON to device
-* @return 200-299- success, <0- error
+ * FCM web push utilities
+ */
+
+/**
+* Push serialized JSON string to device FCM
+* @param retval return error description if not null
+* @param value JSON serialized message.  See push2ClientNotificationFCM()
+* @return 200-299- success, negative- error code
+* @see push2ClientNotificationFCM()
 */
 int push2ClientJSON
 (
@@ -19,8 +26,8 @@ int push2ClientJSON
 );
 
 /**
-* Push notification to device
-* @return 200-299- success, <0- error
+* Push notification to device FCM
+* @return 200-299- success, negative- error code
 */
 int push2ClientNotificationFCM
 (
@@ -39,11 +46,12 @@ int push2ClientNotificationFCM
 * @param server_key FCM subscription server key
 * @param token FCM recipient token
 * @param client_token FCM token
-* @param persistent_id reference to request. If empty, it is request, otherwise response
+* @param persistent_id reference to request
 * @param command command line
 * @param code execution return code, usually 0
 * @param output result from stdout
-* @return 200-299- success, <0- error
+* @return 200-299- success, nefative- error code
+* @see push2ClientJSON()
 */
 int push2ClientDataFCM
 (

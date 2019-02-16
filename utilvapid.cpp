@@ -1,20 +1,13 @@
 #include "utilvapid.h"
-#include <sstream>
 #include <fstream>
 
-#include <stdlib.h>
-#include <inttypes.h>
-#include <string.h>
-#include <openssl/bn.h>
-#include <openssl/ec.h>
-#include <openssl/obj_mac.h>
-#include <openssl/sha.h>
 #include <curl/curl.h>
-
-#include <ece.h>
 #include "nlohmann/json.hpp"
 
-#include "utilstring.h"
+#include <openssl/sha.h>
+
+#include <ece.h>
+#include <ece/keys.h>
 
 using json = nlohmann::json;
 
@@ -606,6 +599,34 @@ int webpushVapid(
 }
 
 /**
+ * Send VAPID web push using CURL library
+ * @param retval return error description string
+ * @param subscriptionJSON: fromPublicKey, fromPrivateKey, toName, toEndpoint, toP256dh, toAuth 
+ * @param subject 
+ * @param body message
+ * @param icon
+ * @param link 
+ * @param optional originator contact mailto: or http[s]: URI
+ * @param contentEncoding AESGCM or AES128GCM
+ * @return 0 or positive- HTTP code(200..299- success), negative- error code
+ */
+int webpushVapidJSON(
+	std::string &retval,
+	const std::string &subscriptionJSON,
+	const std::string &subject,
+	const std::string &body,
+	const std::string &icon, 
+	const std::string &link,
+	int contentEncoding,
+	time_t expiration
+)
+{
+	std::string publicKey, privateKey, endpoint, p256dh, auth, contact;
+	std::string jsonMsg = mkNotificationJson(subscriptionJSON, subject, body, icon, link);
+	return webpushVapid(retval, publicKey, privateKey, endpoint, p256dh, auth, jsonMsg, contact, contentEncoding, expiration);
+}
+
+/**
  * Push "command output" to device
  * @param retval return string
  * @param publicKey e.g. "BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A";
@@ -658,4 +679,179 @@ int webpushVapidData
 	};
 	return webpushVapid(retval, publicKey, privateKey, endpoint, p256dh, auth,
 		requestBody.dump(), contact, contentEncoding, expiration);
+}
+
+
+static const std::string KEY_TO = "to";
+static const std::string KEY_NOTIFICATION = "notification";
+static const std::string KEY_TITLE = "title";
+static const std::string KEY_BODY = "body";
+static const std::string KEY_ICON = "icon";
+static const std::string KEY_CLICK_ACTION = "click_action";
+
+static const std::string KEY_SUBSCRIPTION_PUBLIC = "public";
+static const std::string KEY_SUBSCRIPTION_PRIVATE = "private";
+static const std::string KEY_SUBSCRIPTION_ENDPOINT = "endpoint";
+static const std::string KEY_SUBSCRIPTION_P256DH = "p256dh";
+static const std::string KEY_SUBSCRIPTION_AUTH = "auth";
+static const std::string KEY_SUBSCRIPTION_CONTACT = "contact";
+
+std::string mkNotificationJson
+(
+	const std::string &to,
+	const std::string &subject,
+	const std::string &body,
+	const std::string &icon, 
+	const std::string &link 
+)
+{
+	json requestBody = {
+		{ KEY_TO, to },
+		{ KEY_NOTIFICATION, 
+			{
+				{ KEY_TITLE, subject },
+				{ KEY_BODY, body },
+				{ KEY_ICON, icon},
+				{ KEY_CLICK_ACTION, link }
+			}
+		}
+	};
+	return requestBody.dump();
+}
+
+/**
+ * Make subscrtption JSON file
+ * @return JSON string
+ */
+std::string mkSubscriptionJson
+(
+	const std::string &publicKey,
+	const std::string &privateKey,
+	const std::string &endpoint,
+	const std::string &p256dh,
+	const std::string &auth,
+	const std::string &contact
+)
+{
+	json requestBody = {
+		{ KEY_SUBSCRIPTION_PUBLIC, publicKey},
+		{ KEY_SUBSCRIPTION_PRIVATE, privateKey},
+		{ KEY_SUBSCRIPTION_ENDPOINT, endpoint},
+		{ KEY_SUBSCRIPTION_P256DH, p256dh},
+		{ KEY_SUBSCRIPTION_AUTH, auth},
+		{ KEY_SUBSCRIPTION_CONTACT, contact},
+	};
+	return requestBody.dump();
+}
+
+/**
+ * Parse notification file
+ * @return 0- success, -1: Invalid JSON, -2: Important information missed
+ */
+int parseNotificationJson
+(
+	const std::string &value,
+	std::string &to,
+	std::string &title,
+	std::string &body,
+	std::string &icon, 
+	std::string &click_action
+)
+{
+	json j;
+	int r = 0;
+	try {
+		j = json::parse(value);
+	}
+	catch (...) {
+		r = -1;
+	}
+
+	if (r == 0)
+	{
+		try {
+			if (j.count(KEY_TO))
+				to = j.at(KEY_TO);
+			else
+				to = "";
+			json n = j.at(KEY_NOTIFICATION);
+			if (n.count(KEY_TITLE))
+				title = n.at(KEY_TITLE);
+			else
+				title = "";
+			if (n.count(KEY_BODY))
+				body = n.at(KEY_BODY);
+			else
+				body = "";
+			if (n.count(KEY_ICON))
+				icon = n.at(KEY_ICON);
+			else
+				icon = "";
+			if (n.count(KEY_CLICK_ACTION))
+				click_action = n.at(KEY_CLICK_ACTION);
+			else
+				click_action = "";
+		} catch(...) {
+			r = -2;
+		}
+	}
+	return r;
+}
+
+/**
+ * Parse subscruption file
+ * @return 0- success, -1: Invalid JSON, -2: Important information missed
+ */
+int parseSubscriptionJson
+(
+	const std::string &value,
+	std::string &publicKey,
+	std::string &privateKey,
+	std::string &endpoint,
+	std::string &p256dh,
+	std::string &auth,
+	std::string &contact
+)
+{
+	json j;
+	int r = 0;
+	try {
+		j = json::parse(value);
+	}
+	catch (...) {
+		r = -1;
+	}
+
+	if (r == 0)
+	{
+		try {
+			if (j.count(KEY_SUBSCRIPTION_PUBLIC))
+				publicKey = j.at(KEY_SUBSCRIPTION_PUBLIC);
+			else
+				publicKey = "";
+			if (j.count(KEY_SUBSCRIPTION_PRIVATE))
+				privateKey = j.at(KEY_SUBSCRIPTION_PRIVATE);
+			else
+				privateKey = "";
+			if (j.count(KEY_SUBSCRIPTION_ENDPOINT))
+				endpoint = j.at(KEY_SUBSCRIPTION_ENDPOINT);
+			else
+				endpoint = "";
+			if (j.count(KEY_SUBSCRIPTION_P256DH))
+				p256dh = j.at(KEY_SUBSCRIPTION_P256DH);
+			else
+				p256dh = "";
+			if (j.count(KEY_SUBSCRIPTION_AUTH))
+				auth = j.at(KEY_SUBSCRIPTION_AUTH);
+			else
+				auth = "";
+			if (j.count(KEY_SUBSCRIPTION_CONTACT))
+				contact = j.at(KEY_SUBSCRIPTION_CONTACT);
+			else
+				contact = "";
+		} catch(...) {
+			r = -2;
+		}
+	}
+	return r;
 }

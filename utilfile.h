@@ -80,27 +80,4 @@ int parseConfig
 	std::string &lastPersistentId
 );
 
-std::string mkNotificationJson
-(
-	const std::string &to,
-	const std::string &subject,
-	const std::string &body,
-	const std::string &icon, 
-	const std::string &link 
-);
-
-/**
- * Parse notification file
- * @return 0- success, -1: Invalid JSON, -2: Important information missed
- */
-int parseNotificationJson
-(
-	const std::string &value,
-	std::string &to,
-	std::string &title,
-	std::string &body,
-	std::string &icon, 
-	std::string &click_action
-);
-
 #endif

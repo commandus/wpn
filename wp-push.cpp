@@ -54,8 +54,11 @@ static int curl_trace
 }
 
 /**
-* Push raw JSON to device FCM
-* @return 200-299- success, <0- error
+* Push serialized JSON string to device FCM
+* @param retval return error description if not null
+* @param value JSON serialized message.  See push2ClientNotificationFCM()
+* @return 200-299- success, negative- error code
+* @see push2ClientNotificationFCM()
 */
 int push2ClientJSON
 (
@@ -158,7 +161,7 @@ static void logPEMForKey(EC_KEY *key) {
 
 /**
 * Push notification to device
-* @return 200-299- success, <0- error
+* @return 200-299- success, negative- error code
 */
 int push2ClientNotificationFCM
 (
@@ -195,7 +198,8 @@ int push2ClientNotificationFCM
 * @param command command line
 * @param code execution return code, usually 0
 * @param output result from stdout
-* @return 200-299- success, <0- error
+* @return 200-299- success, nefative- error code
+* @see push2ClientJSON()
 */
 int push2ClientDataFCM
 (
