@@ -98,7 +98,7 @@ int webpushVapid(
 /**
  * Send VAPID web push using CURL library
  * @param retval return error description string
- * @param subscriptionJSON: fromPublicKey, fromPrivateKey, toName, toEndpoint, toP256dh, toAuth 
+ * @param subscriptionJSON: {public, private, endpoint, p256dh, auth, contact} 
  * @param subject 
  * @param body message
  * @param icon
