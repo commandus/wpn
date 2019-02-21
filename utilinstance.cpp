@@ -1,7 +1,11 @@
-#include "utilinstance.h"
 #include <cstdlib>
+#include <time.h>
 #include <algorithm>
+#include "utilinstance.h"
 #include "utilvapid.h"
+#include "platform.h"
+
+
 
 /**
  * 1) Generates the random number in 8 bytes which is required by the server.

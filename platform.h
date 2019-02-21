@@ -13,7 +13,6 @@ Sleep(seconds *1000);
 	GetFullPathNameA(path.c_str(), MAX_PATH, full_path, NULL); \
 	retval = std::string(full_path); \
 }
-
 #else
 
 #include <limits.h>
