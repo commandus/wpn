@@ -32,7 +32,7 @@
 #define AES128GCM	1
 
 /**
- * Register application catewgory name
+ * Register application category name
  * app=org.chromium.linux
  * https://android.clients.google.com/c2dm/register3
  */
