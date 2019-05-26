@@ -87,11 +87,14 @@ static int encryptEC(
 	if (rawRecvPubKeyLen == 0)
 		return -1;
 	uint8_t rawAuthSecret[ECE_WEBPUSH_AUTH_SECRET_LENGTH];
-	size_t authSecretLen = ece_base64url_decode(authSecret.c_str(), authSecret.length(), ECE_BASE64URL_REJECT_PADDING,
-		rawAuthSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
-	if (authSecretLen == 0)
-		return -2;
-
+	if (authSecret.empty()) {
+		memset(rawAuthSecret, 0, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
+	} else {
+		size_t authSecretLen = ece_base64url_decode(authSecret.c_str(), authSecret.length(), ECE_BASE64URL_REJECT_PADDING,
+			rawAuthSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
+		if (authSecretLen == 0)
+			return -2;
+	}
 	size_t payloadLen = ece_aes128gcm_payload_max_length(ECE_WEBPUSH_DEFAULT_RS,
 		padLen, val.length());
 	if (payloadLen == 0)
@@ -121,11 +124,14 @@ static int decryptEC(
 	if (rawRecvPrivKeyLen == 0)
 		return -1;
 	uint8_t rawAuthSecret[ECE_WEBPUSH_AUTH_SECRET_LENGTH];
-	size_t authSecretLen = ece_base64url_decode(authSecret.c_str(), authSecret.length(), ECE_BASE64URL_REJECT_PADDING,
-		rawAuthSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
-	if (authSecretLen == 0)
-		return -2;
-
+	if (authSecret.empty()) {
+		memset(rawAuthSecret, 0, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
+	} else {
+		size_t authSecretLen = ece_base64url_decode(authSecret.c_str(), authSecret.length(), ECE_BASE64URL_REJECT_PADDING,
+			rawAuthSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
+		if (authSecretLen == 0)
+			return -2;
+	}
 	size_t decryptedLen = ece_aes128gcm_plaintext_max_length((const uint8_t *) val.c_str(), val.length());
 	if (decryptedLen == 0)
 		return -3;
@@ -189,17 +195,19 @@ int main(int argc, char **argv)
 	OpenSSL_add_all_algorithms();
 
 	int r;
-	std::string pub;
-	std::string priv;
-	std::string auth;
 	if (generate) {
+		std::string pub;
+		std::string priv;
+		std::string auth;
 		r = generateKeys(pub, priv, auth);
 		if (r) {
 			std::cerr << "Error generate keys" << std::endl;
 		} else {
-			std::cout << pub << "\t" << priv << "\t" << auth << std::endl;
+			std::cout << pub << "\t" << priv << std::endl;
 		}
 	} else {
+		std::string s;
+		std::string auth = "";
 		// don't skip the whitespace while reading
 		std::cin >> std::noskipws;
 		// use stream iterators to copy the stream to a string
@@ -207,8 +215,6 @@ int main(int argc, char **argv)
 		std::istream_iterator<char> end;
 		std::string v(it, end);
 		if (encrypt) {
-			std::string s;
-			std::string auth;
 			int r = encryptEC(s, v, key, auth);
 			if (r) {
 				std::cerr << "Error: " << r << std::endl;
@@ -216,6 +222,12 @@ int main(int argc, char **argv)
 				std::cerr << s;
 			}
 		} else {
+			int r = encryptEC(s, v, key, auth);
+			if (r) {
+				std::cerr << "Error: " << r << std::endl;
+			} else {
+				std::cerr << s;
+			}
 		}
 	}
 	return 0;
