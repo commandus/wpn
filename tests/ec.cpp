@@ -24,6 +24,8 @@
  * 
  * @file ec.cpp
  * 
+ * g++ -std=c++11 -o ec -I .. -I ../third_party ec.cpp argtable3.o base64url.o params.o keys.o trailer.o encrypt.o decrypt.o -L/usr/local/lib -lssl -lcrypto
+ * 
  */
 
 #include <string>
@@ -73,7 +75,7 @@ static int generateKeys(
 	return err;
 }
 
-static int encryptEC(
+static int encryptEC (
 	std::string &retVal,
 	const std::string &val,
 	const std::string &publicKey,
@@ -82,7 +84,7 @@ static int encryptEC(
 	size_t padLen = 0;
 
 	uint8_t rawRecvPubKey[ECE_WEBPUSH_PUBLIC_KEY_LENGTH];
-	size_t rawRecvPubKeyLen = ece_base64url_decode(publicKey.c_str(), publicKey.length(), ECE_BASE64URL_REJECT_PADDING,
+		size_t rawRecvPubKeyLen = ece_base64url_decode(publicKey.c_str(), publicKey.length(), ECE_BASE64URL_REJECT_PADDING,
 	rawRecvPubKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH);
 	if (rawRecvPubKeyLen == 0)
 		return -1;
@@ -92,19 +94,18 @@ static int encryptEC(
 	} else {
 		size_t authSecretLen = ece_base64url_decode(authSecret.c_str(), authSecret.length(), ECE_BASE64URL_REJECT_PADDING,
 			rawAuthSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
-		if (authSecretLen == 0)
+		if (authSecretLen != ECE_WEBPUSH_AUTH_SECRET_LENGTH)
 			return -2;
 	}
 	size_t payloadLen = ece_aes128gcm_payload_max_length(ECE_WEBPUSH_DEFAULT_RS,
 		padLen, val.length());
 	if (payloadLen == 0)
 		return -3;
-	retVal.reserve(payloadLen);
-
-	int err = ece_webpush_aes128gcm_encrypt(rawRecvPubKey, rawRecvPubKeyLen, rawAuthSecret, authSecretLen,
+	retVal = std::string(payloadLen, '\0');
+	int err = ece_webpush_aes128gcm_encrypt(rawRecvPubKey, rawRecvPubKeyLen, rawAuthSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH,
 		ECE_WEBPUSH_DEFAULT_RS, padLen, (const uint8_t *) val.c_str(), val.length(),
 		(uint8_t *) retVal.c_str(), &payloadLen);
-	if (err == ECE_OK)
+	if (err != ECE_OK)
 		return err;
 	retVal.resize(payloadLen);
 	return ECE_OK;
@@ -135,10 +136,11 @@ static int decryptEC(
 	size_t decryptedLen = ece_aes128gcm_plaintext_max_length((const uint8_t *) val.c_str(), val.length());
 	if (decryptedLen == 0)
 		return -3;
-	retVal.reserve(decryptedLen);
+	retVal = std::string(decryptedLen, '\0');
 
 	int err = ece_webpush_aes128gcm_decrypt(rawSubPrivKey, ECE_WEBPUSH_PRIVATE_KEY_LENGTH, rawAuthSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH,
 		(const uint8_t *) val.c_str(), val.length(), (uint8_t *) retVal.c_str(), &decryptedLen);
+
 	if (err != ECE_OK)
 		return err;
 	retVal.resize(decryptedLen);
@@ -199,7 +201,7 @@ int main(int argc, char **argv)
 		std::string pub;
 		std::string priv;
 		std::string auth;
-		r = generateKeys(pub, priv, auth);
+		r = generateKeys(priv, pub, auth);
 		if (r) {
 			std::cerr << "Error generate keys" << std::endl;
 		} else {
@@ -219,14 +221,14 @@ int main(int argc, char **argv)
 			if (r) {
 				std::cerr << "Error: " << r << std::endl;
 			} else {
-				std::cerr << s;
+				std::cout << s;
 			}
 		} else {
-			int r = encryptEC(s, v, key, auth);
+			int r = decryptEC(s, v, key, auth);
 			if (r) {
 				std::cerr << "Error: " << r << std::endl;
 			} else {
-				std::cerr << s;
+				std::cout << s;
 			}
 		}
 	}
