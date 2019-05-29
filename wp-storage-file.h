@@ -119,7 +119,9 @@ private:
 		const std::string &delimiter
 	);
 public:
+	uint64_t id;
 	void init(
+		uint64_t id,
 		const std::string &private_key,
 		const std::string &public_key,
 		const std::string &auth_secret
@@ -132,11 +134,13 @@ public:
 		const WpnKeys &wpnKeys
 	);
 	WpnKeys(
+		uint64_t id,
 		const std::string &private_key,
 		const std::string &public_key,
 		const std::string &auth_secret
    	);
 	WpnKeys(
+		uint64_t id,
 		const std::string &keys,
 		const std::string &delimiter
 	);
@@ -200,6 +204,7 @@ private:
 		const std::string &name,
 		const std::string &endpoint,
 		const std::string &persistentId,
+		uint64_t id,
 		const std::string &publicKey,
 		const std::string &privateKey,
 		const std::string &authSecret
@@ -235,6 +240,7 @@ public:
 	);
 	// VAPID
 	Subscription(
+		uint64_t id,
 		const std::string &name,
 		const std::string &endpoint,
 		const std::string &privateKey,
@@ -332,6 +338,39 @@ public:
 	) const;
 	json toJson(
 	) const;
+};
+
+class ConfigFile
+{
+private:
+	void read(
+		std::istream &strm,
+		const std::string &delimiter = DEF_DELIMITER
+	);
+	bool fromJson(const json &value);
+public:
+	AndroidCredentials *androidCredentials;
+	WpnKeys *wpnKeys;
+	Subscriptions *subscriptions;
+
+	ConfigFile(
+		const std::string &fileName
+	);
+	ConfigFile(
+		const json &value
+	);
+
+	std::ostream::pos_type write(
+		std::ostream &strm,
+		const std::string &delimiter = DEF_DELIMITER,
+		const int writeFormat = FORMAT_TEXT
+	)  const;
+
+	std::ostream::pos_type save(
+		const std::string &fileName
+	) const;
+
+	json toJson() const;
 };
 
 void generateVAPIDKeys

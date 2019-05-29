@@ -28,6 +28,8 @@
 
 #include <string>
 
+#include "vapid.h"
+
 #define AESGCM 		0
 #define AES128GCM	1
 
@@ -37,11 +39,6 @@
  * https://android.clients.google.com/c2dm/register3
  */
 #define APP_CATEGORY	"org.chromium.linux"
-
-std::string base64UrlEncode(
-	const void *data,
-	size_t size
-);
 
 /**
  * Helper function for testing

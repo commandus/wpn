@@ -14,7 +14,7 @@ lib_LTLIBRARIES = \
 
 #	Binaries
 bin_PROGRAMS = \
-	wpn webpush-curl wpnr wpnw wpnlink wpnlinkj wpnadd wpnwj
+	wpn webpush-curl wpnr wpnw wpnlink wpnlinkj wpnadd wpnwj ec wpn-grant
 
 # commoncppflags = -O2 -I/usr/local/include -Imcs/gen -Ithird_party
 # commoncppflags = -O2 -I/usr/include -Imcs/gen -Ithird_party
@@ -64,7 +64,7 @@ wpn_lib_source = \
 	$(gengrpcs_c) \
 	utilfile.cpp utilstring.cpp params.cpp commandoutput.cpp endpoint.cpp \
 	utilqr.cpp $(QRSOURCES) \
-	utilvapid.cpp utilrecv.cpp utilinstance.cpp
+	vapid.cpp utilvapid.cpp utilrecv.cpp utilinstance.cpp
 AM_CXXFLAGS = -std=c++11 
 
 #
@@ -111,13 +111,13 @@ common_src = $(ARGT3SOURCES)
 #
 #	wpn
 #
-wpn_SOURCES= \
+wpn_SOURCES = \
 	wpn-config.cpp wpn.cpp wp-storage-file.cpp \
 	wp-push.cpp wp-subscribe.cpp wp-connection.cpp sslfactory.cpp \
 	mcs/mcsclient.cpp endpoint.cpp \
 	utilstring.cpp params.cpp commandoutput.cpp \
 	utilqr.cpp $(QRSOURCES) \
-	utilvapid.cpp utilrecv.cpp utilinstance.cpp config-filename.cpp \
+	vapid.cpp utilvapid.cpp utilrecv.cpp utilinstance.cpp config-filename.cpp \
 	$(common_src)
 wpn_LDADD = $(commonlibs) -ldl
 wpn_CPPFLAGS = $(commoncppflags)
@@ -127,7 +127,7 @@ wpn_CPPFLAGS = $(commoncppflags)
 #
 webpush_curl_SOURCES = \
 	tools/curl/webpush-curl.cpp \
-	utilvapid.cpp \
+	vapid.cpp utilvapid.cpp \
 	$(common_src)
 
 webpush_curl_LDADD = $(commonlibs)
@@ -142,7 +142,7 @@ webpush_curl_CPPFLAGS = $(commoncppflags)
 #
 wpnr_SOURCES = \
 	tools/wpnr/wpnr.cpp config-filename.cpp utilfile.cpp commandoutput.cpp params.cpp wp-push.cpp endpoint.cpp \
-	utilinstance.cpp utilrecv.cpp utilvapid.cpp utilstring.cpp mcs/mcsclient.cpp wp-storage-file.cpp sslfactory.cpp \
+	utilinstance.cpp utilrecv.cpp vapid.cpp utilvapid.cpp utilstring.cpp mcs/mcsclient.cpp wp-storage-file.cpp sslfactory.cpp \
 	$(gengrpcs_c) \
 	$(common_src)
 wpnr_LDADD = $(curllibs) $(mcslibs) -lece
@@ -153,7 +153,7 @@ wpnr_CPPFLAGS = $(commoncppflags)
 #
 wpnw_SOURCES= \
 	tools/wpnw/wpnw.cpp config-filename.cpp utilfile.cpp endpoint.cpp \
-	utilinstance.cpp utilvapid.cpp sslfactory.cpp utilstring.cpp wp-storage-file.cpp \
+	utilinstance.cpp vapid.cpp utilvapid.cpp sslfactory.cpp utilstring.cpp wp-storage-file.cpp \
 	$(common_src)
 wpnw_LDADD = $(curllibs) -L. -lece
 wpnw_CPPFLAGS = $(commoncppflags)
@@ -163,7 +163,7 @@ wpnw_CPPFLAGS = $(commoncppflags)
 #
 wpnwj_SOURCES= \
 	tools/wpnwj/wpnwj.cpp config-filename.cpp utilfile.cpp endpoint.cpp \
-	utilinstance.cpp utilvapid.cpp sslfactory.cpp utilstring.cpp wp-storage-file.cpp \
+	utilinstance.cpp vapid.cpp utilvapid.cpp sslfactory.cpp utilstring.cpp wp-storage-file.cpp \
 	$(common_src)
 
 wpnwj_LDADD = $(curllibs) -L. -lece
@@ -174,7 +174,7 @@ wpnwj_CPPFLAGS = $(commoncppflags)
 #
 wpnadd_SOURCES= \
 	tools/wpnadd/wpnadd.cpp config-filename.cpp utilfile.cpp endpoint.cpp \
-	utilinstance.cpp utilvapid.cpp utilrecv.cpp sslfactory.cpp utilstring.cpp wp-storage-file.cpp \
+	utilinstance.cpp vapid.cpp utilvapid.cpp utilrecv.cpp sslfactory.cpp utilstring.cpp wp-storage-file.cpp \
 	$(gengrpcs_c) \
 	$(common_src)
 wpnadd_LDADD = $(commonlibs)
@@ -185,7 +185,7 @@ wpnadd_CPPFLAGS = $(commoncppflags)
 #
 wpnlink_SOURCES= \
 	tools/wpnlink/wpnlink.cpp config-filename.cpp endpoint.cpp utilinstance.cpp wp-subscribe.cpp \
-	utilfile.cpp utilvapid.cpp utilstring.cpp \
+	utilfile.cpp vapid.cpp utilvapid.cpp utilstring.cpp \
 	$(common_src)
 
 wpnlink_LDADD = $(curllibs) -L. -lece
@@ -196,11 +196,32 @@ wpnlink_CPPFLAGS = $(commoncppflags)
 #
 wpnlinkj_SOURCES= \
 	tools/wpnlinkj/wpnlinkj.cpp config-filename.cpp endpoint.cpp utilinstance.cpp wp-subscribe.cpp \
-	utilfile.cpp utilvapid.cpp utilstring.cpp \
+	utilfile.cpp vapid.cpp utilvapid.cpp utilstring.cpp \
 	$(common_src)
 
 wpnlinkj_LDADD = $(curllibs) -L. -lece
 wpnlinkj_CPPFLAGS = $(commoncppflags)
+
+
+#
+#	ec
+#
+ec_SOURCES= \
+	tests/ec.cpp vapid.cpp $(ARGT3SOURCES)
+
+ec_LDADD = -lssl -lcrypto -lece
+ec_CPPFLAGS = $(commoncppflags)
+
+#
+#	wpn-grant
+#
+wpn_grant_SOURCES= \
+	wpn-grant.cpp vapid.cpp wp-storage-file.cpp \
+	utilstring.cpp endpoint.cpp utilinstance.cpp  \
+	$(common_src)
+
+wpn_grant_LDADD = $(curllibs) -L. -lece
+wpn_grant_CPPFLAGS = $(commoncppflags)
 
 #
 # ----- Build library first -----

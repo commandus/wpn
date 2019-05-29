@@ -33,6 +33,7 @@
 #include <istream>
 #include <ostream>
 #include <iterator>
+#include <vector>
 #include <cstring>
 
 #include <openssl/sha.h>
@@ -44,18 +45,25 @@
 #include <argtable3/argtable3.h>
 
 #include "utilvapid.h"
+#include "wp-storage-file.h"
 
-static const char* progname = "ec";
+#define  DEF_CONFIG_FILE_NAME "~/.wpn.js"
+
+static const char* progname = "wpn-grant";
+
 
 int main(int argc, char **argv) 
 {
-	struct arg_str *a_key = arg_str0(NULL, NULL, "<key>", "Public(encrypt) or private key(decrypt)");
-	struct arg_lit *a_generate = arg_lit0("g", "keys", "Generate public/private keys");
+	struct arg_int *a_id = arg_int0(NULL, NULL, "<id>", "Client identifier to establish connection");
+	struct arg_lit *a_rm = arg_lit0("d", "delete", "Remove connection");
+	struct arg_str *a_name = arg_str0("n", "name", "<alias>", "Public(encrypt) or private key(decrypt)");
+	struct arg_str *a_config = arg_str0("c", "config", "<file>", "Config file. Default " DEF_CONFIG_FILE_NAME);
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
-		a_key, a_generate,
+		a_id, a_rm,
+		a_name, a_config,
 		a_help, a_end 
 	};
 
@@ -68,13 +76,15 @@ int main(int argc, char **argv)
 	// Parse the command line as defined by argtable[]
 	int nerrors = arg_parse(argc, argv, argtable);
 
-	std::string key;
-	if (a_key->count)
-		key = *a_key->sval;
-	else {
-		if (a_generate->count == 0)
-			nerrors++;
-	}
+	uint64_t id = 0;
+	if (a_id->count)
+		id = *a_id->ival;
+	bool remove = a_rm->count > 0;
+	std::string config;
+	if (a_config->count)
+		config = *a_config->sval;
+	else
+		config = DEF_CONFIG_FILE_NAME;
 
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)
@@ -83,53 +93,26 @@ int main(int argc, char **argv)
 			arg_print_errors(stderr, a_end, progname);
 		std::cerr << "Usage: " << progname << std::endl;
 		arg_print_syntax(stderr, argtable, "\n");
-		std::cerr << "encryption/decryption utility" << std::endl;
+		std::cerr << "Manage wpn subscriptions" << std::endl;
 		arg_print_glossary(stderr, argtable, "  %-27s %s\n");
 		arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 		return 1;
 	}
-	// length public: 87, private 43
-	bool encrypt = key.length() > 43;
-	bool generate = a_generate->count > 0;
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
 	OpenSSL_add_all_algorithms();
 
+	ConfigFile wpnConfig(config);
+
 	int r;
-	if (generate) {
-		std::string pub;
-		std::string priv;
-		std::string auth;
-		r = generateKeys(priv, pub, auth);
-		if (r) {
-			std::cerr << "Error generate keys" << std::endl;
-		} else {
-			std::cout << pub << "\t" << priv << std::endl;
-		}
+	if (id) {
 	} else {
-		std::string s;
-		std::string auth = "";
-		// don't skip the whitespace while reading
-		std::cin >> std::noskipws;
-		// use stream iterators to copy the stream to a string
-		std::istream_iterator<char> it(std::cin);
-		std::istream_iterator<char> end;
-		std::string v(it, end);
-		if (encrypt) {
-			int r = encryptEC(s, v, key, auth);
-			if (r) {
-				std::cerr << "Error: " << r << std::endl;
-			} else {
-				std::cout << s;
-			}
-		} else {
-			int r = decryptEC(s, v, key, auth);
-			if (r) {
-				std::cerr << "Error: " << r << std::endl;
-			} else {
-				std::cout << s;
-			}
+		std::cout << wpnConfig.wpnKeys->id << std::endl;
+		for (std::vector<Subscription>::const_iterator it = wpnConfig.subscriptions->list.begin(); it != wpnConfig.subscriptions->list.end(); ++it) {
+
 		}
 	}
+
+	wpnConfig.save(config);
 	return 0;
 }

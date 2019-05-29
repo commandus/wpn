@@ -348,7 +348,7 @@ int main(int argc, char** argv)
 			WpnKeys wpnKeys;
 			if (!config.private_key.empty()) {
 				// override Wpn keys
-				wpnKeys.init(config.private_key, config.public_key, config.auth_secret); 
+				wpnKeys.init(0, config.private_key, config.public_key, config.auth_secret); 
 			}
 			switch (config.subscriptionMode) {
 				case SUBSCRIBE_FORCE_FIREBASE:

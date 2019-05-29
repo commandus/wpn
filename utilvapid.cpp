@@ -11,16 +11,6 @@
 
 using json = nlohmann::json;
 
-std::string base64UrlEncode(
-	const void *data,
-	size_t size
-) {
-	size_t sz = ece_base64url_encode(data, size, ECE_BASE64URL_OMIT_PADDING, NULL, 0);
-	std::string r(sz, '\0');
-	ece_base64url_encode(data, size, ECE_BASE64URL_OMIT_PADDING, (char*) r.c_str(), r.size());
-	return r;
-}
-
 /**
   * Indicates whether `c` is an ASCII control character, and must be escaped to appear in a JSON string.
   */
