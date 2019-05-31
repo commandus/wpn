@@ -404,6 +404,8 @@ public:
 		const json &value
 	);
 
+	~ConfigFile();
+	
 	std::ostream::pos_type write(
 		std::ostream &strm,
 		const std::string &delimiter = DEF_DELIMITER,

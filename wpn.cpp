@@ -165,7 +165,7 @@ int main(int argc, char** argv)
 			{
 				if ((config.outputFormat == 0) && (config.verbosity > 0))
 					std::cout << "subscribeUrl\tsubscribe mode\tendpoint\tauthorized entity\tFCM token\tpushSet" << std::endl;
-				config.subscriptions->write(std::cout, "\t", config.outputFormat);
+				config.config->subscriptions->write(std::cout, "\t", config.outputFormat);
 			}
 			break;
 		case CMD_LIST_QRCODE:
@@ -174,7 +174,7 @@ int main(int argc, char** argv)
 					std::cout << "FCM QRCodes:" << std::endl;
 				
 				long r = 0;
-				for (std::vector<Subscription>::const_iterator it(config.subscriptions->list.begin()); it != config.subscriptions->list.end(); ++it)
+				for (std::vector<Subscription>::const_iterator it(config.config->subscriptions->list.begin()); it != config.config->subscriptions->list.end(); ++it)
 				{
 					std::stringstream ss;
 					ss 
@@ -197,7 +197,7 @@ int main(int argc, char** argv)
 		case CMD_LIST_LINK:
 			{
 				std::stringstream ssBody;
-				for (std::vector<Subscription>::const_iterator it(config.subscriptions->list.begin()); it != config.subscriptions->list.end(); ++it)
+				for (std::vector<Subscription>::const_iterator it(config.config->subscriptions->list.begin()); it != config.config->subscriptions->list.end(); ++it)
 				{
 					std::stringstream ss;
 					ss
@@ -232,7 +232,7 @@ int main(int argc, char** argv)
 				}
 
 				std::stringstream ssBody;
-				for (std::vector<Subscription>::const_iterator it(config.subscriptions->list.begin()); it != config.subscriptions->list.end(); ++it)
+				for (std::vector<Subscription>::const_iterator it(config.config->subscriptions->list.begin()); it != config.config->subscriptions->list.end(); ++it)
 				{
 					std::stringstream ss;
 					ss 
@@ -262,7 +262,7 @@ int main(int argc, char** argv)
 			{
 				if ((config.outputFormat == 0) && (config.verbosity > 0))
 					std::cout << "application identifer\tandroid identifer\tsecurity token\tGCM token" << std::endl;
-				config.androidCredentials->write(std::cout, "\t", config.outputFormat);
+				config.config->androidCredentials->write(std::cout, "\t", config.outputFormat);
 				std::cout << std::endl;
 			}
 			break;
@@ -270,7 +270,7 @@ int main(int argc, char** argv)
 			{
 				if ((config.outputFormat == 0) && (config.verbosity > 0))
 					std::cout << "private key\tpublic key\tauthentication secret" << std::endl;
-				config.wpnKeys->write(std::cout, "\t", config.outputFormat);
+				config.config->wpnKeys->write(std::cout, "\t", config.outputFormat);
 				std::cout << std::endl;
 			}
 			break;
@@ -281,8 +281,8 @@ int main(int argc, char** argv)
 				std::string token;
 				std::string pushset;
 				int r = subscribeFCM(&d, &headers, token, pushset, 
-					config.wpnKeys->getPublicKey(),
-					config.wpnKeys->getAuthSecret(),  
+					config.config->wpnKeys->getPublicKey(),
+					config.config->wpnKeys->getAuthSecret(),  
 					config.subscribeUrl, config.getDefaultFCMEndPoint(), config.authorizedEntity,
 					config.verbosity);
 				if ((r < 200) || (r >= 300))
@@ -299,7 +299,7 @@ int main(int argc, char** argv)
 					subscription.setSubscribeMode(SUBSCRIBE_FORCE_FIREBASE);
 					subscription.setEndpoint(config.getDefaultFCMEndPoint());
 					subscription.setAuthorizedEntity(config.authorizedEntity);
-					config.subscriptions->list.push_back(subscription);
+					config.config->subscriptions->list.push_back(subscription);
 					if (config.verbosity > 0)
 					{
 						subscription.write(std::cout, "\t", config.outputFormat);
@@ -311,7 +311,7 @@ int main(int argc, char** argv)
 			{
 				// TODO
 				Subscription subscription;
-				config.subscriptions->list.push_back(subscription);
+				config.config->subscriptions->list.push_back(subscription);
 				if (config.verbosity > 0)
 				{
 					subscription.write(std::cout, "\t", config.outputFormat);
@@ -324,19 +324,19 @@ int main(int argc, char** argv)
 				{
 					// delete all
 					Subscription f(config.fcm_endpoint, config.authorizedEntity);
-					for (std::vector<Subscription>::iterator it(config.subscriptions->list.begin()); it != config.subscriptions->list.end(); ++it)
+					for (std::vector<Subscription>::iterator it(config.config->subscriptions->list.begin()); it != config.config->subscriptions->list.end(); ++it)
 					{
 						// TODO
 					}
-					config.subscriptions->list.clear();
+					config.config->subscriptions->list.clear();
 				}
 				else
 				{
 					Subscription f(config.fcm_endpoint, config.authorizedEntity);
-					std::vector<Subscription>::iterator it = std::find(config.subscriptions->list.begin(),
-						config.subscriptions->list.end(), f);
-					if (it != config.subscriptions->list.end())
-						config.subscriptions->list.erase(it);
+					std::vector<Subscription>::iterator it = std::find(config.config->subscriptions->list.begin(),
+						config.config->subscriptions->list.end(), f);
+					if (it != config.config->subscriptions->list.end())
+						config.config->subscriptions->list.erase(it);
 				}
 			}
 			break;
@@ -457,7 +457,7 @@ int main(int argc, char** argv)
 			std::string d;
 			std::string headers;
 
-			config.wpnKeys->generate();
+			config.config->wpnKeys->generate();
 			/*
 			int r = subscribe(subscription, SUBSCRIBE_VAPID, *config.wpnKeys, 
 				config.subscribeUrl, config.getDefaultEndPoint(), config.authorizedEntity,
@@ -475,7 +475,7 @@ int main(int argc, char** argv)
 				subscription.write(std::cout, "\t", config.outputFormat);
 			}
 			*/
-			std::cout << config.wpnKeys->toJson().dump() << std::endl;
+			std::cout << config.config->wpnKeys->toJson().dump() << std::endl;
 		}
 			break;
 		default:
@@ -486,43 +486,43 @@ int main(int argc, char** argv)
 				}
 				MCSClient client(
 					config.lastPersistentId,
-					config.wpnKeys->getPrivateKey(),
-					config.wpnKeys->getAuthSecret(),
-					config.androidCredentials->getAndroidId(),
-					config.androidCredentials->getSecurityToken(),
+					config.config->wpnKeys->getPrivateKey(),
+					config.config->wpnKeys->getAuthSecret(),
+					config.config->androidCredentials->getAndroidId(),
+					config.config->androidCredentials->getSecurityToken(),
 					onNotify, &config, onLog, &config,
 					config.verbosity
 				);
 
 				// check in
-				if (config.androidCredentials->getAndroidId() == 0)
+				if (config.config->androidCredentials->getAndroidId() == 0)
 				{
-					uint64_t androidId = config.androidCredentials->getAndroidId();
-					uint64_t securityToken = config.androidCredentials->getSecurityToken();
+					uint64_t androidId = config.config->androidCredentials->getAndroidId();
+					uint64_t securityToken = config.config->androidCredentials->getSecurityToken();
 					int r = checkIn(&androidId, &securityToken, config.verbosity);
 					if (r < 200 || r >= 300)
 					{
 						return ERR_NO_ANDROID_ID_N_TOKEN;
 					}
-					config.androidCredentials->setAndroidId(androidId);
-					config.androidCredentials->setSecurityToken(securityToken);
+					config.config->androidCredentials->setAndroidId(androidId);
+					config.config->androidCredentials->setSecurityToken(securityToken);
 				}
 				// register
-				if (config.androidCredentials->getGCMToken().empty())
+				if (config.config->androidCredentials->getGCMToken().empty())
 				{
 					int r;
 					for (int i = 0; i < 5; i++)
 					{
 						std::string gcmToken;
 						r = registerDevice(&gcmToken,
-							config.androidCredentials->getAndroidId(),
-							config.androidCredentials->getSecurityToken(),
-							config.androidCredentials->getAppId(),
+							config.config->androidCredentials->getAndroidId(),
+							config.config->androidCredentials->getSecurityToken(),
+							config.config->androidCredentials->getAppId(),
 							config.verbosity
 						);
 						if (r >= 200 && r < 300)
 						{
-							config.androidCredentials->setGCMToken(gcmToken);
+							config.config->androidCredentials->setGCMToken(gcmToken);
 							break;
 						}
 						sleep(1);
@@ -546,6 +546,6 @@ int main(int argc, char** argv)
 				config.unloadNotifyFuncs();
 			}
 	}
-	config.save();
+	config.config->save(config.file_name);
 	return 0;
 }

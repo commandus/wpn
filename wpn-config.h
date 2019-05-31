@@ -96,7 +96,6 @@ public:
 	std::string cn;									/// email template $name value
 	std::string lastPersistentId;
 	
-	WpnConfig();
 	WpnConfig
 	(
 		int argc,
@@ -105,11 +104,7 @@ public:
 	~WpnConfig();
 	int error();
 
-	AndroidCredentials *androidCredentials;
-	WpnKeys *wpnKeys;
-	Subscriptions *subscriptions;
-	std::istream::pos_type read(const std::string &fileName);
-	std::ostream::pos_type write() const;
+	ConfigFile *config;
 
 	size_t loadNotifyFuncs();
 	void unloadNotifyFuncs();
@@ -141,9 +136,6 @@ public:
 	(
 		const std::string &subscriptionName
 	) const;
-	json toJson() const;
-	bool fromJson(const json &value);
-	bool save() const;
 	
 	std::string getDefaultFCMEndPoint();
 	std::string versionString();

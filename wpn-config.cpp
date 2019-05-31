@@ -63,22 +63,11 @@ static int parseJsonRecipientTokens
 std::string WpnConfig::getDefaultFCMEndPoint()
 {
 	std::string r(DEF_FCM_ENDPOINT_PREFIX);
-	if (androidCredentials)
-		r = r + androidCredentials->getGCMToken();
+	if (config->androidCredentials)
+		r = r + config->androidCredentials->getGCMToken();
 	return r;
 }
 
-WpnConfig::WpnConfig()
-	: errorcode(0), cmd(CMD_LISTEN), outputFormat(0), verbosity(0), aesgcm(false),
-	file_name(getDefaultConfigFileName(DEF_FILE_NAME)), name(""), subscribeUrl(""), fcm_endpoint(""), 
-	authorizedEntity(""), subscriptionMode(0), serverKey(""), recipientTokenFile(""), 
-	vapid_sender_contact(""), vapid_recipient_p256dh(""), vapid_recipient_auth(""),
-	private_key(""), public_key(""), auth_secret(""), sub(""),
-	subject(""), body(""), icon(""), link(""), command(""), 
-	notifyFunctionName(DEF_FUNC_NOTIFY), invert_qrcode(false), email_template(""), cn(""), lastPersistentId("")
-{
-}
-	
 WpnConfig::WpnConfig
 (
 	int argc,
@@ -90,12 +79,8 @@ WpnConfig::WpnConfig
 
 WpnConfig::~WpnConfig()
 {
-	if (androidCredentials)
-		delete androidCredentials;
-	if (wpnKeys)
-		delete wpnKeys;
-	if (subscriptions)
-		delete subscriptions;
+	if (config)
+		delete config;
 }
 
 /**
@@ -206,20 +191,8 @@ int WpnConfig::parseCmd
 	else
 		file_name = getDefaultConfigFileName(DEF_FILE_NAME);
 
-	// read
-	if (file_name.find(".js") != std::string::npos) {
-		std::ifstream strm(file_name);
-		json j;
-		try {
-			strm >> j;
-		}
-		catch (...) {
-			std::cerr << "Error parse " << file_name << std::endl;
-		}
-		fromJson(j);
-		strm.close();
-	} else
-		read(file_name);
+	// read config
+	config = new ConfigFile(file_name);
 
 	if (a_subscribe_url->count)
 		subscribeUrl = *a_subscribe_url->sval;
@@ -550,79 +523,6 @@ int WpnConfig::error()
 	return errorcode;
 }
 
-std::istream::pos_type WpnConfig::read(const std::string &fileName)
-{
-	std::ifstream configRead(fileName.c_str());
-	androidCredentials = new AndroidCredentials(configRead);
-	wpnKeys = new WpnKeys(configRead);
-	subscriptions = new Subscriptions(configRead);
-	std::istream::pos_type r = configRead.tellg();
-	configRead.close();
-	return (int) r;
-}
-
-std::ostream::pos_type WpnConfig::write() const
-{
-	std::ofstream configWrite(file_name);
-	std::ostream::pos_type r = androidCredentials->write(configWrite);
-	r += wpnKeys->write(configWrite);
-	r += subscriptions->write(configWrite);
-	configWrite.close();
-	return r;
-}
-
-json WpnConfig::toJson() const
-{
-	json c = androidCredentials->toJson();
-	json k = wpnKeys->toJson();
-	json s = subscriptions->toJson();
-	json r = {
-		{ "credentials", c},
-		{ "keys", k },
-		{ "subscriptions", s }
-	};
-	return r;
-}
-
-bool WpnConfig::save() const
-{
-	if (file_name.find(".js") != std::string::npos) {
-		std::ofstream configWrite(file_name);
-		configWrite << toJson().dump(4) << std::endl;
-		configWrite.close();
-	} else
-		write();
-	return true;
-}
-
-bool WpnConfig::fromJson(const json &value)
-{
-	bool r;
-	androidCredentials = NULL;
-	wpnKeys = NULL;
-	subscriptions = NULL;
-	try {
-		r = (value.find("credentials") != value.end())
-			&& (value.find("keys") != value.end())
-			&& (value.find("subscriptions") != value.end());
-		if (r) 
-		{
-			androidCredentials = new AndroidCredentials(value["credentials"]);
-			wpnKeys = new WpnKeys(value["keys"]);
-			subscriptions = new Subscriptions(value["subscriptions"]);
-		}
-	} catch(...) {
-		r = false;
-	}
-	if (!androidCredentials) 
-		androidCredentials = new AndroidCredentials();
-	if (!wpnKeys) 
-		wpnKeys = new WpnKeys();
-	if (!subscriptions) 
-		subscriptions = new Subscriptions();
-	return r;
-}
-
 SO_INSTANCE loadPlugin(const std::string &fileName)
 {
 #ifdef _MSC_VER
@@ -722,8 +622,8 @@ void WpnConfig::unloadNotifyFuncs()
 void WpnConfig::getPersistentIds(std::vector<std::string> &retval)
 {
 	retval.clear();
-	retval.push_back(subscriptions->getReceivedPersistentId());
-	for (std::vector<Subscription>::iterator it(subscriptions->list.begin()); it != subscriptions->list.end(); ++it)
+	retval.push_back(config->subscriptions->getReceivedPersistentId());
+	for (std::vector<Subscription>::iterator it(config->subscriptions->list.begin()); it != config->subscriptions->list.end(); ++it)
 	{
 		std::string v = it->getPersistentId();
 		if (!v.empty())
@@ -740,7 +640,7 @@ void WpnConfig::getPersistentIds(std::vector<std::string> &retval)
 */
 const Subscription *WpnConfig::getSubscription(const std::string &subscriptionName) const
 {
-	for (std::vector<Subscription>::const_iterator it(subscriptions->list.begin()); it != subscriptions->list.end(); ++it)
+	for (std::vector<Subscription>::const_iterator it(config->subscriptions->list.begin()); it != config->subscriptions->list.end(); ++it)
 	{
 		std::string n = it->getName();
 		if (n == subscriptionName)
@@ -789,9 +689,9 @@ bool WpnConfig::setPersistentId
 	const std::string &persistentId
 )
 {
-	if (!subscriptions)
+	if (!config->subscriptions)
 		return false;
-	for (std::vector<Subscription>::iterator it(subscriptions->list.begin()); it != subscriptions->list.end(); ++it)
+	for (std::vector<Subscription>::iterator it(config->subscriptions->list.begin()); it != config->subscriptions->list.end(); ++it)
 	{
 		if (it->getAuthorizedEntity() == authorizedEntity)
 		{
@@ -799,7 +699,7 @@ bool WpnConfig::setPersistentId
 			return true;
 		}
 	}
-	subscriptions->setReceivedPersistentId(persistentId);
+	config->subscriptions->setReceivedPersistentId(persistentId);
 	return true;
 }
 

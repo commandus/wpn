@@ -41,11 +41,11 @@
 #include <ece/keys.h>
 
 #include <argtable3/argtable3.h>
-
+#include "config-filename.h"
 #include "utilvapid.h"
 #include "wp-storage-file.h"
 
-#define  DEF_CONFIG_FILE_NAME "~/.wpn.js"
+#define  DEF_CONFIG_FILE_NAME ".wpn.js"
 
 static const char* progname = "wpn-grant";
 
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	if (a_config->count)
 		config = *a_config->sval;
 	else
-		config = DEF_CONFIG_FILE_NAME;
+		config = getDefaultConfigFileName(DEF_CONFIG_FILE_NAME);
 
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)

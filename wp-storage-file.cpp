@@ -72,7 +72,9 @@ ClientOptions::ClientOptions(
 ClientOptions::ClientOptions(
 	const json &value
 ) {
-	name = value["name"];
+	json::const_iterator f = value.find("name");
+	if (f != value.end())
+		name = f.value();
 }
 
 std::ostream::pos_type ClientOptions::write(
@@ -160,7 +162,24 @@ AndroidCredentials::AndroidCredentials(
 	const json &value
 )
 {
-	init(value["appId"], value["androidId"], value["securityToken"], value["GCMToken"]);
+	std::string appId;
+	uint64_t androidId;
+	uint64_t securityToken;
+	std::string GCMToken;
+	json::const_iterator f = value.find("appId");
+	if (f != value.end())
+		appId = f.value();
+	f = value.find("androidId");
+	if (f != value.end())
+		androidId = f.value();
+	f = value.find("securityToken");
+	if (f != value.end())
+		securityToken = f.value();
+	f = value.find("GCMToken");
+	if (f != value.end())
+		GCMToken = f.value();
+
+	init(appId, androidId, securityToken, GCMToken);
 }
 
 std::string AndroidCredentials::genAppId()
@@ -315,13 +334,13 @@ json AndroidCredentials::toJson(
 // --------------- WpnKeys ---------------
 
 WpnKeys::WpnKeys()
-	: id(0), secret(0)
 {
 }
 
 WpnKeys::WpnKeys (
 	const WpnKeys &value
-) {
+)
+{
 	init(value);
 }
 
@@ -371,7 +390,28 @@ WpnKeys::WpnKeys(
 	const json &value
 )
 {
-	init(value["id"], value["secret"], value["privateKey"], value["publicKey"], value["authSecret"]);
+	uint64_t id;
+	uint64_t secret;
+	std::string privateKey;
+	std::string publicKey;
+	std::string authSecret;
+
+	json::const_iterator f = value.find("id");
+	if (f != value.end())
+		id = f.value();
+	f = value.find("secret");
+	if (f != value.end())
+		secret = f.value();
+	f = value.find("privateKey");
+	if (f != value.end())
+		privateKey = f.value();
+	f = value.find("publicKey");
+	if (f != value.end())
+		publicKey = f.value();
+	f = value.find("authSecret");
+	if (f != value.end())
+		authSecret = f.value();
+	init(id, secret, privateKey, publicKey, authSecret);
 }
 
 void WpnKeys::init(
@@ -580,24 +620,68 @@ Subscription::Subscription(
 	const json &value
 )
 {
-	this->subscribeMode = value["subscribeMode"];
+	json::const_iterator f = value.find("subscribeMode");
+	if (f != value.end())
+		subscribeMode = f.value();
 	switch (this->subscribeMode) {
 	case SUBSCRIBE_FORCE_FIREBASE:
-		this->name = value["name"];
-		this->subscribeUrl = value["subscribeUrl"];
-		this->endpoint = value["endpoint"];
-		this->authorizedEntity = value["authorizedEntity"];
-		this->token = value["token"];
-		this->pushSet = value["pushSet"];
-		this->persistentId = value["persistentId"];
-		this->serverKey = value["serverKey"];
+		f = value.find("name");
+		if (f != value.end())
+			name = f.value();
+		f = value.find("subscribeUrl");
+		if (f != value.end())
+			subscribeUrl = f.value();
+		f = value.find("endpoint");
+		if (f != value.end())
+			endpoint = f.value();
+		f = value.find("authorizedEntity");
+		if (f != value.end())
+			authorizedEntity = f.value();
+		f = value.find("token");
+		if (f != value.end())
+			token = f.value();
+		f = value.find("pushSet");
+		if (f != value.end())
+			pushSet = f.value();
+		f = value.find("persistentId");
+		if (f != value.end())
+			persistentId = f.value();
+		f = value.find("serverKey");
+		if (f != value.end())
+			serverKey = f.value();
 		break;
 	case SUBSCRIBE_FORCE_VAPID:
 	{
-		this->wpnKeys.init(value["id"], value["secret"], value["publicKey"], value["privateKey"], value["authSecret"]);
-		this->name = value["name"];
-		this->endpoint = value["endpoint"];
-		this->persistentId = value["persistentId"];
+		uint64_t id;
+		uint64_t secret;
+		std::string publicKey;
+		std::string privateKey;
+		std::string authSecret;
+		f = value.find("id");
+		if (f != value.end())
+			id = f.value();
+		f = value.find("secret");
+		if (f != value.end())
+			secret = f.value();
+		f = value.find("publicKey");
+		if (f != value.end())
+			publicKey = f.value();
+		f = value.find("privateKey");
+		if (f != value.end())
+			privateKey = f.value();
+		f = value.find("authSecret");
+		if (f != value.end())
+			authSecret = f.value();
+		this->wpnKeys.init(id, secret, publicKey, privateKey, authSecret);
+		f = value.find("name");
+		if (f != value.end())
+			name = f.value();
+		f = value.find("endpoint");
+		if (f != value.end())
+			endpoint = f.value();
+		f = value.find("persistentId");
+		if (f != value.end())
+			persistentId = f.value();
 		break;
 	}
 	default:
@@ -1057,14 +1141,18 @@ bool ConfigFile::fromJson(const json &value)
 	wpnKeys = NULL;
 	subscriptions = NULL;
 	try {
-		if (value.find("options") != value.end()) 
-			clientOptions = new ClientOptions(value["options"]);
-		if (value.find("credentials") != value.end())
-			androidCredentials = new AndroidCredentials(value["credentials"]);
-		if (value.find("keys") != value.end()) 
-			wpnKeys = new WpnKeys(value["keys"]);
-		if (value.find("subscriptions") != value.end())
-			subscriptions = new Subscriptions(value["subscriptions"]);
+		json::const_iterator f = value.find("options");
+		if (f != value.end())
+			clientOptions = new ClientOptions(f.value());
+		f = value.find("credentials");
+		if (f != value.end()) 
+			androidCredentials = new AndroidCredentials(f.value());
+		f = value.find("keys");
+		if (f != value.end()) 
+			wpnKeys = new WpnKeys(f.value());
+		f = value.find("subscriptions");
+		if (f != value.end())
+			subscriptions = new Subscriptions(f.value());
 	} catch(...) {
 		r = false;
 	}
@@ -1099,6 +1187,9 @@ ConfigFile::ConfigFile(
 		try {
 			configRead >> j;
 		}
+		catch (json::exception e) {
+			std::cerr << fileName <<  " error " << e.what() << std::endl;
+		}
 		catch (...) {
 			std::cerr << "Error parse " << fileName << std::endl;
 		}
@@ -1113,6 +1204,18 @@ ConfigFile::ConfigFile(
 	const json &value
 ) {
 	fromJson(value);
+}
+
+ConfigFile::~ConfigFile()
+{
+	if (clientOptions)
+		delete clientOptions;
+	if (androidCredentials)
+		delete androidCredentials;
+	if (wpnKeys)
+		delete wpnKeys;
+	if (subscriptions)
+		delete subscriptions;
 }
 
 std::ostream::pos_type ConfigFile::write(
