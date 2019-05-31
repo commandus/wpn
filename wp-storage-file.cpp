@@ -7,6 +7,111 @@
 #include "utilvapid.h"
 #include "endpoint.h"
 
+// --------------- ClientOptions ---------------
+
+#define DEF_NAME ""
+
+void ClientOptions::parse
+(
+	const std::string &keys,
+	const std::string &delimiter
+)
+{
+	std::string k[1];
+	size_t p0 = 0, p1;
+	int i = 0;
+	while ((p1 = keys.find(delimiter, p0))) 
+	{
+		k[i] = keys.substr(p0, p1 - p0);
+		p0 = p1 + delimiter.length();
+		i++;
+		if (i >= 1)
+			break;
+	}
+	if (k[0].empty())
+	{
+		name = "";
+	}
+	else
+		name = k[0]; 
+}
+
+void ClientOptions::read(
+	std::istream &strm,
+	const std::string &delimiter
+) {
+	if (strm.fail()) {
+		name = "";
+		return;
+	}
+
+	std::string keys;
+	std::getline(strm, keys);
+	parse(keys, delimiter);
+}
+
+ClientOptions::ClientOptions()
+{
+	this->name = DEF_NAME;
+}
+
+ClientOptions::ClientOptions(
+	const std::string &name
+) {
+	this->name = name;
+}
+
+ClientOptions::ClientOptions(
+	std::istream &strm,
+	const std::string &delimiter
+)
+{
+	read(strm, delimiter);
+}
+
+ClientOptions::ClientOptions(
+	const json &value
+) {
+	name = value["name"];
+}
+
+std::ostream::pos_type ClientOptions::write(
+	std::ostream &strm,
+	const std::string &delimiter,
+	const int writeFormat
+) const
+{
+	std::ostream::pos_type r = strm.tellp();
+	switch (writeFormat)
+	{
+		case 1:
+			strm << toJson().dump();
+			break;
+		default:
+			strm << name << std::endl;
+	}
+	r = strm.tellp() - r;
+	return r;
+}
+
+std::ostream::pos_type ClientOptions::write(
+	const std::string &fileName
+) const
+{
+	std::ofstream strm(fileName);
+	std::ostream::pos_type r = write(strm, DEF_DELIMITER);
+	strm.close();
+	return r;
+}
+	
+json ClientOptions::toJson() const
+{
+	json r = {
+		{ "name", name }
+	};
+	return r;
+}
+
 // --------------- AndroidCredentials ---------------
 
 AndroidCredentials::AndroidCredentials()
@@ -210,6 +315,7 @@ json AndroidCredentials::toJson(
 // --------------- WpnKeys ---------------
 
 WpnKeys::WpnKeys()
+	: id(0), secret(0)
 {
 }
 
@@ -222,22 +328,25 @@ WpnKeys::WpnKeys (
 WpnKeys::WpnKeys
 (
 	uint64_t id,
+	uint64_t secret,
 	const std::string &private_key,
 	const std::string &public_key,
 	const std::string &auth_secret
 )
 {
-	init(id, private_key, public_key, auth_secret);
+	init(id, secret, private_key, public_key, auth_secret);
 }
 
 WpnKeys::WpnKeys
 (
 	uint64_t id,
+	uint64_t secret,
 	const std::string &keys,
 	const std::string &delimiter
 )
 {
 	this->id = id;
+	this->secret = secret,
 	parse(keys, delimiter);
 }
 
@@ -262,17 +371,19 @@ WpnKeys::WpnKeys(
 	const json &value
 )
 {
-	init(value["id"], value["privateKey"], value["publicKey"], value["authSecret"]);
+	init(value["id"], value["secret"], value["privateKey"], value["publicKey"], value["authSecret"]);
 }
 
 void WpnKeys::init(
 	uint64_t id,
+	uint64_t secret,
 	const std::string &private_key,
 	const std::string &public_key,
 	const std::string &auth_secret
 )
 {
 	this->id = id;
+	this->secret = secret;
 	ece_base64url_decode(private_key.c_str(), private_key.size(), ECE_BASE64URL_REJECT_PADDING, privateKey, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
 	ece_base64url_decode(public_key.c_str(), public_key.size(), ECE_BASE64URL_REJECT_PADDING, publicKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH);
 	ece_base64url_decode(auth_secret.c_str(), auth_secret.size(), ECE_BASE64URL_REJECT_PADDING, authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
@@ -282,7 +393,7 @@ void WpnKeys::init(
 	const WpnKeys &value
 )
 {
-	init(value.id, value.getPrivateKey(), value.getPublicKey(), value.getAuthSecret());
+	init(value.id, value.secret, value.getPrivateKey(), value.getPublicKey(), value.getAuthSecret());
 }
 
 void WpnKeys::parse(
@@ -290,7 +401,7 @@ void WpnKeys::parse(
 	const std::string &delimiter
 )
 {
-	std::string k[4];
+	std::string k[5];
 
 	size_t p0 = 0, p1;
 	int i = 0;
@@ -299,13 +410,13 @@ void WpnKeys::parse(
 		k[i] = keys.substr(p0, p1 - p0);
 		p0 = p1 + delimiter.length();
 		i++;
-		if (i >= 3)
+		if (i >= 5)
 			break;
 	}
-	if (k[2].empty())
+	if (k[3].empty())
 		generate();
 	else
-		init(std::stoi(k[0]), k[1], k[2], k[3]); 
+		init(std::stoi(k[0]), std::stoi(k[1]), k[2], k[3], k[4]); 
 }
 
 void WpnKeys::read(
@@ -376,7 +487,7 @@ std::ostream::pos_type WpnKeys::write
 			strm << toJson().dump();
 			break;
 		default:
-			strm << id << delimiter << getPrivateKey() << delimiter << getPublicKey() << delimiter << getAuthSecret() << std::endl;
+			strm << id << delimiter << secret << delimiter << getPrivateKey() << delimiter << getPublicKey() << delimiter << getAuthSecret() << std::endl;
 	}
 	return strm.tellp() - r;
 }
@@ -396,6 +507,7 @@ json WpnKeys::toJson(
 {
 	json r = {
 		{ "id", id },
+		{ "secret", secret },
 		{ "privateKey", getPrivateKey() },
 		{ "publicKey", getPublicKey() },
 		{ "authSecret", getAuthSecret() }
@@ -431,6 +543,7 @@ Subscription::Subscription(
 // VAPID
 Subscription::Subscription(
 	uint64_t id,
+	uint64_t secret,
 	const std::string &a_name,
 	const std::string &a_endpoint,
 	const std::string &a_privateKey,
@@ -443,7 +556,7 @@ Subscription::Subscription(
 	persistentId(aPersistentId)
 {
 	name = escapeURLString(a_name);
-	setWpnKeys(WpnKeys(id, a_privateKey, a_publicKey, a_authSecret));
+	setWpnKeys(WpnKeys(id, secret, a_privateKey, a_publicKey, a_authSecret));
 }
 
 Subscription::Subscription(
@@ -481,7 +594,7 @@ Subscription::Subscription(
 		break;
 	case SUBSCRIBE_FORCE_VAPID:
 	{
-		this->wpnKeys.init(value["id"], value["publicKey"], value["privateKey"], value["authSecret"]);
+		this->wpnKeys.init(value["id"], value["secret"], value["publicKey"], value["privateKey"], value["authSecret"]);
 		this->name = value["name"];
 		this->endpoint = value["endpoint"];
 		this->persistentId = value["persistentId"];
@@ -708,12 +821,13 @@ void Subscription::initVAPID(
 	const std::string &a_endpoint,
 	const std::string &a_persistentId,
 	uint64_t id,
+	uint64_t secret,
 	const std::string &a_public_key,	// VAPID public key
 	const std::string &a_private_key,	// VAPID private key
 	const std::string &a_auth_secret	// VAPID auth secret
 )
 {
-	WpnKeys wpnKeys(id, a_public_key, a_private_key, a_auth_secret);
+	WpnKeys wpnKeys(id, secret, a_public_key, a_private_key, a_auth_secret);
 	initVAPID1(a_name, a_endpoint, a_persistentId, &wpnKeys);
 }
 
@@ -765,8 +879,8 @@ void Subscription::parse
 				initFCM(k[1], k[2], k[3], k[4], k[5], k[6], k[7], k[8]); 
 				break;
 			case SUBSCRIBE_FORCE_VAPID:
-				// 0- SubscribeMode 1- Name 2- Endpoint 3- PersistentId 4, 5, 6, 7- WpnKeys
-				initVAPID(k[1], k[2], k[3], std::stoi(k[4]), k[5], k[6], k[7]); 
+				// 0- SubscribeMode 1- Name 2- Endpoint 3- PersistentId 4, 5, 6, 7, 8- WpnKeys
+				initVAPID(k[1], k[2], k[3], std::stoi(k[4]), std::stoi(k[5]), k[6], k[7], k[8]); 
 				break;
 			default:
 				break;
@@ -930,28 +1044,32 @@ void generateVAPIDKeys
 	authSecret = k.getAuthSecret();
 }
 
-
 // ConfigFile
 
 bool ConfigFile::fromJson(const json &value)
 {
-	bool r;
+	bool r = (value.find("options") != value.end())
+		&& (value.find("credentials") != value.end())
+		&& (value.find("keys") != value.end())
+		&& (value.find("subscriptions") != value.end());
+	clientOptions = NULL;
 	androidCredentials = NULL;
 	wpnKeys = NULL;
 	subscriptions = NULL;
 	try {
-		r = (value.find("credentials") != value.end())
-			&& (value.find("keys") != value.end())
-			&& (value.find("subscriptions") != value.end());
-		if (r) 
-		{
+		if (value.find("options") != value.end()) 
+			clientOptions = new ClientOptions(value["options"]);
+		if (value.find("credentials") != value.end())
 			androidCredentials = new AndroidCredentials(value["credentials"]);
+		if (value.find("keys") != value.end()) 
 			wpnKeys = new WpnKeys(value["keys"]);
+		if (value.find("subscriptions") != value.end())
 			subscriptions = new Subscriptions(value["subscriptions"]);
-		}
 	} catch(...) {
 		r = false;
 	}
+	if (!clientOptions) 
+		clientOptions = new ClientOptions();
 	if (!androidCredentials) 
 		androidCredentials = new AndroidCredentials();
 	if (!wpnKeys) 
@@ -965,6 +1083,7 @@ void ConfigFile::read(
 	std::istream &strm,
 	const std::string &delimiter
 ) {
+	clientOptions = new ClientOptions(strm);
 	androidCredentials = new AndroidCredentials(strm);
 	wpnKeys = new WpnKeys(strm);
 	subscriptions = new Subscriptions(strm);
@@ -1002,7 +1121,8 @@ std::ostream::pos_type ConfigFile::write(
 	const int writeFormat
 )  const
 {
-	std::ostream::pos_type r = androidCredentials->write(strm, delimiter, writeFormat);
+	std::ostream::pos_type r = clientOptions->write(strm, delimiter, writeFormat);
+	r += androidCredentials->write(strm, delimiter, writeFormat);
 	r += wpnKeys->write(strm, delimiter, writeFormat);
 	r += subscriptions->write(strm, delimiter, writeFormat);
 	return r;
@@ -1026,10 +1146,12 @@ std::ostream::pos_type ConfigFile::save(
 json ConfigFile::toJson(
 ) const
 {
+	json o = clientOptions->toJson();
 	json c = androidCredentials->toJson();
 	json k = wpnKeys->toJson();
 	json s = subscriptions->toJson();
 	json r = {
+		{ "options", o},
 		{ "credentials", c},
 		{ "keys", k },
 		{ "subscriptions", s }

@@ -27,6 +27,43 @@
 
 using json = nlohmann::json;
 
+class ClientOptions
+{
+private:
+	void read(
+		std::istream &strm,
+		const std::string &delimiter
+	);
+	void parse(
+		const std::string &keys,
+		const std::string &delimiter
+	);
+public:
+	ClientOptions();
+	ClientOptions(
+		const std::string &name
+   	);
+	ClientOptions(
+		std::istream &strm,
+		const std::string &delimiter = DEF_DELIMITER		 
+	);
+	ClientOptions(
+		const json &value
+	);
+	std::string name;
+
+	std::ostream::pos_type write(
+		std::ostream &strm,
+		const std::string &delimiter = DEF_DELIMITER,
+		const int writeFormat = FORMAT_TEXT
+	) const;
+	std::ostream::pos_type write(
+		const std::string &fileName
+	) const;
+	json toJson(
+	) const;
+};
+
 class AndroidCredentials
 {
 private:
@@ -120,8 +157,10 @@ private:
 	);
 public:
 	uint64_t id;
+	uint64_t secret;
 	void init(
 		uint64_t id,
+		uint64_t secret,
 		const std::string &private_key,
 		const std::string &public_key,
 		const std::string &auth_secret
@@ -135,12 +174,14 @@ public:
 	);
 	WpnKeys(
 		uint64_t id,
+		uint64_t secret,
 		const std::string &private_key,
 		const std::string &public_key,
 		const std::string &auth_secret
    	);
 	WpnKeys(
 		uint64_t id,
+		uint64_t secret,
 		const std::string &keys,
 		const std::string &delimiter
 	);
@@ -205,6 +246,7 @@ private:
 		const std::string &endpoint,
 		const std::string &persistentId,
 		uint64_t id,
+		uint64_t secret,
 		const std::string &publicKey,
 		const std::string &privateKey,
 		const std::string &authSecret
@@ -241,6 +283,7 @@ public:
 	// VAPID
 	Subscription(
 		uint64_t id,
+		uint64_t secret,
 		const std::string &name,
 		const std::string &endpoint,
 		const std::string &privateKey,
@@ -349,6 +392,7 @@ private:
 	);
 	bool fromJson(const json &value);
 public:
+	ClientOptions *clientOptions;
 	AndroidCredentials *androidCredentials;
 	WpnKeys *wpnKeys;
 	Subscriptions *subscriptions;

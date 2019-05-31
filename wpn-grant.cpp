@@ -22,9 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
- * @file ec.cpp
- * 
- * g++ -std=c++11 -o ec -I .. -I ../third_party ec.cpp argtable3.o base64url.o params.o keys.o trailer.o encrypt.o decrypt.o -L/usr/local/lib -lssl -lcrypto
+ * @file wpn-grant.cpp
  * 
  */
 
@@ -58,6 +56,7 @@ int main(int argc, char **argv)
 	struct arg_lit *a_rm = arg_lit0("d", "delete", "Remove connection");
 	struct arg_str *a_name = arg_str0("n", "name", "<alias>", "Public(encrypt) or private key(decrypt)");
 	struct arg_str *a_config = arg_str0("c", "config", "<file>", "Config file. Default " DEF_CONFIG_FILE_NAME);
+	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 3, "Set verbosity level");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
@@ -98,6 +97,7 @@ int main(int argc, char **argv)
 		arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 		return 1;
 	}
+	int verbosity = a_verbosity->count;
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
 	OpenSSL_add_all_algorithms();
@@ -107,9 +107,17 @@ int main(int argc, char **argv)
 	int r;
 	if (id) {
 	} else {
-		std::cout << wpnConfig.wpnKeys->id << std::endl;
+		// print id
+		std::cout << wpnConfig.wpnKeys->id;
+		if (verbosity) {
+			std::cout << "\t" << wpnConfig.wpnKeys->secret << "\t" << wpnConfig.clientOptions->name << std::endl;
+		}
+		std::cout << std::endl;
+		// print subscription's id and name
 		for (std::vector<Subscription>::const_iterator it = wpnConfig.subscriptions->list.begin(); it != wpnConfig.subscriptions->list.end(); ++it) {
+			if (verbosity) {
 
+			}
 		}
 	}
 
