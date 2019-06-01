@@ -381,6 +381,7 @@ public:
 	) const;
 	json toJson(
 	) const;
+	Subscription *getById(uint64_t id) const;
 };
 
 class ConfigFile

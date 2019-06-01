@@ -1113,6 +1113,18 @@ json Subscriptions::toJson(
 	return subscriptions;
 }
 
+Subscription *Subscriptions::getById(
+	uint64_t id
+) const
+{
+	std::vector<Subscription>::const_iterator it = std::find_if(list.begin(), list.end(),
+        [id](const Subscription &m) -> bool { return m.getWpnKeys().id == id; });
+	if (it == list.end())
+		return NULL;
+	else
+		return (Subscription *) &(*it);
+}
+
 void generateVAPIDKeys
 (
 	std::string &privateKey,

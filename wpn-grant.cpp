@@ -78,6 +78,10 @@ int main(int argc, char **argv)
 	uint64_t id = 0;
 	if (a_id->count)
 		id = *a_id->ival;
+	std::string name;
+	bool setName = a_name->count > 0;
+	if (setName)
+		name = *a_name->sval;
 	bool remove = a_rm->count > 0;
 	std::string config;
 	if (a_config->count)
@@ -106,17 +110,28 @@ int main(int argc, char **argv)
 
 	int r;
 	if (id) {
-	} else {
-		// print id
-		std::cout << wpnConfig.wpnKeys->id;
-		if (verbosity) {
-			std::cout << "\t" << wpnConfig.wpnKeys->secret << "\t" << wpnConfig.clientOptions->name << std::endl;
+		if (setName) {
+			wpnConfig.clientOptions->name = name;
 		}
-		std::cout << std::endl;
-		// print subscription's id and name
-		for (std::vector<Subscription>::const_iterator it = wpnConfig.subscriptions->list.begin(); it != wpnConfig.subscriptions->list.end(); ++it) {
+	} else {
+		if (setName) {
+			Subscription *s = wpnConfig.subscriptions->getById(id);
+			if (s)
+				s->setName(name);
+			else
+				std::cerr << "Error: no suncription " << id << std::endl;
+		} else {
+			// print id
+			std::cout << wpnConfig.wpnKeys->id;
 			if (verbosity) {
+				std::cout << "\t" << wpnConfig.wpnKeys->secret << "\t" << wpnConfig.clientOptions->name << std::endl;
+			}
+			std::cout << std::endl;
+			// print subscription's id and name
+			for (std::vector<Subscription>::const_iterator it = wpnConfig.subscriptions->list.begin(); it != wpnConfig.subscriptions->list.end(); ++it) {
+				if (verbosity) {
 
+				}
 			}
 		}
 	}
