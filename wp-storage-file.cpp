@@ -607,6 +607,28 @@ Subscription::Subscription(
 	read(strm, delimiter);
 }
 
+void Subscription::fromStream(
+	uint64_t id,
+	std::istream &strm
+)
+{
+	json j;
+	try {
+		strm >> j;
+		fromJson(j);
+	}
+	catch (...) {
+	}
+}
+
+Subscription::Subscription(
+	uint64_t id,
+	std::istream &strm
+)
+{
+	fromStream(id, strm);
+}
+
 Subscription::Subscription(
 	const std::string &fileName
 )
@@ -616,9 +638,7 @@ Subscription::Subscription(
 	strm.close();
 }
 
-Subscription::Subscription(
-	const json &value
-)
+void Subscription::fromJson(const json &value)
 {
 	json::const_iterator f = value.find("subscribeMode");
 	if (f != value.end())
@@ -687,6 +707,13 @@ Subscription::Subscription(
 	default:
 		break;
 	}
+}
+
+Subscription::Subscription(
+	const json &value
+)
+{
+	fromJson(value);
 }
 
 std::string Subscription::getName() const
@@ -889,7 +916,6 @@ void Subscription::initVAPID1(
 	const std::string &a_endpoint,
 	const std::string &a_persistentId,
 	const WpnKeys *a_wpn_keys
-	
 )
 {
 	subscribeMode = SUBSCRIBE_FORCE_VAPID;

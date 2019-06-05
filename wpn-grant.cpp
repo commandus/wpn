@@ -44,6 +44,7 @@
 #include "config-filename.h"
 #include "utilvapid.h"
 #include "wp-storage-file.h"
+#include "wp-registry.h"
 
 #define  DEF_CONFIG_FILE_NAME ".wpn.js"
 
@@ -54,6 +55,7 @@ int main(int argc, char **argv)
 {
 	struct arg_int *a_id = arg_int0(NULL, NULL, "<id>", "Client identifier to establish connection");
 	struct arg_lit *a_rm = arg_lit0("d", "delete", "Remove connection");
+	struct arg_lit *a_register = arg_lit0("R", "register", "re-register");
 	struct arg_str *a_name = arg_str0("n", "name", "<alias>", "Public(encrypt) or private key(decrypt)");
 	struct arg_str *a_config = arg_str0("c", "config", "<file>", "Config file. Default " DEF_CONFIG_FILE_NAME);
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 3, "Set verbosity level");
@@ -63,6 +65,7 @@ int main(int argc, char **argv)
 	void* argtable[] = { 
 		a_id, a_rm,
 		a_name, a_config,
+		a_register,
 		a_help, a_end 
 	};
 
@@ -102,40 +105,54 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	int verbosity = a_verbosity->count;
+	bool reRegister = a_register->count > 0;
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
 	OpenSSL_add_all_algorithms();
 
 	ConfigFile wpnConfig(config);
-
+	if (!wpnConfig.wpnKeys->id && !reRegister) {
+		std::cerr << "No registration identifier supplied. To register enter:" << std::endl << "wpn-grant -R" << std::endl;
+		exit(1);
+	}
 	int r;
 	if (id) {
+		// identifier is specified
 		if (setName) {
-			wpnConfig.clientOptions->name = name;
-		}
-	} else {
-		if (setName) {
+			// if set name option is specified
 			Subscription *s = wpnConfig.subscriptions->getById(id);
 			if (s)
 				s->setName(name);
 			else
-				std::cerr << "Error: no suncription " << id << std::endl;
-		} else {
-			// print id
-			std::cout << wpnConfig.wpnKeys->id;
-			if (verbosity) {
-				std::cout << "\t" << wpnConfig.wpnKeys->secret << "\t" << wpnConfig.clientOptions->name << std::endl;
+				std::cerr << "Error: no subcription " << id << " found." << std::endl;
+		}
+	} else {
+		// no identifier specified
+		if (setName) {
+			wpnConfig.clientOptions->name = name;
+		}
+		if (reRegister) {
+			RegistryClient c(&wpnConfig);
+			uint64_t id;
+			if (!c.add(&id)) {
+				std::cerr << "Error " << c.errorCode << ": " << c.errorDescription << std::endl;
+				return c.errorCode;
 			}
-			std::cout << std::endl;
-			// print subscription's id and name
-			for (std::vector<Subscription>::const_iterator it = wpnConfig.subscriptions->list.begin(); it != wpnConfig.subscriptions->list.end(); ++it) {
-				if (verbosity) {
+		}
+		wpnConfig.save(config);
 
-				}
+		// print id
+		std::cout << wpnConfig.wpnKeys->id;
+		if (verbosity) {
+			std::cout << "\t" << wpnConfig.wpnKeys->secret << "\t" << wpnConfig.clientOptions->name << std::endl;
+		}
+		std::cout << std::endl;
+		// print subscription's id and name
+		for (std::vector<Subscription>::const_iterator it = wpnConfig.subscriptions->list.begin(); it != wpnConfig.subscriptions->list.end(); ++it) {
+			if (verbosity) {
+
 			}
 		}
 	}
-
-	wpnConfig.save(config);
 	return 0;
 }

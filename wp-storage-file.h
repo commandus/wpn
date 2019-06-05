@@ -268,6 +268,11 @@ private:
 	);
 
 public:
+	void fromStream(
+		uint64_t id,
+		std::istream &strm
+	);
+	void fromJson(const json &value);
 	Subscription();
 	// FCM
 	Subscription(
@@ -294,6 +299,10 @@ public:
 	Subscription(
 		std::istream &strm,
 		const std::string &delimiter = DEF_DELIMITER
+	);
+	Subscription(
+		uint64_t id,
+		std::istream &strm
 	);
 	Subscription(
 		const std::string &fileName

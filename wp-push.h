@@ -1,6 +1,8 @@
 #ifndef WP_PUSH_H
 #define WP_PUSH_H	1
 
+#include <string>
+
 #define ERR_PARAM_SERVER_KEY		-1
 #define ERR_PARAM_CLIENT_TOKEN		-2
 #define ERR_PARSE_RESPONSE			-3

@@ -96,7 +96,7 @@ libwpnapi_la_LDFLAGS = -version-info 0:2:0
 nobase_dist_include_HEADERS = \
 	platform.h \
 	wpn-config.h wpn.h wpn-notify.h utilvapid.h utilrecv.h endpoint.h \
-	wp-storage-file.h wp-subscribe.h wp-connection.h wp-push.h \
+	wp-storage-file.h wp-subscribe.h wp-connection.h wp-push.h wp-registry.h \
 	wpnapi.h sslfactory.h utilstring.h utilinstance.h utilfile.h commandoutput.h params.h \
 	mcs/mcsclient.h \
 	onullstream.hpp \
@@ -218,7 +218,7 @@ ec_CPPFLAGS = $(commoncppflags)
 wpn_grant_SOURCES= \
 	wpn-grant.cpp vapid.cpp wp-storage-file.cpp \
 	utilstring.cpp endpoint.cpp utilinstance.cpp  \
-	config-filename.cpp \
+	config-filename.cpp wp-registry.cpp \
 	$(common_src)
 
 wpn_grant_LDADD = $(curllibs) -L. -lece
