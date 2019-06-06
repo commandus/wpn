@@ -50,10 +50,12 @@
 
 static const char* progname = "wpn-grant";
 
+#define ERR_NOT_FOUND	-1
 
 int main(int argc, char **argv) 
 {
 	struct arg_int *a_id = arg_int0(NULL, NULL, "<id>", "Client identifier to establish connection");
+	struct arg_lit *a_credentials = arg_lit0("c", "credentials", "Print my id");
 	struct arg_lit *a_rm = arg_lit0("d", "delete", "Remove connection");
 	struct arg_lit *a_register = arg_lit0("R", "register", "re-register");
 	struct arg_str *a_name = arg_str0("n", "name", "<alias>", "Public(encrypt) or private key(decrypt)");
@@ -63,8 +65,9 @@ int main(int argc, char **argv)
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
-		a_id, a_rm,
-		a_name, a_config,
+		a_id, 
+		a_credentials, a_rm,
+		a_name, a_config, a_verbosity,
 		a_register,
 		a_help, a_end 
 	};
@@ -85,6 +88,7 @@ int main(int argc, char **argv)
 	bool setName = a_name->count > 0;
 	if (setName)
 		name = *a_name->sval;
+	bool credentials = a_credentials->count > 0;
 	bool remove = a_rm->count > 0;
 	std::string config;
 	if (a_config->count)
@@ -116,43 +120,81 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 	int r;
-	if (id) {
-		// identifier is specified
-		if (setName) {
-			// if set name option is specified
-			Subscription *s = wpnConfig.subscriptions->getById(id);
-			if (s)
-				s->setName(name);
-			else
-				std::cerr << "Error: no subcription " << id << " found." << std::endl;
-		}
-	} else {
-		// no identifier specified
-		if (setName) {
-			wpnConfig.clientOptions->name = name;
-		}
-		if (reRegister) {
-			RegistryClient c(&wpnConfig);
-			uint64_t id;
-			if (!c.add(&id)) {
-				std::cerr << "Error " << c.errorCode << ": " << c.errorDescription << std::endl;
-				return c.errorCode;
-			}
-		}
-		wpnConfig.save(config);
+	RegistryClient rclient(&wpnConfig);
 
+	if (credentials) {
 		// print id
 		std::cout << wpnConfig.wpnKeys->id;
 		if (verbosity) {
-			std::cout << "\t" << wpnConfig.wpnKeys->secret << "\t" << wpnConfig.clientOptions->name << std::endl;
+			std::cout << "\t" << wpnConfig.wpnKeys->secret << "\t" << wpnConfig.clientOptions->name;
 		}
 		std::cout << std::endl;
-		// print subscription's id and name
-		for (std::vector<Subscription>::const_iterator it = wpnConfig.subscriptions->list.begin(); it != wpnConfig.subscriptions->list.end(); ++it) {
-			if (verbosity) {
+		return 0;
+	}
 
+	if (reRegister) {
+		uint64_t id;
+		if (!rclient.add(&id)) {
+			std::cerr << "Error " << rclient.errorCode << ": " << rclient.errorDescription << std::endl;
+			return rclient.errorCode;
+		}
+		wpnConfig.save(config);
+		return 0;
+	}
+
+	if (setName) {
+		if (id) {
+			Subscription *s = wpnConfig.subscriptions->getById(id);
+			if (!s) {
+				// get from service
+				std::string v;
+				if (!rclient.get(id, &v)) {
+					std::cerr << "Error: no subscription " << id << " found." << std::endl;
+					return ERR_NOT_FOUND;
+				}
+				s = wpnConfig.subscriptions->getById(id);
+			}
+			if (s) {
+				s->setName(name);
+				wpnConfig.save(config);
+			}
+		} else {
+			// no identifier specified
+			wpnConfig.clientOptions->name = name;
+			wpnConfig.save(config);
+		}
+		return 0;
+	}
+
+	if (id) {
+		// identifier is specified
+		Subscription *s = wpnConfig.subscriptions->getById(id);
+		if (!s) {
+			// get from service
+			std::string v;
+			if (!rclient.get(id, &v)) {
+				std::cerr << "Error: no subscription " << id << " found." << std::endl;
+				return ERR_NOT_FOUND;
+			}
+			wpnConfig.save(config);
+			s = wpnConfig.subscriptions->getById(id);
+			if (s) {
+				std::cout << s->getWpnKeys().id;
+				if (verbosity) {
+					std::cout << "\t" << s->getName() << std::endl;
+				}
+				std::cout << std::endl;
 			}
 		}
+	} else {
+			// print subscription's id and name
+			for (std::vector<Subscription>::const_iterator it = wpnConfig.subscriptions->list.begin(); it != wpnConfig.subscriptions->list.end(); ++it) {
+				std::cout << it->getWpnKeys().id;
+				if (verbosity) {
+					std::cout << "\t" << it->getName() << std::endl;
+				}
+				std::cout << std::endl;
+			}
 	}
 	return 0;
 }

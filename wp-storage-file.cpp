@@ -503,6 +503,13 @@ std::string WpnKeys::getPublicKey() const
 	return base64UrlEncode(publicKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH);
 }
 
+void WpnKeys::setPublicKey(
+	const std::string &public_key
+)
+{
+	ece_base64url_decode(public_key.c_str(), public_key.size(), ECE_BASE64URL_REJECT_PADDING, publicKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH);
+}
+
 const uint8_t *WpnKeys::getAuthSecretArray() const
 {
 	return (const uint8_t *) &authSecret;
@@ -599,6 +606,18 @@ Subscription::Subscription(
 	setWpnKeys(WpnKeys(id, secret, a_privateKey, a_publicKey, a_authSecret));
 }
 
+	Subscription::Subscription(
+		uint64_t id,
+		const std::string &a_name,
+		const std::string &publicKey
+	)
+	: subscribeUrl(""), subscribeMode(SUBSCRIBE_FORCE_VAPID), endpoint(""), 
+	serverKey(""), authorizedEntity(""), token(""), pushSet(""), persistentId("")
+{
+	name = escapeURLString(a_name);
+	setWpnKeys(WpnKeys(id, 0, "", publicKey, ""));
+}
+
 Subscription::Subscription(
 	std::istream &strm,
 	const std::string &delimiter
@@ -678,11 +697,15 @@ void Subscription::fromJson(const json &value)
 		std::string privateKey;
 		std::string authSecret;
 		f = value.find("id");
-		if (f != value.end())
+		if (f != value.end()) {
 			id = f.value();
+			getWpnKeysPtr()->id = id;
+		}
 		f = value.find("secret");
-		if (f != value.end())
+		if (f != value.end()) {
 			secret = f.value();
+			getWpnKeysPtr()->secret = secret;
+		}
 		f = value.find("publicKey");
 		if (f != value.end())
 			publicKey = f.value();
@@ -764,6 +787,11 @@ const std::string &Subscription::getPersistentId() const
 const WpnKeys& Subscription::getWpnKeys() const
 {
 	return wpnKeys;
+}
+
+WpnKeys* Subscription::getWpnKeysPtr()
+{
+	return &wpnKeys;
 }
 
 void Subscription::setName(const std::string &value)
@@ -897,9 +925,13 @@ json Subscription::toJson(
 			{ "subscribeMode", getSubscribeMode() },
 			{ "name", getName() },
 			{ "endpoint", getEndpoint() },
+
+			{ "id", wpnKeys.id },
+			{ "secret", wpnKeys.secret },
 			{ "publicKey", wpnKeys.getPublicKey() },
 			{ "privateKey", wpnKeys.getPrivateKey() },
 			{ "authSecret", wpnKeys.getAuthSecret() },
+
 			{ "persistentId", getPersistentId() }
 		};
 	}
@@ -1055,8 +1087,6 @@ Subscriptions::Subscriptions(
 {
 	for (json::const_iterator it = value.begin(); it != value.end(); ++it) {
 		Subscription s(*it);
-		if (!s.valid())
-			break;
 		list.push_back(s);
 	}
 }
@@ -1151,6 +1181,20 @@ Subscription *Subscriptions::getById(
 		return (Subscription *) &(*it);
 }
 
+void Subscriptions::putSubsciptionVapidPubKey(
+	uint64_t id,
+	const std::string &vapidPublicKey
+)
+{
+	Subscription* v = getById(id);
+	if (v) {
+		v->getWpnKeysPtr()->setPublicKey(vapidPublicKey);
+	} else {
+		Subscription s(id, "", vapidPublicKey);
+		list.push_back(s);
+	}
+}
+
 void generateVAPIDKeys
 (
 	std::string &privateKey,
@@ -1189,8 +1233,9 @@ bool ConfigFile::fromJson(const json &value)
 		if (f != value.end()) 
 			wpnKeys = new WpnKeys(f.value());
 		f = value.find("subscriptions");
-		if (f != value.end())
+		if (f != value.end()) {
 			subscriptions = new Subscriptions(f.value());
+		}
 	} catch(...) {
 		r = false;
 	}

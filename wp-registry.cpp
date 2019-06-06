@@ -3,6 +3,7 @@
 #include <curl/curl.h>
 #include "nlohmann/json.hpp"
 
+#include "utilstring.h"
 #include "wp-registry.h"
 
 using json = nlohmann::json;
@@ -39,7 +40,8 @@ bool RegistryClient::rpc
 	const std::string &method,
 	const std::string &path,
 	uint64_t id,
-	const std::string &value
+	const std::string &value,
+	bool debug
 )
 {
 	bool c = false;
@@ -48,7 +50,8 @@ bool RegistryClient::rpc
 		errorCode = - CURLE_FAILED_INIT;
 	CURLcode res;
 	
-	// curl_easy_setopt(curl, CURLOPT_VERBOSE, true);	
+	if (debug)
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, true);	
 
 	struct curl_slist *chunk = NULL;
 	std::stringstream ss;
@@ -73,7 +76,7 @@ bool RegistryClient::rpc
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, value.size());
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_string);
 
-	if (method == "POST") {
+	if (method != "POST") {
 		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, method.c_str());
 	}
 
@@ -92,6 +95,9 @@ bool RegistryClient::rpc
 		if ((errorCode >= 200) && (errorCode < 300))
 		{
 			c = true;
+			if (debug) {
+				std::cerr << r << std::endl;
+			}
 			if (retval)
 				*retval = r;
 		}
@@ -120,9 +126,9 @@ bool RegistryClient::add(
 {
 	bool c = false;
 	std::string r;
-	if (rpc(&r, METHOD_POST, PATH_KEY, 0, config->wpnKeys->getPublicKey())) {
+	if (rpc(&r, METHOD_POST, PATH_KEY, 0, config->wpnKeys->getPublicKey(), false)) {
 		c = true;
-		uint64_t v = std::atoll(r.c_str());	// contains trailing "\n"
+		uint64_t v = string2id(r);	// contains trailing "\n"
 		config->wpnKeys->id = v;
 		if (retval) {
 			*retval = v;
@@ -133,16 +139,17 @@ bool RegistryClient::add(
 	
 bool RegistryClient::get(
 	uint64_t id,
-	Subscription *retVal
+	std::string *retVal
 ) 
 {
 	bool c = false;
-	std::string r;
-	if (rpc(&r, METHOD_GET, PATH_KEY, id, "")) {
+	std::string v;
+	if (rpc(&v, METHOD_GET, PATH_KEY, id, "", true)) {
+		c = true;
+		v = trim(v);
+		config->subscriptions->putSubsciptionVapidPubKey(id, v);
 		if (retVal) {
-			c = true;
-			std::stringstream strm(r);
-			retVal->fromStream(id, strm);
+			*retVal = v;
 		}
 	}
 	return c;
@@ -167,7 +174,8 @@ int RegistryClient::getSubscription(
 	uint64_t id2
 )
 {
-	
+	// std::stringstream strm(r);
+	// retVal->fromStream(id, strm);
 }
 
 int RegistryClient::rmSubscription(

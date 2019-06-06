@@ -26,7 +26,8 @@ bool rpc
 	const std::string &method,
 	const std::string &path,
 	uint64_t id,
-	const std::string &value
+	const std::string &value,
+	bool debug
 );
 public:
 	ConfigFile *config;
@@ -44,7 +45,7 @@ public:
 
 	bool get(
 		uint64_t id,
-		Subscription *retVal
+		std::string *retVal
 	);
 
 	bool rm();

@@ -84,6 +84,7 @@ std::string hex2string(const std::string &hex);
 
 std::string arg2String(int argc, char *argv[]);
 
+uint64_t string2id(const std::string &v);
 /**
  * Escape JSON string
  * @see https://stackoverflow.com/questions/7724448/simple-json-string-escape-for-c

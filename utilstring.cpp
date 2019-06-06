@@ -298,6 +298,13 @@ std::string arg2String(
 	return ss.str();
 }
 
+uint64_t string2id(
+	const std::string &v
+)
+{
+	return std::atoll(v.c_str());	// contains trailing "\n"
+}
+
 /**
  * Escape JSON string
  * @see https://stackoverflow.com/questions/7724448/simple-json-string-escape-for-c

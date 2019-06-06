@@ -198,6 +198,7 @@ public:
 	std::string getPrivateKey() const;
 	const uint8_t *getPrivateKeyArray() const;
 	std::string getPublicKey() const;
+	void setPublicKey(const std::string &value);
 	std::string getAuthSecret() const;
 	const uint8_t *getAuthSecretArray() const;
 	
@@ -296,6 +297,13 @@ public:
 		const std::string &authSecret,
 		const std::string &persistentId
 	);
+
+	Subscription(
+		uint64_t id,
+		const std::string &name,
+		const std::string &publicKey
+	);
+
 	Subscription(
 		std::istream &strm,
 		const std::string &delimiter = DEF_DELIMITER
@@ -326,6 +334,7 @@ public:
 	std::string getToken() const;
 	std::string getPushSet() const;
 	const WpnKeys &getWpnKeys() const;
+	WpnKeys* getWpnKeysPtr();
 
 	void setName(const std::string &value);
 	void setSubscribeUrl(const std::string &value);
@@ -391,6 +400,10 @@ public:
 	json toJson(
 	) const;
 	Subscription *getById(uint64_t id) const;
+	void putSubsciptionVapidPubKey(
+		uint64_t id,
+		const std::string &vapidPublicKey
+	);
 };
 
 class ConfigFile
