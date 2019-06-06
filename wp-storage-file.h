@@ -404,6 +404,10 @@ public:
 		uint64_t id,
 		const std::string &vapidPublicKey
 	);
+	bool rmById(
+		uint64_t id
+	);
+
 };
 
 class ConfigFile

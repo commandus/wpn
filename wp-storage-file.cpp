@@ -1181,6 +1181,18 @@ Subscription *Subscriptions::getById(
 		return (Subscription *) &(*it);
 }
 
+bool Subscriptions::rmById(
+	uint64_t id
+)
+{
+	std::vector<Subscription>::const_iterator it = std::find_if(list.begin(), list.end(),
+        [id](const Subscription &m) -> bool { return m.getWpnKeys().id == id; });
+	if (it == list.end())
+		return false;
+	list.erase(it);
+	return true;
+}
+
 void Subscriptions::putSubsciptionVapidPubKey(
 	uint64_t id,
 	const std::string &vapidPublicKey

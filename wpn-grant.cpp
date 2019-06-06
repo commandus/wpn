@@ -55,7 +55,7 @@ static const char* progname = "wpn-grant";
 int main(int argc, char **argv) 
 {
 	struct arg_int *a_id = arg_int0(NULL, NULL, "<id>", "Client identifier to establish connection");
-	struct arg_lit *a_credentials = arg_lit0("c", "credentials", "Print my id");
+	struct arg_lit *a_credentials = arg_lit0("i", "credentials", "Print my id");
 	struct arg_lit *a_rm = arg_lit0("d", "delete", "Remove connection");
 	struct arg_lit *a_register = arg_lit0("R", "register", "re-register");
 	struct arg_str *a_name = arg_str0("n", "name", "<alias>", "Public(encrypt) or private key(decrypt)");
@@ -166,6 +166,22 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+	if (remove) {
+		// Remove subscription
+		if (id) {
+			bool r = wpnConfig.subscriptions->rmById(id);
+			if (!r) {
+				std::cerr << "Error: can not delete subscription " << id << "." << std::endl;
+				return ERR_NOT_FOUND;
+			}
+			wpnConfig.save(config);
+		} else {
+				std::cerr << "Error: no subscription identifier provided." << std::endl;
+				return ERR_NOT_FOUND;
+		}
+		return 0;
+	}
+
 	if (id) {
 		// identifier is specified
 		Subscription *s = wpnConfig.subscriptions->getById(id);
@@ -178,23 +194,25 @@ int main(int argc, char **argv)
 			}
 			wpnConfig.save(config);
 			s = wpnConfig.subscriptions->getById(id);
-			if (s) {
-				std::cout << s->getWpnKeys().id;
-				if (verbosity) {
-					std::cout << "\t" << s->getName() << std::endl;
-				}
-				std::cout << std::endl;
-			}
 		}
-	} else {
-			// print subscription's id and name
-			for (std::vector<Subscription>::const_iterator it = wpnConfig.subscriptions->list.begin(); it != wpnConfig.subscriptions->list.end(); ++it) {
-				std::cout << it->getWpnKeys().id;
-				if (verbosity) {
-					std::cout << "\t" << it->getName() << std::endl;
-				}
-				std::cout << std::endl;
+		if (s) {
+			std::cout << s->getWpnKeys().id;
+			if (verbosity) {
+				std::cout << "\t" << s->getName() << std::endl;
 			}
+			std::cout << std::endl;
+		}
+		return 0;
 	}
+	
+	// print subscription's id and name
+	for (std::vector<Subscription>::const_iterator it = wpnConfig.subscriptions->list.begin(); it != wpnConfig.subscriptions->list.end(); ++it) {
+		std::cout << it->getWpnKeys().id;
+		if (verbosity) {
+			std::cout << "\t" << it->getName() << std::endl;
+		}
+		std::cout << std::endl;
+	}
+
 	return 0;
 }
