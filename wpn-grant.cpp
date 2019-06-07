@@ -50,7 +50,9 @@
 
 static const char* progname = "wpn-grant";
 
-#define ERR_NOT_FOUND	-1
+#define ERR_NOT_FOUND							-1
+#define ERR_SUBSCRIBE							-2
+#define	ERR_REGISTER_SUBSCRIPTION	-3
 
 int main(int argc, char **argv) 
 {
@@ -192,16 +194,36 @@ int main(int argc, char **argv)
 				std::cerr << "Error: no subscription " << id << " found." << std::endl;
 				return ERR_NOT_FOUND;
 			}
+			// Save VAPID public key
 			wpnConfig.save(config);
 			s = wpnConfig.subscriptions->getById(id);
 		}
-		if (s) {
-			std::cout << s->getWpnKeys().id;
-			if (verbosity) {
-				std::cout << "\t" << s->getName() << std::endl;
+
+		if (!s)
+			return ERR_NOT_FOUND;
+
+		if (!s->hasToken()) {
+			// Make subscription
+			if (!rclient.subscribeById(id)) {
+				std::cerr << "Error: can not subscribe to " << id << "." << std::endl;
+				return ERR_SUBSCRIBE;
 			}
-			std::cout << std::endl;
+			wpnConfig.save(config);
 		}
+		// Add subscription to the service
+		if (!rclient.addSubscription(id)) {
+			std::cerr << "Error: can not regisrer subscription to " << id << "." << std::endl;
+			return ERR_REGISTER_SUBSCRIPTION;
+		}
+
+		std::cout << s->getWpnKeys().id;
+		if (verbosity) {
+			std::cout << "\t" << s->getName();
+		}
+		if (verbosity > 2) {
+			std::cout << "\t" << s->getToken() << "\t" << s->getPushSet();
+		}
+		std::cout << std::endl;
 		return 0;
 	}
 	

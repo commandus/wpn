@@ -50,10 +50,8 @@ public:
 
 	bool rm();
 
-	int addSubscription(
-		std::string &retval,
-		uint64_t id2,
-		const Subscription *value
+	bool addSubscription(
+		uint64_t id2
 	);
 
 	int getSubscription(
@@ -65,6 +63,11 @@ public:
 		std::string &retval,
 		uint64_t id2
 	);
+
+	bool subscribeById(
+		uint64_t id
+	);
+
 };
 
 #endif

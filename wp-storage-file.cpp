@@ -692,7 +692,7 @@ void Subscription::fromJson(const json &value)
 	case SUBSCRIBE_FORCE_VAPID:
 	{
 		uint64_t id;
-		uint64_t secret;
+		uint64_t secret = 0;
 		std::string publicKey;
 		std::string privateKey;
 		std::string authSecret;
@@ -701,17 +701,27 @@ void Subscription::fromJson(const json &value)
 			id = f.value();
 			getWpnKeysPtr()->id = id;
 		}
+
+		/*
 		f = value.find("secret");
 		if (f != value.end()) {
 			secret = f.value();
 			getWpnKeysPtr()->secret = secret;
 		}
-		f = value.find("publicKey");
-		if (f != value.end())
-			publicKey = f.value();
 		f = value.find("privateKey");
 		if (f != value.end())
 			privateKey = f.value();
+		f = value.find("persistentId");
+		if (f != value.end())
+			persistentId = f.value();
+		f = value.find("pushSet");
+		if (f != value.end())
+			pushSet = f.value();
+		*/
+
+		f = value.find("publicKey");
+		if (f != value.end())
+			publicKey = f.value();
 		f = value.find("authSecret");
 		if (f != value.end())
 			authSecret = f.value();
@@ -722,9 +732,9 @@ void Subscription::fromJson(const json &value)
 		f = value.find("endpoint");
 		if (f != value.end())
 			endpoint = f.value();
-		f = value.find("persistentId");
+		f = value.find("token");
 		if (f != value.end())
-			persistentId = f.value();
+			token = f.value();
 		break;
 	}
 	default:
@@ -772,6 +782,12 @@ std::string Subscription::getAuthorizedEntity() const
 std::string Subscription::getToken() const
 {
 	return token;
+}
+
+bool Subscription::hasToken() const
+{
+	// 152 characters
+	return token.length() > 100;
 }
 
 std::string Subscription::getPushSet() const
@@ -922,17 +938,22 @@ json Subscription::toJson(
 	{
 		const WpnKeys& wpnKeys = getWpnKeys();
 		r = {
+			{ "id", wpnKeys.id },
+
 			{ "subscribeMode", getSubscribeMode() },
 			{ "name", getName() },
 			{ "endpoint", getEndpoint() },
+			{ "token", getToken() },
 
-			{ "id", wpnKeys.id },
+			/*
+			{ "pushSet", getPushSet() },
 			{ "secret", wpnKeys.secret },
-			{ "publicKey", wpnKeys.getPublicKey() },
 			{ "privateKey", wpnKeys.getPrivateKey() },
-			{ "authSecret", wpnKeys.getAuthSecret() },
-
 			{ "persistentId", getPersistentId() }
+			*/
+
+			{ "publicKey", wpnKeys.getPublicKey() },
+			{ "authSecret", wpnKeys.getAuthSecret() }
 		};
 	}
 	break;

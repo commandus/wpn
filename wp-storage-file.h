@@ -222,11 +222,11 @@ class Subscription
 private:
 	std::string name;
 	std::string subscribeUrl;
-	int subscribeMode;				///<  1: FCM       - 2: VAPID
+	int subscribeMode;						///<  1: FCM       - 2: VAPID
 	std::string endpoint;
-	std::string serverKey;			///< FCM server key - VAPID private key
+	std::string serverKey;				///< FCM server key - VAPID private key
 	std::string authorizedEntity;	///< FCM entity     - VAPID public key
-	std::string token;				///< FCM token      - VAPID auth secret
+	std::string token;						///< FCM token      - VAPID auth secret
 	std::string pushSet;
 	std::string persistentId;		///< last received message id for unknown reason
 	WpnKeys wpnKeys;
@@ -286,6 +286,7 @@ public:
 		const std::string &pushSet,
 		const std::string &persistentId
 	);
+
 	// VAPID
 	Subscription(
 		uint64_t id,
@@ -332,6 +333,7 @@ public:
 	std::string getServerKey() const;
 	std::string getAuthorizedEntity() const;
 	std::string getToken() const;
+	bool hasToken() const;
 	std::string getPushSet() const;
 	const WpnKeys &getWpnKeys() const;
 	WpnKeys* getWpnKeysPtr();

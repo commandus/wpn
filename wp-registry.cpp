@@ -4,7 +4,9 @@
 #include "nlohmann/json.hpp"
 
 #include "utilstring.h"
+#include "utilstring.h"
 #include "wp-registry.h"
+#include "wp-subscribe.h"
 
 using json = nlohmann::json;
 
@@ -155,18 +157,60 @@ bool RegistryClient::get(
 	return c;
 }
 
+/**
+ * Make subscription
+ */
+bool RegistryClient::subscribeById(
+	uint64_t id
+) 
+{
+	bool c = false;
+	Subscription *s = config->subscriptions->getById(id);
+	if (!s)
+		return false;
+	std::string retval;
+	std::string retheaders;
+	std::string rettoken;			///< returns subscription token
+	std::string retpushset;		///< returns pushset. Not implemented. Returns empty string
+	int r = subscribe(&retval, &retheaders, rettoken, retpushset, 
+		std::to_string(config->androidCredentials->getAndroidId()),
+		std::to_string(config->androidCredentials->getSecurityToken()),
+		config->androidCredentials->getAppId(),
+		s->getWpnKeys().getPublicKey(), 3
+	);
+	if ((r >= 200) && (r < 300)) {
+		c = true;
+		errorCode = 0;
+		errorDescription = "";
+		s->setToken(rettoken);
+		s->setPushSet(retpushset);
+	} else {
+		errorCode = r;
+		errorDescription = retval + "\n" + retheaders;
+	}
+	return c;
+}
+
 bool RegistryClient::rm()
 {
 
 }
 
-int RegistryClient::addSubscription(
-	std::string &retval,
-	uint64_t id2,
-	const Subscription *value
+bool RegistryClient::addSubscription(
+	uint64_t id2
 )
 {
-	
+	Subscription *s = config->subscriptions->getById(id2);
+	if (!s)
+		return false;
+	bool c = false;
+	std::string v;
+	std::stringstream js;
+	js << s->toJson();
+	if (rpc(&v, METHOD_POST, PATH_SUBSCRIPTION, id2, js.str(), true)) {
+		c = true;
+	}
+	return c;
 }
 
 int RegistryClient::getSubscription(
