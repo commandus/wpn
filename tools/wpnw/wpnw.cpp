@@ -48,7 +48,7 @@ static const char* progname = "wpnw";
 
 int main(int argc, char **argv) 
 {
-	struct arg_str *a_registrationid = arg_str0("r", "registration", "<id>", "Recipient registration id");
+	struct arg_str *a_registrationid = arg_str0("r", "registration", "<id>", "Recipient registration id (subscription VAPID key)");
 	struct arg_str *a_p256dh = arg_str0("d", "p256dh", "<base64>", "VAPID public key");
 	struct arg_str *a_auth = arg_str0("a", "auth", "<base64>", "VAPID auth");
 	
