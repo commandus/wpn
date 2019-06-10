@@ -55,7 +55,6 @@ public:
 	);
 
 	int getSubscription(
-		std::string &retval,
 		uint64_t id2
 	);
 
@@ -64,10 +63,12 @@ public:
 		uint64_t id2
 	);
 
+	/**
+	 * Make subscription
+	 */
 	bool subscribeById(
 		uint64_t id
 	);
-
 };
 
 #endif

@@ -3,8 +3,9 @@
 #include <curl/curl.h>
 #include "nlohmann/json.hpp"
 
+#include "endpoint.h"
 #include "utilstring.h"
-#include "utilstring.h"
+#include "wp-storage-file.h"
 #include "wp-registry.h"
 #include "wp-subscribe.h"
 
@@ -170,21 +171,22 @@ bool RegistryClient::subscribeById(
 		return false;
 	std::string retval;
 	std::string retheaders;
-	std::string rettoken;			///< returns subscription token
-	std::string retpushset;		///< returns pushset. Not implemented. Returns empty string
+	std::string rettoken;
+	std::string retpushset;			///< returns pushset. Not implemented. Returns empty string
+	std::string subscriptionVAPIDKey = s->getWpnKeys().getPublicKey();
 	int r = subscribe(&retval, &retheaders, rettoken, retpushset, 
 		std::to_string(config->androidCredentials->getAndroidId()),
 		std::to_string(config->androidCredentials->getSecurityToken()),
 		config->androidCredentials->getAppId(),
-		s->getWpnKeys().getPublicKey(), 3
+		subscriptionVAPIDKey, 0
 	);
 	if ((r >= 200) && (r < 300)) {
 		c = true;
+		s->setSentToken(rettoken);
 		errorCode = 0;
 		errorDescription = "";
-		s->setToken(rettoken);
-		s->setPushSet(retpushset);
 	} else {
+		s->setSentToken("");
 		errorCode = r;
 		errorDescription = retval + "\n" + retheaders;
 	}
@@ -205,21 +207,60 @@ bool RegistryClient::addSubscription(
 		return false;
 	bool c = false;
 	std::string v;
-	std::stringstream js;
-	js << s->toJson();
-	if (rpc(&v, METHOD_POST, PATH_SUBSCRIPTION, id2, js.str(), true)) {
+	json js = {
+		{ "endpoint", endpoint(s->getWpnKeys().getPublicKey()) },
+		{ "token", s->getSentToken() }
+	};
+std::cerr << "RegistryClient::addSubscription json: " << js.dump() << std::endl;	
+	if (rpc(&v, METHOD_POST, PATH_SUBSCRIPTION, id2, js.dump(), true)) {
 		c = true;
 	}
 	return c;
 }
 
 int RegistryClient::getSubscription(
-	std::string &retval,
 	uint64_t id2
 )
 {
-	// std::stringstream strm(r);
-	// retVal->fromStream(id, strm);
+	Subscription *s = config->subscriptions->getById(id2);
+	if (!s)
+		return false;
+	bool c = false;
+
+	std::string v;
+	if (!rpc(&v, METHOD_GET, PATH_SUBSCRIPTION, id2, "", true)) {
+		return false;
+	}
+	json j;
+	try {
+		std::stringstream(v) >> j;
+	}
+	catch (json::exception e) {
+		return false;
+	}
+	catch (...) {
+		return false;
+	}
+	std::string endpoint;
+	std::string token;
+std::cerr << "RegistryClient::getSubscription json " << j << std::endl;	
+	try {
+		json::const_iterator f = j.find("endpoint");
+		if (f != j.end())
+			endpoint = f.value();
+		f = j.find("token");
+		if (f != j.end()) 
+			token = f.value();
+	} catch(...) {
+		return false;
+	}
+std::cerr << "RegistryClient::getSubscription endpoint " << endpoint << ", token: " << token << std::endl;
+
+	if (endpoint.empty() || token.empty())
+		return false;
+	s->setToken(token);
+	s->setEndpoint(endpoint);
+	return true;
 }
 
 int RegistryClient::rmSubscription(

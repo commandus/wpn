@@ -566,7 +566,7 @@ json WpnKeys::toJson(
 
 Subscription::Subscription()
 	: name(""), subscribeUrl(""), subscribeMode(0), endpoint(""), authorizedEntity(""),
-	token(""), pushSet(""), persistentId("")
+	token(""), sentToken(""), pushSet(""), persistentId("")
 {
 }
 
@@ -581,7 +581,7 @@ Subscription::Subscription(
 	const std::string &aPersistentId
 )
 	: subscribeUrl(aSubscribeUrl), subscribeMode(SUBSCRIBE_FORCE_FIREBASE), endpoint(a_endpoint), serverKey(a_serverKey),
-	authorizedEntity(a_authorizedEntity), token(a_token), pushSet(a_pushSet),
+	authorizedEntity(a_authorizedEntity), token(a_token), sentToken(""), pushSet(a_pushSet),
 	persistentId(aPersistentId)
 {
 	name = escapeURLString(aName);
@@ -599,7 +599,7 @@ Subscription::Subscription(
 	const std::string &aPersistentId
 )
 	: subscribeUrl(""), subscribeMode(SUBSCRIBE_FORCE_VAPID), endpoint(a_endpoint), 
-	serverKey(""), authorizedEntity(""), token(""), pushSet(""),
+	serverKey(""), authorizedEntity(""), token(""), sentToken(""), pushSet(""),
 	persistentId(aPersistentId)
 {
 	name = escapeURLString(a_name);
@@ -612,7 +612,7 @@ Subscription::Subscription(
 		const std::string &publicKey
 	)
 	: subscribeUrl(""), subscribeMode(SUBSCRIBE_FORCE_VAPID), endpoint(""), 
-	serverKey(""), authorizedEntity(""), token(""), pushSet(""), persistentId("")
+	serverKey(""), authorizedEntity(""), token(""), sentToken(""), pushSet(""), persistentId("")
 {
 	name = escapeURLString(a_name);
 	setWpnKeys(WpnKeys(id, 0, "", publicKey, ""));
@@ -735,6 +735,9 @@ void Subscription::fromJson(const json &value)
 		f = value.find("token");
 		if (f != value.end())
 			token = f.value();
+		f = value.find("sentToken");
+		if (f != value.end())
+			sentToken = f.value();
 		break;
 	}
 	default:
@@ -753,6 +756,19 @@ std::string Subscription::getName() const
 {
 	return name;
 }
+
+std::string Subscription::getSentToken() const
+{
+	return sentToken;
+}
+
+void Subscription::setSentToken(
+	const std::string &value
+	)
+{
+	sentToken = value;
+}
+
 
 std::string Subscription::getSubscribeUrl() const
 {
@@ -944,6 +960,7 @@ json Subscription::toJson(
 			{ "name", getName() },
 			{ "endpoint", getEndpoint() },
 			{ "token", getToken() },
+			{ "sentToken", getSentToken() },
 
 			/*
 			{ "pushSet", getPushSet() },

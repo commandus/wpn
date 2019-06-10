@@ -8,7 +8,7 @@
  * @see https://github.com/web-push-libs/webpush-java/wiki/Endpoints
  */
 std::string endpoint(
-	const std::string &registrationId,			///< GCMToken
+	const std::string &registrationId,			///< subscription VAPID key/ GCM token
 	const bool send = false,
 	const int browser = 0						///< 0- Chrome, 1- Firefox
 );

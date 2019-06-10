@@ -218,7 +218,7 @@ ec_CPPFLAGS = $(commoncppflags)
 wpn_grant_SOURCES= \
 	wpn-grant.cpp vapid.cpp wp-storage-file.cpp \
 	utilstring.cpp endpoint.cpp utilinstance.cpp  \
-	config-filename.cpp wp-registry.cpp wp-subscribe.cpp\
+	config-filename.cpp wp-registry.cpp wp-subscribe.cpp \
 	$(common_src)
 
 wpn_grant_LDADD = $(curllibs) -L. -lece

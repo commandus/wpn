@@ -221,14 +221,15 @@ class Subscription
 {
 private:
 	std::string name;
+	std::string sentToken;					///< VAPID subscription token sent to the registry service (token exchsnge)
 	std::string subscribeUrl;
 	int subscribeMode;						///<  1: FCM       - 2: VAPID
 	std::string endpoint;
-	std::string serverKey;				///< FCM server key - VAPID private key
-	std::string authorizedEntity;	///< FCM entity     - VAPID public key
+	std::string serverKey;					///< FCM server key - VAPID private key
+	std::string authorizedEntity;			///< FCM entity     - VAPID public key
 	std::string token;						///< FCM token      - VAPID auth secret
 	std::string pushSet;
-	std::string persistentId;		///< last received message id for unknown reason
+	std::string persistentId;				///< last received message id. Why?
 	WpnKeys wpnKeys;
 	/// Initialize FCM
 	void initFCM(
@@ -327,6 +328,7 @@ public:
 	);
 
 	std::string getName() const;
+	std::string getSentToken() const;
 	std::string getSubscribeUrl() const;
 	int getSubscribeMode() const;
 	std::string getEndpoint() const;
@@ -339,6 +341,7 @@ public:
 	WpnKeys* getWpnKeysPtr();
 
 	void setName(const std::string &value);
+	void setSentToken(const std::string &value);
 	void setSubscribeUrl(const std::string &value);
 	void setSubscribeMode(int value);
 	void setEndpoint(const std::string &value);

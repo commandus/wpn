@@ -201,19 +201,30 @@ int main(int argc, char **argv)
 
 		if (!s)
 			return ERR_NOT_FOUND;
-
 		if (!s->hasToken()) {
 			// Make subscription
-			if (!rclient.subscribeById(id)) {
-				std::cerr << "Error: can not subscribe to " << id << "." << std::endl;
+			if (s->getSentToken().empty()) {
+				if (!rclient.subscribeById(id)) {
+					std::cerr << "Error " << rclient.errorCode << ": "
+					<< rclient.errorDescription << ". Can not subscribe to " << id << "." << std::endl;
+					return ERR_SUBSCRIBE;
+				}
+				wpnConfig.save(config);
+			}
+			if (s->getSentToken().empty()) {
 				return ERR_SUBSCRIBE;
 			}
+			// Send subscription to the service
+			if (!rclient.addSubscription(id)) {
+				std::cerr << "Error: can not register subscription to " << id << "." << std::endl;
+				return ERR_REGISTER_SUBSCRIPTION;
+			}
+			// try get subscription from the service
+			if (!rclient.getSubscription(id)) {
+				std::cerr << "Error: can not get subscription " << id << "." << std::endl;
+				return ERR_REGISTER_SUBSCRIPTION;
+			}
 			wpnConfig.save(config);
-		}
-		// Add subscription to the service
-		if (!rclient.addSubscription(id)) {
-			std::cerr << "Error: can not regisrer subscription to " << id << "." << std::endl;
-			return ERR_REGISTER_SUBSCRIPTION;
 		}
 
 		std::cout << s->getWpnKeys().id;
