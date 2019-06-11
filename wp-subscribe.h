@@ -8,6 +8,7 @@
 #define ERR_PARAM_ENDPOINT			-2
 #define ERR_PARAM_AUTH_ENTITY		-3
 #define ERR_CONNECTION				-4
+#define	ERROR_SUBSCRIBE				-5
 
 #include <string>
 #include "wp-storage-file.h"

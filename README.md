@@ -843,6 +843,14 @@ brew install protobuf
 - -21 Error generate keys
 - -22 Error decrypt truncated
 
+## Errors
+
+Subscription errors
+
+Error=PHONE_REGISTRATION_ERROR
+
+Android device is not registered
+
 ## License
 
 This software is licensed under the MIT License:

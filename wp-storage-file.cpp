@@ -335,6 +335,7 @@ json AndroidCredentials::toJson(
 
 WpnKeys::WpnKeys()
 {
+	generate();
 }
 
 WpnKeys::WpnKeys (
@@ -778,11 +779,10 @@ std::string Subscription::getSentToken() const
 
 void Subscription::setSentToken(
 	const std::string &value
-	)
+)
 {
 	sentToken = value;
 }
-
 
 std::string Subscription::getSubscribeUrl() const
 {

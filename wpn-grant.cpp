@@ -41,8 +41,11 @@
 #include <ece/keys.h>
 
 #include <argtable3/argtable3.h>
+
+#include "platform.h"
 #include "config-filename.h"
 #include "utilvapid.h"
+#include "utilrecv.h"
 #include "wp-storage-file.h"
 #include "wp-registry.h"
 
@@ -52,7 +55,9 @@ static const char* progname = "wpn-grant";
 
 #define ERR_NOT_FOUND							-1
 #define ERR_SUBSCRIBE							-2
-#define	ERR_REGISTER_SUBSCRIPTION	-3
+#define	ERR_REGISTER_SUBSCRIPTION				-3
+#define ERR_NO_ANDROID_ID_N_TOKEN				-4
+#define ERR_NO_FCM_TOKEN						-5
 
 int main(int argc, char **argv) 
 {
@@ -121,6 +126,43 @@ int main(int argc, char **argv)
 		std::cerr << "No registration identifier supplied. To register enter:" << std::endl << "wpn-grant -R" << std::endl;
 		exit(1);
 	}
+
+	// check in
+	if (wpnConfig.androidCredentials->getAndroidId() == 0)
+	{
+		uint64_t androidId = wpnConfig.androidCredentials->getAndroidId();
+		uint64_t securityToken = wpnConfig.androidCredentials->getSecurityToken();
+		int r = checkIn(&androidId, &securityToken, verbosity);
+		if (r < 200 || r >= 300) {
+			return ERR_NO_ANDROID_ID_N_TOKEN;
+		}
+		wpnConfig.androidCredentials->setAndroidId(androidId);
+		wpnConfig.androidCredentials->setSecurityToken(securityToken);
+		wpnConfig.save(config);
+	}
+	// register
+	if (wpnConfig.androidCredentials->getGCMToken().empty()) {
+		int r;
+		for (int i = 0; i < 5; i++) {
+			std::string gcmToken;
+			r = registerDevice(&gcmToken,
+				wpnConfig.androidCredentials->getAndroidId(),
+				wpnConfig.androidCredentials->getSecurityToken(),
+				wpnConfig.androidCredentials->getAppId(),
+				verbosity
+			);
+			if (r >= 200 && r < 300) {
+				wpnConfig.androidCredentials->setGCMToken(gcmToken);
+				break;
+			}
+			sleep(1);
+		}
+		if (r < 200 || r >= 300)
+		{
+			return ERR_NO_FCM_TOKEN;
+		}
+	}
+
 	int r;
 	RegistryClient rclient(&wpnConfig);
 
@@ -204,6 +246,9 @@ int main(int argc, char **argv)
 		if (!s->hasToken()) {
 			// Make subscription
 			if (s->getSentToken().empty()) {
+				// subscribe
+				if (verbosity > 2)
+					std::cerr << "Subscribing to " << id << std::endl;
 				if (!rclient.subscribeById(id)) {
 					std::cerr << "Error " << rclient.errorCode << ": "
 					<< rclient.errorDescription << ". Can not subscribe to " << id << "." << std::endl;
@@ -214,12 +259,16 @@ int main(int argc, char **argv)
 			if (s->getSentToken().empty()) {
 				return ERR_SUBSCRIBE;
 			}
+			if (verbosity > 2)
+				std::cerr << "Sending subscription to the service " << id << std::endl;
 			// Send subscription to the service
 			if (!rclient.addSubscription(id)) {
 				std::cerr << "Error: can not register subscription to " << id << "." << std::endl;
 				return ERR_REGISTER_SUBSCRIPTION;
 			}
 			// try get subscription from the service
+			if (verbosity > 2)
+				std::cerr << "Getting subscription from the service " << id << std::endl;
 			if (!rclient.getSubscription(id)) {
 				std::cerr << "Error: can not get subscription " << id << "." << std::endl;
 				return ERR_REGISTER_SUBSCRIPTION;

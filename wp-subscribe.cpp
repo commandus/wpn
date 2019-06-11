@@ -196,6 +196,7 @@ int subscribeFCM
 
 static const std::string REGISTER_URL("https://android.clients.google.com/c2dm/register3");
 static const std::string TOKEN_PREFIX = "token=";
+static const std::string TOKEN_ERROR = "Error=";
 static const std::string SUBTYPE_PREFIX = "wp:https://localhost/#";
 
 /**
@@ -261,6 +262,14 @@ int subscribe
 			size_t token_pos = retVal->find(TOKEN_PREFIX);
 			if (token_pos != std::string::npos) {
 				retToken = retVal->substr(token_pos + TOKEN_PREFIX.length());
+			} else {
+				// Error=PHONE_REGISTRATION_ERROR
+				token_pos = retVal->find(TOKEN_ERROR);
+				if (token_pos != std::string::npos) {
+					if (retVal)
+						*retVal = retVal->substr(token_pos + TOKEN_ERROR.length());
+					r = ERROR_SUBSCRIBE;
+				}
 			}
 		}
 	}

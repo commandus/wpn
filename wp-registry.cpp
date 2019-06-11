@@ -170,8 +170,10 @@ bool RegistryClient::subscribeById(
 {
 	bool c = false;
 	Subscription *s = config->subscriptions->getById(id);
-	if (!s)
-		return false;
+	if (!s) {
+		errorDescription = "Subscription not found.";
+		return c;
+	}
 	std::string retval;
 	std::string retheaders;
 	std::string rettoken;
@@ -181,7 +183,7 @@ bool RegistryClient::subscribeById(
 		std::to_string(config->androidCredentials->getAndroidId()),
 		std::to_string(config->androidCredentials->getSecurityToken()),
 		config->androidCredentials->getAppId(),
-		subscriptionVAPIDKey, 0
+		subscriptionVAPIDKey, DEBUG ? 3 : 0
 	);
 	if ((r >= 200) && (r < 300)) {
 		c = true;

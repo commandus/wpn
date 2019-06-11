@@ -202,7 +202,6 @@ wpnlinkj_SOURCES= \
 wpnlinkj_LDADD = $(curllibs) -L. -lece
 wpnlinkj_CPPFLAGS = $(commoncppflags)
 
-
 #
 #	ec
 #
@@ -217,11 +216,13 @@ ec_CPPFLAGS = $(commoncppflags)
 #
 wpn_grant_SOURCES= \
 	wpn-grant.cpp vapid.cpp wp-storage-file.cpp \
-	utilstring.cpp endpoint.cpp utilinstance.cpp  \
+	mcs/mcsclient.cpp commandoutput.cpp sslfactory.cpp params.cpp wp-push.cpp \
+	utilstring.cpp utilrecv.cpp endpoint.cpp utilinstance.cpp  \
 	config-filename.cpp wp-registry.cpp wp-subscribe.cpp \
+	$(gengrpcs_c) \
 	$(common_src)
 
-wpn_grant_LDADD = $(curllibs) -L. -lece
+wpn_grant_LDADD = $(commonlibs) $(ec_LDADD)
 wpn_grant_CPPFLAGS = $(commoncppflags)
 
 #
