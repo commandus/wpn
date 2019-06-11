@@ -1282,10 +1282,6 @@ bool ConfigFile::fromJson(const json &value)
 		&& (value.find("credentials") != value.end())
 		&& (value.find("keys") != value.end())
 		&& (value.find("subscriptions") != value.end());
-	clientOptions = NULL;
-	androidCredentials = NULL;
-	wpnKeys = NULL;
-	subscriptions = NULL;
 	try {
 		json::const_iterator f = value.find("options");
 		if (f != value.end())
@@ -1303,6 +1299,10 @@ bool ConfigFile::fromJson(const json &value)
 	} catch(...) {
 		r = false;
 	}
+	return r;
+}
+
+void ConfigFile::invalidate() {
 	if (!clientOptions) 
 		clientOptions = new ClientOptions();
 	if (!androidCredentials) 
@@ -1311,7 +1311,6 @@ bool ConfigFile::fromJson(const json &value)
 		wpnKeys = new WpnKeys();
 	if (!subscriptions) 
 		subscriptions = new Subscriptions();
-	return r;
 }
 
 void ConfigFile::read(
@@ -1327,30 +1326,40 @@ void ConfigFile::read(
 
 ConfigFile::ConfigFile(
 	const std::string &fileName
-) {
+)
+	: clientOptions(NULL), androidCredentials(NULL), wpnKeys(NULL), subscriptions(NULL)
+{
 	std::ifstream configRead(fileName.c_str());
-	if (fileName.find(".js") != std::string::npos) {
-		json j;
-		try {
-			configRead >> j;
-		}
-		catch (json::exception e) {
-			std::cerr << fileName <<  " error " << e.what() << std::endl;
-		}
-		catch (...) {
-			std::cerr << "Error parse " << fileName << std::endl;
-		}
-		fromJson(j);
+	if (configRead.fail()) {
+		std::cerr << "Error open " << fileName << std::endl;
 	} else {
-		read(configRead);
+		if (fileName.find(".js") != std::string::npos) {
+			json j;
+			try {
+				configRead >> j;
+			}
+			catch (json::exception e) {
+				std::cerr << fileName <<  " error " << e.what() << std::endl;
+			}
+			catch (...) {
+				std::cerr << "Error parse " << fileName << std::endl;
+			}
+			fromJson(j);
+		} else {
+			read(configRead);
+		}
 	}
 	configRead.close();
+	invalidate();
 }
 
 ConfigFile::ConfigFile(
 	const json &value
-) {
+)
+	: clientOptions(NULL), androidCredentials(NULL), wpnKeys(NULL), subscriptions(NULL)
+{
 	fromJson(value);
+	invalidate();
 }
 
 ConfigFile::~ConfigFile()

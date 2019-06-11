@@ -426,6 +426,7 @@ private:
 		const std::string &delimiter = DEF_DELIMITER
 	);
 	bool fromJson(const json &value);
+	void invalidate();
 public:
 	ClientOptions *clientOptions;
 	AndroidCredentials *androidCredentials;
@@ -435,6 +436,7 @@ public:
 	ConfigFile(
 		const std::string &fileName
 	);
+
 	ConfigFile(
 		const json &value
 	);
