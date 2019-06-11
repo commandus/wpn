@@ -198,9 +198,12 @@ public:
 	std::string getPrivateKey() const;
 	const uint8_t *getPrivateKeyArray() const;
 	std::string getPublicKey() const;
-	void setPublicKey(const std::string &value);
 	std::string getAuthSecret() const;
 	const uint8_t *getAuthSecretArray() const;
+
+	void setPrivateKey(const std::string &value);
+	void setPublicKey(const std::string &value);
+	void setAuthSecret(const std::string &value);
 	
 	std::ostream::pos_type write(
 		std::ostream &strm,

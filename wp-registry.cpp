@@ -11,6 +11,8 @@
 
 using json = nlohmann::json;
 
+#define DEBUG true
+
 #define ENDPOINT "https://surephone.commandus.com/wpn-registry/"
 #define HEADER_AUTH	"Authorization: U "
 #define METHOD_GET "GET"
@@ -53,8 +55,10 @@ bool RegistryClient::rpc
 		errorCode = - CURLE_FAILED_INIT;
 	CURLcode res;
 	
-	if (debug)
+	if (debug) {
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, true);	
+		std::cerr << value << std::endl;
+	}
 
 	struct curl_slist *chunk = NULL;
 	std::stringstream ss;
@@ -98,15 +102,14 @@ bool RegistryClient::rpc
 		if ((errorCode >= 200) && (errorCode < 300))
 		{
 			c = true;
-			if (debug) {
-				std::cerr << r << std::endl;
-			}
 			if (retval)
 				*retval = r;
 		}
 	}
 	curl_slist_free_all(chunk);
 	curl_easy_cleanup(curl);
+	if (debug)
+		std::cerr << r << std::endl;
 	return c;
 }
 
@@ -129,7 +132,7 @@ bool RegistryClient::add(
 {
 	bool c = false;
 	std::string r;
-	if (rpc(&r, METHOD_POST, PATH_KEY, 0, config->wpnKeys->getPublicKey(), false)) {
+	if (rpc(&r, METHOD_POST, PATH_KEY, 0, config->wpnKeys->getPublicKey(), DEBUG)) {
 		c = true;
 		uint64_t v = string2id(r);	// contains trailing "\n"
 		config->wpnKeys->id = v;
@@ -147,7 +150,7 @@ bool RegistryClient::get(
 {
 	bool c = false;
 	std::string v;
-	if (rpc(&v, METHOD_GET, PATH_KEY, id, "", true)) {
+	if (rpc(&v, METHOD_GET, PATH_KEY, id, "", DEBUG)) {
 		c = true;
 		v = trim(v);
 		config->subscriptions->putSubsciptionVapidPubKey(id, v);
@@ -209,10 +212,10 @@ bool RegistryClient::addSubscription(
 	std::string v;
 	json js = {
 		{ "endpoint", endpoint(s->getWpnKeys().getPublicKey()) },
+		{ "authSecret", config->wpnKeys->getAuthSecret() },
 		{ "token", s->getSentToken() }
 	};
-std::cerr << "RegistryClient::addSubscription json: " << js.dump() << std::endl;	
-	if (rpc(&v, METHOD_POST, PATH_SUBSCRIPTION, id2, js.dump(), true)) {
+	if (rpc(&v, METHOD_POST, PATH_SUBSCRIPTION, id2, js.dump(), DEBUG)) {
 		c = true;
 	}
 	return c;
@@ -228,7 +231,7 @@ int RegistryClient::getSubscription(
 	bool c = false;
 
 	std::string v;
-	if (!rpc(&v, METHOD_GET, PATH_SUBSCRIPTION, id2, "", true)) {
+	if (!rpc(&v, METHOD_GET, PATH_SUBSCRIPTION, id2, "", DEBUG)) {
 		return false;
 	}
 	json j;
@@ -243,7 +246,7 @@ int RegistryClient::getSubscription(
 	}
 	std::string endpoint;
 	std::string token;
-std::cerr << "RegistryClient::getSubscription json " << j << std::endl;	
+	std::string authSecret;
 	try {
 		json::const_iterator f = j.find("endpoint");
 		if (f != j.end())
@@ -251,15 +254,18 @@ std::cerr << "RegistryClient::getSubscription json " << j << std::endl;
 		f = j.find("token");
 		if (f != j.end()) 
 			token = f.value();
+		f = j.find("authSecret");
+		if (f != j.end())
+			authSecret = f.value();
 	} catch(...) {
 		return false;
 	}
-std::cerr << "RegistryClient::getSubscription endpoint " << endpoint << ", token: " << token << std::endl;
 
-	if (endpoint.empty() || token.empty())
+	if (endpoint.empty() || token.empty() || authSecret.empty())
 		return false;
 	s->setToken(token);
 	s->setEndpoint(endpoint);
+	s->getWpnKeysPtr()->setAuthSecret(authSecret);
 	return true;
 }
 
