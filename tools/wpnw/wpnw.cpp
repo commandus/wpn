@@ -28,11 +28,13 @@
 
 #include <string>
 #include <iostream>
+#include <iterator>
 #include <cstring>
 #include <curl/curl.h>
 #include <argtable3/argtable3.h>
 #include <fstream>
 
+#include "wp-storage-file.h"
 #include "utilinstance.h"
 #include "utilfile.h"
 #include "utilrecv.h"
@@ -44,26 +46,32 @@
 #include "wpnapi.h"
 
 static const char* progname = "wpnw";
-#define DEF_FILE_NAME			".wpnw.js"
+#define DEF_CONFIG_FILE_NAME			".wpn.js"
+
+#define ERR_SUBSCRIPTION_NOT_FOUND			-1
+#define ERR_SUBSCRIPTION_TOKEN_NOT_FOUND	-2
 
 int main(int argc, char **argv) 
 {
-	struct arg_str *a_registrationid = arg_str0("r", "registration", "<id>", "Recipient registration id (subscription VAPID key)");
+	struct arg_str *a_subscriptionid = arg_str0(NULL, NULL, "<number>", "Subscription number/name or -r, -d, -a");
+	struct arg_str *a_registrationid = arg_str0("r", "registration", "<id>", "Subscription VAPID key)");
 	struct arg_str *a_p256dh = arg_str0("d", "p256dh", "<base64>", "VAPID public key");
 	struct arg_str *a_auth = arg_str0("a", "auth", "<base64>", "VAPID auth");
 	
 	// message itself
 	struct arg_str *a_subject = arg_str0("t", "subject", "<Text>", "Subject (topic)");
-	struct arg_str *a_body = arg_str0("b", "body", "<Text>", "Body");
 	struct arg_str *a_icon = arg_str0("i", "icon", "<URL>", "http[s]:// icon address.");
 	struct arg_str *a_link = arg_str0("l", "link", "<URL>", "http[s]:// action address.");
 
 	// from
 	struct arg_str *a_contact = arg_str0("f", "from", "<URL>", "Sender's email e.g. mailto:alice@acme.com or https[s] link");
+
 	// to
 	struct arg_str *a_provider = arg_str0("p", "provider", "chrome|firefox", "Default chrome.");
 	struct arg_str *a_force_publickey = arg_str0("K", "public-key", "<base64>", "Override VAPID public key");
 	struct arg_str *a_force_privatekey = arg_str0("k", "private-key", "<base64>", "Override VAPID private key");
+
+	struct arg_str *a_config = arg_str0("c", "config", "<file>", "Config file. Default " DEF_CONFIG_FILE_NAME);
 
 	struct arg_lit *a_aesgcm = arg_lit0("1", "aesgcm", "Force AESGCM. Default AES128GCM");
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
@@ -71,16 +79,15 @@ int main(int argc, char **argv)
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
-		a_registrationid, a_p256dh,
-		a_auth, 
-		a_subject, a_body, a_icon, a_link,
+		a_subscriptionid,
+		a_registrationid, a_p256dh, a_auth, 
+		a_subject, a_icon, a_link,
 		// from
 		a_contact, 
 		// to
 		a_provider, a_force_publickey, a_force_privatekey,
-		a_aesgcm,
-		a_verbosity,
-		a_help, a_end 
+		// options
+		a_config, a_aesgcm, a_verbosity, a_help, a_end 
 	};
 
 	// verify the argtable[] entries were allocated successfully
@@ -93,72 +100,87 @@ int main(int argc, char **argv)
 	int nerrors = arg_parse(argc, argv, argtable);
 
 	int verbosity = a_verbosity->count;
-	std::string registrationid = *a_registrationid->sval;
-	std::string p256dh = *a_p256dh->sval;
-	std::string auth = *a_auth->sval;
+
+	std::string subscriptionid = *a_subscriptionid->sval;
+	std::string registrationid;
+	std::string p256dh;
+	std::string auth;
+	
+	// read config
+	std::string config;
+	if (a_config->count)
+		config = *a_config->sval;
+	else
+		config = getDefaultConfigFileName(DEF_CONFIG_FILE_NAME);
+	ConfigFile wpnConfig(config);
+
+	std::string privateKey;
+	std::string publicKey;
+
+	if (!subscriptionid.empty()) {
+		Subscription *s = wpnConfig.subscriptions->findByNameOrId(subscriptionid);
+		if (!s) {
+			std::cerr << "Error " << ERR_SUBSCRIPTION_NOT_FOUND << ": subscription "  << subscriptionid << " not found." << std::endl;
+			exit(ERR_SUBSCRIPTION_NOT_FOUND);
+		}
+		if (!s->hasToken()) {
+			std::cerr << "Error " << ERR_SUBSCRIPTION_TOKEN_NOT_FOUND << ": subscription "  << subscriptionid << " token not found." << std::endl;
+			exit(ERR_SUBSCRIPTION_TOKEN_NOT_FOUND);
+		}
+		privateKey = wpnConfig.wpnKeys->getPrivateKey();
+		publicKey = wpnConfig.wpnKeys->getPublicKey();
+
+		registrationid = s->getToken();
+		p256dh = s->getWpnKeys().getPublicKey();
+		auth = s->getWpnKeys().getAuthSecret();
+	}
+
+	if (a_registrationid->count)
+		registrationid = *a_registrationid->sval;
+	if (a_p256dh->count)
+		p256dh = *a_p256dh->sval;
+	if (a_auth->count)
+		auth = *a_auth->sval;
+
 	std::string subject; 
 	std::string icon;
 	std::string link;
-	std::string body;
 	
 	std::string force_privatekey = *a_force_privatekey->sval;
 	std::string force_publickey = *a_force_publickey->sval; 
 		
 	if (a_subject->count)
-	{
 		subject = *a_subject->sval;
-	}
 	else
-	{
 		subject = "";
-	}
-
-	if (a_body->count)
-	{
-		body = *a_body->sval;
-	}
-	else
-	{
-		body = "";
-	}
 
 	if (a_icon->count)
-	{
 		icon = *a_icon->sval;
-	}
 	else
-	{
 		icon = "";
-	}
 
 	if (a_link->count)
-	{
 		link = *a_link->sval;
-	} 
 	else 
-	{
 		link = "";
-	}
 	
 	std::string contact = *a_contact->sval;
 	std::string cmdFileName = "curl.out";
 	bool aesgcm = a_aesgcm->count > 0;
 
-	if (registrationid.empty()) {
-		nerrors++;
-		std::cerr << "Recipient registration id missed." << std::endl;
-	}
-	if (p256dh.empty()) {
-		nerrors++;
-		std::cerr << "Recipient public key missed." << std::endl;
-	}
-	if (auth.empty()) {
-		nerrors++;
-		std::cerr << "Recipient auth missed." << std::endl;
-	}
-	if (body.empty()) {
-		nerrors++;
-		std::cerr << "Message text missed." << std::endl;
+	if (subscriptionid.empty()) {
+		if (registrationid.empty()) {
+			nerrors++;
+			std::cerr << "Recipient registration id missed." << std::endl;
+		}
+		if (p256dh.empty()) {
+			nerrors++;
+			std::cerr << "Recipient public key missed." << std::endl;
+		}
+		if (auth.empty()) {
+			nerrors++;
+			std::cerr << "Recipient auth missed." << std::endl;
+		}
 	}
 
 	enum VAPID_PROVIDER provider = PROVIDER_CHROME;
@@ -173,16 +195,12 @@ int main(int argc, char **argv)
 			arg_print_errors(stderr, a_end, progname);
 		std::cerr << "Usage: " << progname << std::endl;
 		arg_print_syntax(stderr, argtable, "\n");
-		std::cerr << "Web push sender" << std::endl;
+		std::cerr << "Send web push message from stdin" << std::endl;
 		arg_print_glossary(stderr, argtable, "  %-27s %s\n");
 		arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 		return 1;
 	}
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
-
-	std::string privateKey;
-	std::string publicKey;
-	std::string appId;
 
 	// In windows, this will init the winsock stuff
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -190,12 +208,23 @@ int main(int argc, char **argv)
 
 	int r  = 0;
 
+	// read body
+	// don't skip the whitespace while reading
+	std::cin >> std::noskipws;
+	// use stream iterators to copy the stream to a string
+ 	std::istream_iterator<char> it(std::cin);
+	std::istream_iterator<char> end;
+	std::string body(it, end);
+
+	// override keys
+	if (!force_privatekey.empty())
+		privateKey = force_privatekey;
+	if (!force_publickey.empty())
+		publicKey = force_publickey;
+
 	// write
 	std::string retval;
 	std::string endPoint = endpoint(registrationid, 1, (int) provider);	///< 0- Chrome, 1- Firefox
-
-	privateKey = force_privatekey;
-	publicKey =  force_publickey;
 
 	if (verbosity > 0)
 	{
