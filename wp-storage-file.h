@@ -408,6 +408,7 @@ public:
 	json toJson(
 	) const;
 	Subscription *getById(uint64_t id) const;
+	Subscription *findByNameOrId(const std::string &name) const;
 	void putSubsciptionVapidPubKey(
 		uint64_t id,
 		const std::string &vapidPublicKey

@@ -1233,6 +1233,27 @@ Subscription *Subscriptions::getById(
 		return (Subscription *) &(*it);
 }
 
+Subscription *Subscriptions::findByNameOrId(
+	const std::string &name
+) const
+{
+	if (name.empty())
+		return NULL;
+	if (std::all_of(name.begin(), name.end(), ::isdigit)) {
+		// decimal number
+		uint64_t id = strtoull(name.c_str(), NULL, 10);
+		return getById(id);
+	} else {
+		// name
+		std::vector<Subscription>::const_iterator it = std::find_if(list.begin(), list.end(),
+			[name](const Subscription &m) -> bool { return m.getName() == name; });
+		if (it == list.end())
+			return NULL;
+		else
+			return (Subscription *) &(*it);
+	}
+}
+
 bool Subscriptions::rmById(
 	uint64_t id
 )
