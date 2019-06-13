@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 
 	ConfigFile wpnConfig(config);
 	if (!wpnConfig.wpnKeys->id && !reRegister) {
-		std::cerr << "No registration identifier supplied. To register enter:" << std::endl << "wpn-grant -R" << std::endl;
+		std::cerr << "No registration identifier supplied, register with -R." << std::endl;
 		exit(1);
 	}
 
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
 		if (!s->hasToken()) {
 			// Make subscription
 			if (s->getSentToken().empty()) {
-				// subscribe
+				// subscribing at the FCM service, set sentToken
 				if (verbosity > 2)
 					std::cerr << "Subscribing to " << id << std::endl;
 				if (!rclient.subscribeById(id)) {
@@ -261,7 +261,7 @@ int main(int argc, char **argv)
 			}
 			if (verbosity > 2)
 				std::cerr << "Sending subscription to the service " << id << std::endl;
-			// Send subscription to the service
+			// Send subscription (sentToken) to the service
 			if (!rclient.addSubscription(id)) {
 				std::cerr << "Error: can not register subscription to " << id << "." << std::endl;
 				return ERR_REGISTER_SUBSCRIPTION;

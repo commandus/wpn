@@ -162,7 +162,8 @@ bool RegistryClient::get(
 }
 
 /**
- * Make subscription
+ * Make subscription at the FCM, save subscription token 
+ * in the sentToken
  */
 bool RegistryClient::subscribeById(
 	uint64_t id
@@ -213,7 +214,7 @@ bool RegistryClient::addSubscription(
 	bool c = false;
 	std::string v;
 	json js = {
-		{ "endpoint", endpoint(s->getWpnKeys().getPublicKey()) },
+		{ "publicKey", s->getWpnKeys().getPublicKey() },
 		{ "authSecret", config->wpnKeys->getAuthSecret() },
 		{ "token", s->getSentToken() }
 	};
@@ -246,13 +247,13 @@ int RegistryClient::getSubscription(
 	catch (...) {
 		return false;
 	}
-	std::string endpoint;
+	std::string publicKey;
 	std::string token;
 	std::string authSecret;
 	try {
-		json::const_iterator f = j.find("endpoint");
+		json::const_iterator f = j.find("publicKey");
 		if (f != j.end())
-			endpoint = f.value();
+			publicKey = f.value();
 		f = j.find("token");
 		if (f != j.end()) 
 			token = f.value();
@@ -263,10 +264,11 @@ int RegistryClient::getSubscription(
 		return false;
 	}
 
-	if (endpoint.empty() || token.empty() || authSecret.empty())
+	if (publicKey.empty() || token.empty() || authSecret.empty())
 		return false;
 	s->setToken(token);
-	s->setEndpoint(endpoint);
+	// s->setEndpoint(endpoint(publicKey));
+	s->getWpnKeysPtr()->setPublicKey(publicKey);
 	s->getWpnKeysPtr()->setAuthSecret(authSecret);
 	return true;
 }

@@ -712,10 +712,10 @@ void Subscription::fromJson(const json &value)
 		std::string privateKey;
 		std::string authSecret;
 		f = value.find("id");
-		if (f != value.end()) {
+		if (f != value.end())
 			id = f.value();
-			getWpnKeysPtr()->id = id;
-		}
+		else
+			id = 0;
 
 		/*
 		f = value.find("secret");
@@ -972,11 +972,11 @@ json Subscription::toJson(
 
 			{ "subscribeMode", getSubscribeMode() },
 			{ "name", getName() },
-			{ "endpoint", getEndpoint() },
 			{ "token", getToken() },
 			{ "sentToken", getSentToken() },
 
 			/*
+			{ "endpoint", getEndpoint() },
 			{ "pushSet", getPushSet() },
 			{ "secret", wpnKeys.secret },
 			{ "privateKey", wpnKeys.getPrivateKey() },
@@ -1331,7 +1331,7 @@ ConfigFile::ConfigFile(
 {
 	std::ifstream configRead(fileName.c_str());
 	if (configRead.fail()) {
-		std::cerr << "Error open " << fileName << std::endl;
+		std::cerr << "Error read " << fileName << std::endl;
 	} else {
 		if (fileName.find(".js") != std::string::npos) {
 			json j;
