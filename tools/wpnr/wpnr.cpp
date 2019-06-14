@@ -36,7 +36,8 @@
 #include "sslfactory.h"
 
 #include "config-filename.h"
-#include "utilfile.h"
+#include "wp-storage-file.h"
+#include "wp-registry.h"
 #include "utilinstance.h"
 #include "utilrecv.h"
 #include "endpoint.h"
@@ -44,8 +45,7 @@
 
 static const char* progname = "wpnr";
 #define DEF_CONFIG_FILE_NAME			".wpn.js"
-
-#undef SUPPORT_FIREFOX
+#define	EMPTY_LAST_PERSISTENT_ID		""
 
 void onNotify
 (
@@ -94,18 +94,12 @@ int main(int argc, char **argv)
 {
 	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_CONFIG_FILE_NAME);
 	// TODO add Firefox read
-#ifdef SUPPORT_FIREFOX	
-	struct arg_str *a_provider = arg_str0("p", "provider", "chrome|firefox", "Re-init web push provider. Default chrome.");
-#endif	
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
 		a_file_name,
-#ifdef SUPPORT_FIREFOX
-		a_provider,
-#endif
 		a_verbosity,
 		a_help, a_end 
 	};
@@ -128,22 +122,6 @@ int main(int argc, char **argv)
 
 	int verbosity = a_verbosity->count;
 
-	enum VAPID_PROVIDER provider = PROVIDER_CHROME;
-#ifdef SUPPORT_FIREFOX
-	if (a_provider->count) {
-		if ("firefox" == std::string(*a_provider->sval)) {
-			provider = PROVIDER_FIREFOX;
-		}
-	}
-#endif	
-
-	bool isNew = 
-#ifdef SUPPORT_FIREFOX	
-	a_provider->count > 0;
-#else
-	false;
-#endif	
-
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)
 	{
@@ -158,102 +136,31 @@ int main(int argc, char **argv)
 	}
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
-	std::string registrationId;
-	std::string lastPersistentId;
-	std::string privateKey;
-	std::string publicKey;
-	std::string authSecret;
-	uint64_t androidId;
-	uint64_t securityToken;
-	std::string appId;
-	
 	// load config file
-	int r = readConfig(
-		filename,
-		provider,
-		registrationId,
-		privateKey,
-		publicKey,
-		authSecret,
-		androidId,
-		securityToken,
-		appId,
-		lastPersistentId
-	);
-	if (r)  {
-		std::cerr << "Error parse " << filename << std::endl;
+	ConfigFile wpnConfig(filename);
+	RegistryClient rclient(&wpnConfig);
+	if (!rclient.validate(verbosity)) {
+		std::cerr << "Error register client" << std::endl;
 	}
 
 	// In windows, this will init the winsock stuff
 	curl_global_init(CURL_GLOBAL_ALL);
 	OpenSSL_add_all_algorithms();
 
-	if (isNew || appId.empty()) 
-	{
-		// generate a new application name. Is it required?
-		appId = mkInstanceId();
-		// Initialize client
-		r = initClient(registrationId, privateKey, publicKey, authSecret, &androidId, &securityToken, appId, verbosity);
-		if ((r < 200) || (r >= 300))
-		{
-			std::cerr << "Error " << r << " on client registration. Check Internet connection and try again." << std::endl;
-			return r;
-		} else {
-			// HTTP 200 -> 0
-			r = 0;
-		}
-		
-		// save 
-		r = writeConfig(
-			filename,
-			provider,
-			registrationId.c_str(),
-			privateKey.c_str(),
-			publicKey.c_str(),
-			authSecret.c_str(),
-			androidId,
-			securityToken,
-			appId,
-			lastPersistentId
-		);
-	}
-	if (r < 0)
-		std::cerr << "Error write " << filename << std::endl;
-
 	// read
 	int retcode;
 	MCSClient *client = (MCSClient*) startClient(
 		&retcode,
-		lastPersistentId,
-		privateKey,
-		authSecret,
-		androidId,
-		securityToken,
-		onNotify,
-		NULL,
-		onLog,
-		NULL,
+		EMPTY_LAST_PERSISTENT_ID,
+		wpnConfig.wpnKeys->getPrivateKey(),
+		wpnConfig.wpnKeys->getAuthSecret(),
+		wpnConfig.androidCredentials->getAndroidId(),
+		wpnConfig.androidCredentials->getSecurityToken(),
+		onNotify, NULL,
+		onLog, NULL,
 		verbosity
 	);
-	if (r) 
-	{
-		std::cerr << "Starting client error " << retcode << std::endl;
-		return r;
-	} 
 	std::cout << "Enter q to quit" << std::endl;
-	std::string endPoint = endpoint(registrationId, 0, (int) provider);	///< 0- Chrome, 1- Firefox
-	std::cout << endPoint << std::endl;
-	std::cout << jsonConfig(
-		provider,
-		registrationId.c_str(),
-		privateKey.c_str(),
-		publicKey.c_str(),
-		authSecret.c_str(),
-		androidId,
-		securityToken,
-		appId,
-		lastPersistentId
-	) << std::endl;
 
 	// loop
 	std::string l;
@@ -261,27 +168,7 @@ int main(int argc, char **argv)
 		std::cin >> l;
 	} while (l != "q");
 
-	// save 
-	lastPersistentId = client->getLastPersistentId();
-	r = writeConfig(
-		filename,
-		provider,
-		registrationId.c_str(),
-		privateKey.c_str(),
-		publicKey.c_str(),
-		authSecret.c_str(),
-		androidId,
-		securityToken,
-		appId,
-		lastPersistentId
-	);
-	if (r) 
-	{
-		std::cerr << "Save client configiration error " << retcode << std::endl;
-		return r;
-	}
-
 	std::cout << client->getLastPersistentId() << std::endl;
 	stopClient(client);
-	return r;
+	return 0;
 }

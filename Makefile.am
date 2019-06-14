@@ -14,8 +14,8 @@ lib_LTLIBRARIES = \
 
 #	Binaries
 bin_PROGRAMS = \
-	wpnr wpnw wpn-grant
-#	wpn webpush-curl wpnlink wpnlinkj wpnadd wpnwj ec
+	wpnr wpnw wpnadd wpn-grant
+#	wpn webpush-curl wpnlink wpnlinkj  wpnwj ec
 
 # commoncppflags = -O2 -I/usr/local/include -Imcs/gen -Ithird_party
 # commoncppflags = -O2 -I/usr/include -Imcs/gen -Ithird_party
@@ -155,7 +155,7 @@ wpnr_CPPFLAGS = $(commoncppflags)
 wpnw_SOURCES= \
 	tools/wpnw/wpnw.cpp \
 	$(common_src)
-wpnw_LDADD = -L. -lwpnpp -lece $(curllibs) 
+wpnw_LDADD = -L. -lwpnpp -lece $(curllibs) $(mcslibs)
 wpnw_CPPFLAGS = $(commoncppflags)
 
 #
@@ -173,11 +173,9 @@ wpnwj_CPPFLAGS = $(commoncppflags)
 #	wpnadd
 #
 wpnadd_SOURCES= \
-	tools/wpnadd/wpnadd.cpp config-filename.cpp utilfile.cpp endpoint.cpp \
-	utilinstance.cpp vapid.cpp utilvapid.cpp utilrecv.cpp sslfactory.cpp utilstring.cpp wp-storage-file.cpp \
-	$(gengrpcs_c) \
+	tools/wpnadd/wpnadd.cpp \
 	$(common_src)
-wpnadd_LDADD = $(commonlibs)
+wpnadd_LDADD = $(commonlibs) -L. -lwpnpp -lece $(curllibs) $(mcslibs)
 wpnadd_CPPFLAGS = $(commoncppflags)
 
 #

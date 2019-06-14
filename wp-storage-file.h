@@ -429,6 +429,7 @@ private:
 	bool fromJson(const json &value);
 	void invalidate();
 public:
+	std::string fileName;
 	ClientOptions *clientOptions;
 	AndroidCredentials *androidCredentials;
 	WpnKeys *wpnKeys;
@@ -436,10 +437,6 @@ public:
 
 	ConfigFile(
 		const std::string &fileName
-	);
-
-	ConfigFile(
-		const json &value
 	);
 
 	~ConfigFile();

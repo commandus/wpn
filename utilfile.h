@@ -30,6 +30,7 @@ std::string tabConfig
 	const std::string &lastPersistentId
 );
 
+/*
 int writeConfig
 (
 	const std::string &filename,
@@ -43,11 +44,13 @@ int writeConfig
 	const std::string &appId,
 	const std::string &lastPersistentId
 );
+*/
 
 /**
  * Load config file
  * @return 0- success, -1: Invalid JSON, -2: Invalid config
  */
+/*
 int readConfig
 (
 	const std::string &filename,
@@ -61,7 +64,7 @@ int readConfig
 	std::string &appId,
 	std::string &lastPersistentId
 );
-
+*/
 /**
  * Parse config file
  * @return 0- success, -1: Invalid JSON, -2: Invalid config

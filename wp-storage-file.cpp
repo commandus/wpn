@@ -1346,24 +1346,24 @@ void ConfigFile::read(
 }
 
 ConfigFile::ConfigFile(
-	const std::string &fileName
+	const std::string &filename
 )
-	: clientOptions(NULL), androidCredentials(NULL), wpnKeys(NULL), subscriptions(NULL)
+	: fileName(filename), clientOptions(NULL), androidCredentials(NULL), wpnKeys(NULL), subscriptions(NULL)
 {
-	std::ifstream configRead(fileName.c_str());
+	std::ifstream configRead(filename.c_str());
 	if (configRead.fail()) {
-		std::cerr << "Error read " << fileName << std::endl;
+		std::cerr << "Error read " << filename << std::endl;
 	} else {
-		if (fileName.find(".js") != std::string::npos) {
+		if (filename.find(".js") != std::string::npos) {
 			json j;
 			try {
 				configRead >> j;
 			}
 			catch (json::exception e) {
-				std::cerr << fileName <<  " error " << e.what() << std::endl;
+				std::cerr << filename <<  " error " << e.what() << std::endl;
 			}
 			catch (...) {
-				std::cerr << "Error parse " << fileName << std::endl;
+				std::cerr << "Error parse " << filename << std::endl;
 			}
 			fromJson(j);
 		} else {
@@ -1371,15 +1371,6 @@ ConfigFile::ConfigFile(
 		}
 	}
 	configRead.close();
-	invalidate();
-}
-
-ConfigFile::ConfigFile(
-	const json &value
-)
-	: clientOptions(NULL), androidCredentials(NULL), wpnKeys(NULL), subscriptions(NULL)
-{
-	fromJson(value);
 	invalidate();
 }
 

@@ -69,6 +69,13 @@ public:
 	bool subscribeById(
 		uint64_t id
 	);
+
+	/**
+	 * Invalidate device registration
+	 */
+	bool validate(
+		int verbosity
+	);
 };
 
 #endif

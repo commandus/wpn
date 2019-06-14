@@ -76,6 +76,7 @@ std::string tabConfig
 	return ss.str();
 }
 
+/*
 int writeConfig
 (
 	const std::string &filename,
@@ -112,6 +113,7 @@ int writeConfig
 	ostrm.close();
 	return r;
 }
+*/
 
 /**
  * Parse config file
@@ -196,6 +198,7 @@ int parseConfig
  * Load config file
  * @return 0- success, -1: Invalid JSON, -2: Invalid config
  */
+/*
 int readConfig
 (
 	const std::string &filename,
@@ -226,3 +229,4 @@ int readConfig
 		lastPersistentId
 	);
 }
+*/

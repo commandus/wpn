@@ -41,6 +41,7 @@
 #include "utilvapid.h"
 #include "endpoint.h"
 #include "sslfactory.h"
+#include "wp-registry.h"
 
 #include "config-filename.h"
 #include "wpnapi.h"
@@ -113,6 +114,10 @@ int main(int argc, char **argv)
 	else
 		config = getDefaultConfigFileName(DEF_CONFIG_FILE_NAME);
 	ConfigFile wpnConfig(config);
+	RegistryClient rclient(&wpnConfig);
+	if (!rclient.validate(verbosity)) {
+		std::cerr << "Error register client" << std::endl;
+	}
 
 	std::string privateKey;
 	std::string publicKey;

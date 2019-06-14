@@ -2,9 +2,11 @@
 #include <sstream>
 #include <curl/curl.h>
 #include "nlohmann/json.hpp"
+#include "platform.h"
 
 #include "endpoint.h"
 #include "utilstring.h"
+#include "utilrecv.h"
 #include "wp-storage-file.h"
 #include "wp-registry.h"
 #include "wp-subscribe.h"
@@ -119,6 +121,52 @@ RegistryClient::RegistryClient(
 	: config(a_config), errorCode(0), errorDescription("")
 {
 	
+}
+
+/**
+ * Invalidate device registration
+ */
+bool RegistryClient::validate(
+	int verbosity
+	)
+{
+	// register if needed
+	int r = 200;
+
+	// check in
+	if (config->androidCredentials->getAndroidId() == 0)
+	{
+		uint64_t androidId = config->androidCredentials->getAndroidId();
+		uint64_t securityToken = config->androidCredentials->getSecurityToken();
+		int r = checkIn(&androidId, &securityToken, verbosity);
+		if (r < 200 || r >= 300) {
+			return false;
+		}
+		config->androidCredentials->setAndroidId(androidId);
+		config->androidCredentials->setSecurityToken(securityToken);
+		if (!config->fileName.empty())
+			config->save(config->fileName);
+	}
+
+	if (config->androidCredentials->getGCMToken().empty()) {
+		for (int i = 0; i < 5; i++) {
+			std::string gcmToken;
+			r = registerDevice(&gcmToken,
+				config->androidCredentials->getAndroidId(),
+				config->androidCredentials->getSecurityToken(),
+				config->androidCredentials->getAppId(),
+				verbosity
+			);
+			if (r >= 200 && r < 300) {
+				config->androidCredentials->setGCMToken(gcmToken);
+				if (!config->fileName.empty())
+					config->save(config->fileName);
+				break;
+			}
+			sleep(1);
+		}
+	}
+	return (r >= 200 && r < 300);
 }
 
 RegistryClient::~RegistryClient()

@@ -127,44 +127,10 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	// check in
-	if (wpnConfig.androidCredentials->getAndroidId() == 0)
-	{
-		uint64_t androidId = wpnConfig.androidCredentials->getAndroidId();
-		uint64_t securityToken = wpnConfig.androidCredentials->getSecurityToken();
-		int r = checkIn(&androidId, &securityToken, verbosity);
-		if (r < 200 || r >= 300) {
-			return ERR_NO_ANDROID_ID_N_TOKEN;
-		}
-		wpnConfig.androidCredentials->setAndroidId(androidId);
-		wpnConfig.androidCredentials->setSecurityToken(securityToken);
-		wpnConfig.save(config);
-	}
-	// register
-	if (wpnConfig.androidCredentials->getGCMToken().empty()) {
-		int r;
-		for (int i = 0; i < 5; i++) {
-			std::string gcmToken;
-			r = registerDevice(&gcmToken,
-				wpnConfig.androidCredentials->getAndroidId(),
-				wpnConfig.androidCredentials->getSecurityToken(),
-				wpnConfig.androidCredentials->getAppId(),
-				verbosity
-			);
-			if (r >= 200 && r < 300) {
-				wpnConfig.androidCredentials->setGCMToken(gcmToken);
-				break;
-			}
-			sleep(1);
-		}
-		if (r < 200 || r >= 300)
-		{
-			return ERR_NO_FCM_TOKEN;
-		}
-	}
-
-	int r;
 	RegistryClient rclient(&wpnConfig);
+	if (!rclient.validate(verbosity)) {
+		std::cerr << "Error register client" << std::endl;
+	}
 
 	if (credentials) {
 		// print id
