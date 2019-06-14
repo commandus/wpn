@@ -14,7 +14,8 @@ lib_LTLIBRARIES = \
 
 #	Binaries
 bin_PROGRAMS = \
-	wpn webpush-curl wpnr wpnw wpnlink wpnlinkj wpnadd wpnwj ec wpn-grant
+	wpnr wpnw wpn-grant
+#	wpn webpush-curl wpnlink wpnlinkj wpnadd wpnwj ec
 
 # commoncppflags = -O2 -I/usr/local/include -Imcs/gen -Ithird_party
 # commoncppflags = -O2 -I/usr/include -Imcs/gen -Ithird_party
@@ -64,7 +65,9 @@ wpn_lib_source = \
 	$(gengrpcs_c) \
 	utilfile.cpp utilstring.cpp params.cpp commandoutput.cpp endpoint.cpp \
 	utilqr.cpp $(QRSOURCES) \
-	vapid.cpp utilvapid.cpp utilrecv.cpp utilinstance.cpp
+	vapid.cpp utilvapid.cpp utilrecv.cpp utilinstance.cpp wp-registry.cpp \
+	config-filename.cpp
+
 AM_CXXFLAGS = -std=c++11 
 
 #
@@ -141,21 +144,18 @@ webpush_curl_CPPFLAGS = $(commoncppflags)
 #	wpnr
 #
 wpnr_SOURCES = \
-	tools/wpnr/wpnr.cpp config-filename.cpp utilfile.cpp commandoutput.cpp params.cpp wp-push.cpp endpoint.cpp \
-	utilinstance.cpp utilrecv.cpp vapid.cpp utilvapid.cpp utilstring.cpp mcs/mcsclient.cpp wp-storage-file.cpp sslfactory.cpp \
-	$(gengrpcs_c) \
+	tools/wpnr/wpnr.cpp \
 	$(common_src)
-wpnr_LDADD = $(curllibs) $(mcslibs) -lece
+wpnr_LDADD = -L. -lwpnpp -lece $(curllibs) $(mcslibs)
 wpnr_CPPFLAGS = $(commoncppflags)
 
 #
 #	wpnw
 #
 wpnw_SOURCES= \
-	tools/wpnw/wpnw.cpp config-filename.cpp utilfile.cpp endpoint.cpp \
-	utilinstance.cpp vapid.cpp utilvapid.cpp sslfactory.cpp utilstring.cpp wp-storage-file.cpp \
+	tools/wpnw/wpnw.cpp \
 	$(common_src)
-wpnw_LDADD = $(curllibs) -L. -lece
+wpnw_LDADD = -L. -lwpnpp -lece $(curllibs) 
 wpnw_CPPFLAGS = $(commoncppflags)
 
 #
@@ -206,7 +206,8 @@ wpnlinkj_CPPFLAGS = $(commoncppflags)
 #	ec
 #
 ec_SOURCES= \
-	tests/ec.cpp vapid.cpp $(ARGT3SOURCES)
+	tests/ec.cpp vapid.cpp \
+	$(common_src)
 
 ec_LDADD = -lssl -lcrypto -lece
 ec_CPPFLAGS = $(commoncppflags)
@@ -214,15 +215,11 @@ ec_CPPFLAGS = $(commoncppflags)
 #
 #	wpn-grant
 #
-wpn_grant_SOURCES= \
-	wpn-grant.cpp vapid.cpp wp-storage-file.cpp \
-	mcs/mcsclient.cpp commandoutput.cpp sslfactory.cpp params.cpp wp-push.cpp \
-	utilstring.cpp utilrecv.cpp endpoint.cpp utilinstance.cpp  \
-	config-filename.cpp wp-registry.cpp wp-subscribe.cpp \
-	$(gengrpcs_c) \
+wpn_grant_SOURCES = \
+	wpn-grant.cpp \
 	$(common_src)
 
-wpn_grant_LDADD = $(commonlibs) $(ec_LDADD)
+wpn_grant_LDADD = $(commonlibs) -L. -lwpnpp -lece $(curllibs) $(mcslibs)
 wpn_grant_CPPFLAGS = $(commoncppflags)
 
 #

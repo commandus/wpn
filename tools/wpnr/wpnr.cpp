@@ -43,7 +43,8 @@
 #include <mcs/mcsclient.h>
 
 static const char* progname = "wpnr";
-#define DEF_FILE_NAME			".wpnr.js"
+#define DEF_CONFIG_FILE_NAME			".wpn.js"
+
 #undef SUPPORT_FIREFOX
 
 void onNotify
@@ -91,7 +92,7 @@ void onLog
 
 int main(int argc, char **argv) 
 {
-	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_FILE_NAME);
+	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_CONFIG_FILE_NAME);
 	// TODO add Firefox read
 #ifdef SUPPORT_FIREFOX	
 	struct arg_str *a_provider = arg_str0("p", "provider", "chrome|firefox", "Re-init web push provider. Default chrome.");
@@ -119,10 +120,12 @@ int main(int argc, char **argv)
 	int nerrors = arg_parse(argc, argv, argtable);
 
 	std::string filename;
+
 	if (a_file_name->count)
 		filename = *a_file_name->sval;
 	else
-		filename = getDefaultConfigFileName(DEF_FILE_NAME);
+		filename = getDefaultConfigFileName(DEF_CONFIG_FILE_NAME);
+
 	int verbosity = a_verbosity->count;
 
 	enum VAPID_PROVIDER provider = PROVIDER_CHROME;
@@ -276,8 +279,7 @@ int main(int argc, char **argv)
 	{
 		std::cerr << "Save client configiration error " << retcode << std::endl;
 		return r;
-	} 
-
+	}
 
 	std::cout << client->getLastPersistentId() << std::endl;
 	stopClient(client);
