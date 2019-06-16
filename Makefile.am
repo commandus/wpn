@@ -14,8 +14,8 @@ lib_LTLIBRARIES = \
 
 #	Binaries
 bin_PROGRAMS = \
-	wpnr wpnw wpnadd wpn-grant
-#	wpn webpush-curl wpnlink wpnlinkj  wpnwj ec
+	wpnr wpnw wpn-print wpn-grant wpn wpnlink ec
+#	 webpush-curl wpnlinkj wpnwj 
 
 # commoncppflags = -O2 -I/usr/local/include -Imcs/gen -Ithird_party
 # commoncppflags = -O2 -I/usr/include -Imcs/gen -Ithird_party
@@ -45,8 +45,14 @@ nodist_wpn_SOURCES = $(gengrpcs)
 BUILT_SOURCES = $(gengrpcs)
 CLEANFILES = $(gengrpcs)
 
-QRHEADERS = third_party/nayuki/QR-Code-generator/BitBuffer.hpp third_party/nayuki/QR-Code-generator/QrCode.hpp third_party/nayuki/QR-Code-generator/QrSegment.hpp
-QRSOURCES = third_party/nayuki/QR-Code-generator/BitBuffer.cpp third_party/nayuki/QR-Code-generator/QrCode.cpp third_party/nayuki/QR-Code-generator/QrSegment.cpp
+QRHEADERS = \
+	third_party/nayuki/QR-Code-generator/BitBuffer.hpp \
+	third_party/nayuki/QR-Code-generator/QrCode.hpp \
+	third_party/nayuki/QR-Code-generator/QrSegment.hpp
+QRSOURCES = \
+	third_party/nayuki/QR-Code-generator/BitBuffer.cpp \
+	third_party/nayuki/QR-Code-generator/QrCode.cpp \
+	third_party/nayuki/QR-Code-generator/QrSegment.cpp
 
 ARGT3HEADERS = third_party/argtable3/argtable3.h
 ARGT3SOURCES = third_party/argtable3/argtable3.c
@@ -97,7 +103,7 @@ libwpnapi_la_CPPFLAGS = $(commoncppflags)
 libwpnapi_la_LDFLAGS = -version-info 0:2:0
 
 nobase_dist_include_HEADERS = \
-	platform.h \
+	platform.h vapid.h \
 	wpn-config.h wpn.h wpn-notify.h utilvapid.h utilrecv.h endpoint.h \
 	wp-storage-file.h wp-subscribe.h wp-connection.h wp-push.h wp-registry.h \
 	wpnapi.h sslfactory.h utilstring.h utilinstance.h utilfile.h commandoutput.h params.h \
@@ -115,14 +121,9 @@ common_src = $(ARGT3SOURCES)
 #	wpn
 #
 wpn_SOURCES = \
-	wpn-config.cpp wpn.cpp wp-storage-file.cpp \
-	wp-push.cpp wp-subscribe.cpp wp-connection.cpp sslfactory.cpp \
-	mcs/mcsclient.cpp endpoint.cpp \
-	utilstring.cpp params.cpp commandoutput.cpp \
-	utilqr.cpp $(QRSOURCES) \
-	vapid.cpp utilvapid.cpp utilrecv.cpp utilinstance.cpp config-filename.cpp \
+	wpn-config.cpp wpn.cpp \
 	$(common_src)
-wpn_LDADD = $(commonlibs) -ldl
+wpn_LDADD = -L. -lwpnpp -lece $(curllibs) $(mcslibs) -ldl
 wpn_CPPFLAGS = $(commoncppflags)
 
 #
@@ -170,23 +171,22 @@ wpnwj_LDADD = $(curllibs) -L. -lece
 wpnwj_CPPFLAGS = $(commoncppflags)
 
 #
-#	wpnadd
+#	wpn-print
 #
-wpnadd_SOURCES= \
-	tools/wpnadd/wpnadd.cpp \
+wpn_print_SOURCES= \
+	tools/wpn-print/wpn-print.cpp \
 	$(common_src)
-wpnadd_LDADD = $(commonlibs) -L. -lwpnpp -lece $(curllibs) $(mcslibs)
-wpnadd_CPPFLAGS = $(commoncppflags)
+wpn_print_LDADD = $(commonlibs) -L. -lwpnpp -lece $(curllibs)
+wpn_print_CPPFLAGS = $(commoncppflags)
 
 #
 #	wpnlink
 #
 wpnlink_SOURCES= \
-	tools/wpnlink/wpnlink.cpp config-filename.cpp endpoint.cpp utilinstance.cpp wp-subscribe.cpp \
-	utilfile.cpp vapid.cpp utilvapid.cpp utilstring.cpp \
+	tools/wpnlink/wpnlink.cpp \
 	$(common_src)
 
-wpnlink_LDADD = $(curllibs) -L. -lece
+wpnlink_LDADD = $(commonlibs) -L. -lwpnpp -lece $(curllibs)
 wpnlink_CPPFLAGS = $(commoncppflags)
 
 #
@@ -226,12 +226,24 @@ wpn_grant_CPPFLAGS = $(commoncppflags)
 $(commonlibs) : libece.a
 
 #
+# ----- With static libraries, library first -----
+#
+wpn.cpp : libwpnpp.a
+wpn-grant.cpp : libwpnpp.a
+tools/wpnr/wpnr.cpp : libwpnpp.a
+tools/wpnw/wpnw.cpp : libwpnpp.a
+tools/wpnwj/wpnwj.cpp : libwpnpp.a
+tools/wpn-print/wpn-print.cpp : libwpnpp.a
+tools/wpnlink/wpnlink.cpp : libwpnpp.a
+tools/wpnlink/wpnlinkj.cpp : libwpnpp.a
+
+#
 # ----- With shared libraries, shared library first -----
 #
 tools/wpnr/wpnr.cpp : libwpnapi.la
 tools/wpnw/wpnw.cpp : libwpnapi.la
 tools/wpnwj/wpnwj.cpp : libwpnapi.la
-tools/wpnadd/wpnadd.cpp : libwpnapi.la
+tools/wpn-print/wpn-print.cpp : libwpnapi.la
 tools/wpnlink/wpnlink.cpp : libwpnapi.la
 tools/wpnlink/wpnlinkj.cpp : libwpnapi.la
 
@@ -258,4 +270,7 @@ dist_config_DATA = \
 	tools/mkcert \
 	LICENSE COPYING CODE_OF_CONDUCT.md CONTRIBUTING.md HISTORY README.md TODO \
 	autogen.sh \
-	incoming-call email-template.html
+	incoming-call email-template.html \
+	tools/install-protobuf-2.6.1.sh \
+	tools/android/build-curl tools/android/build-openssl tools/android/build-protobuf tools/android/build-wpn tools/android/build-z \
+	tools/wpn-print/README.wpn-print.md tools/wpnr/README.wpnr.md tools/wpnw/README.wpnw.md

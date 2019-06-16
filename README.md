@@ -458,7 +458,6 @@ EXPORT int webpushVapidC(
 	time_t expiration = 0
 );
 
-
 ## Service push message
 
 push.php script contains keys.
@@ -654,6 +653,35 @@ If you want, install:
 sudo make install
 ```
 
+### Encryption/decryption tool using AES128GCM
+
+ec tool encrypt/decrypt small pieces of data for testing puproses only.
+
+Generate public/private keys
+
+```
+ec -g
+```
+
+Prints base64-encoded tab-delimited public and private key.
+
+#### Encryption
+
+Public key must be base64 encoded.
+
+```
+ec public_key < file_to_encrypt
+```
+
+#### Decryption
+
+Private key must be base64 encoded.
+
+```
+ec private_key < file_to_decrypt
+```
+
+
 ### Tools
 
 - Autoconf 2.63
@@ -672,7 +700,7 @@ sudo apt install autoconf libtool g++ cmake
 - curl https://github.com/curl/curl
 - zlib https://zlib.net/ (curl dependency)
 - openssl 1.1.0 https://github.com/openssl/openssl
-- Protobuf 2.6.1
+- Protobuf 2.6.1 (use tools/install-protobuf-2.6.1.sh to install proper version)
 - ecec https://github.com/web-push-libs/ecec (included in third_party- a few changes added(see ecec section))
 - argtable3 https://github.com/argtable/argtable3 https://www.argtable.org/ BSD (included in third_party/ )
 - JSON for Modern C++ 3.1.2 https://github.com/nlohmann/json (included in third_party/ )
@@ -783,9 +811,7 @@ MacOS:
 sudo apt install libgoogle-glog-dev
 ```
 
-
 ### libprotobuf
-
 
 For wpn-gtk required libprotobuf version 2.6.1.
 
