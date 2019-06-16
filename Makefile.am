@@ -176,7 +176,7 @@ wpnwj_CPPFLAGS = $(commoncppflags)
 wpn_print_SOURCES= \
 	tools/wpn-print/wpn-print.cpp \
 	$(common_src)
-wpn_print_LDADD = $(commonlibs) -L. -lwpnpp -lece $(curllibs)
+wpn_print_LDADD = $(commonlibs) -L. -lwpnpp -lece $(curllibs) $(mcslibs)
 wpn_print_CPPFLAGS = $(commoncppflags)
 
 #
@@ -246,16 +246,6 @@ tools/wpnwj/wpnwj.cpp : libwpnapi.la
 tools/wpn-print/wpn-print.cpp : libwpnapi.la
 tools/wpnlink/wpnlink.cpp : libwpnapi.la
 tools/wpnlink/wpnlinkj.cpp : libwpnapi.la
-
-#
-#	wpnrs (with shared library)
-#
-wpnrs_SOURCES = \
-	tools/wpnr/wpnr.cpp config-filename.cpp utilfile.cpp \
-	$(common_src)
-
-wpnrs_LDADD = -L.libs -lwpnapi $(commonlibs)
-wpnrs_CPPFLAGS = $(commoncppflags) -DUSELIB
 
 #
 #	Configs, readme, CMake etc.

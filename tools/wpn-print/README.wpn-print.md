@@ -1,4 +1,6 @@
-# Test shared library
+# Print out credentials
+
+Test shared library
 
 ## Shared library
 
