@@ -145,7 +145,7 @@ bool RegistryClient::validate(
 		config->androidCredentials->setAndroidId(androidId);
 		config->androidCredentials->setSecurityToken(securityToken);
 		if (!config->fileName.empty())
-			config->save(config->fileName);
+			config->save();
 	}
 
 	if (config->androidCredentials->getGCMToken().empty()) {
@@ -160,7 +160,7 @@ bool RegistryClient::validate(
 			if (r >= 200 && r < 300) {
 				config->androidCredentials->setGCMToken(gcmToken);
 				if (!config->fileName.empty())
-					config->save(config->fileName);
+					config->save();
 				break;
 			}
 			sleep(1);

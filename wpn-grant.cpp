@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 			std::cerr << "Error " << rclient.errorCode << ": " << rclient.errorDescription << std::endl;
 			return rclient.errorCode;
 		}
-		wpnConfig.save(config);
+		wpnConfig.save();
 		return 0;
 	}
 
@@ -166,12 +166,12 @@ int main(int argc, char **argv)
 			}
 			if (s) {
 				s->setName(name);
-				wpnConfig.save(config);
+				wpnConfig.save();
 			}
 		} else {
 			// no identifier specified
 			wpnConfig.clientOptions->name = name;
-			wpnConfig.save(config);
+			wpnConfig.save();
 		}
 		return 0;
 	}
@@ -184,7 +184,7 @@ int main(int argc, char **argv)
 				std::cerr << "Error: can not delete subscription " << id << "." << std::endl;
 				return ERR_NOT_FOUND;
 			}
-			wpnConfig.save(config);
+			wpnConfig.save();
 		} else {
 				std::cerr << "Error: no subscription identifier provided." << std::endl;
 				return ERR_NOT_FOUND;
@@ -203,7 +203,7 @@ int main(int argc, char **argv)
 				return ERR_NOT_FOUND;
 			}
 			// Save VAPID public key
-			wpnConfig.save(config);
+			wpnConfig.save();
 			s = wpnConfig.subscriptions->getById(id);
 		}
 
@@ -220,7 +220,7 @@ int main(int argc, char **argv)
 					<< rclient.errorDescription << ". Can not subscribe to " << id << "." << std::endl;
 					return ERR_SUBSCRIBE;
 				}
-				wpnConfig.save(config);
+				wpnConfig.save();
 			}
 			if (s->getSentToken().empty()) {
 				return ERR_SUBSCRIBE;
@@ -239,7 +239,7 @@ int main(int argc, char **argv)
 				std::cerr << "Error: can not get subscription " << id << "." << std::endl;
 				return ERR_REGISTER_SUBSCRIPTION;
 			}
-			wpnConfig.save(config);
+			wpnConfig.save();
 		}
 
 		std::cout << s->getWpnKeys().id;

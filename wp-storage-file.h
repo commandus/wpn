@@ -447,9 +447,7 @@ public:
 		const int writeFormat = FORMAT_TEXT
 	)  const;
 
-	std::ostream::pos_type save(
-		const std::string &fileName
-	) const;
+	std::ostream::pos_type save() const;
 
 	json toJson() const;
 };

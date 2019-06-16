@@ -546,6 +546,6 @@ int main(int argc, char** argv)
 				config.unloadNotifyFuncs();
 			}
 	}
-	config.config->save(config.file_name);
+	config.config->save();
 	return 0;
 }

@@ -3,6 +3,7 @@
 #include <fstream>
 #include "utilinstance.h"
 #include "wp-storage-file.h"
+
 #include "utilstring.h"
 #include "utilvapid.h"
 #include "endpoint.h"
@@ -1399,9 +1400,8 @@ std::ostream::pos_type ConfigFile::write(
 	return r;
 }
 
-std::ostream::pos_type ConfigFile::save(
-	const std::string &fileName
-) const
+std::ostream::pos_type ConfigFile::save
+() const
 {
 	std::ofstream configWrite(fileName);
 	std::ostream::pos_type r;
