@@ -1,1 +1,3 @@
-2018/04/09	First release git@github.com:commandus/wpn.git https://github.com/commandus/wpn
+2018/04/09	v. 0.1 First release git@github.com:commandus/wpn.git https://github.com/commandus/wpn
+2018/10/01	v. 0.2 Shared library added, see https://github.com/commandus/wpn-delphi, https://github.com/commandus/wpn-gtk
+2019/06/15	v. 0.3 Registration service added, see https://github.com/commandus/wpn-registry-php

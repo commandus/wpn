@@ -12,6 +12,6 @@ Please send a [GitHub Pull Request](https://github.com/commandus/wpn/pull/new/ma
 
 Start reading our code and you'll get the hang of it. We optimize for readability:
 
-  * We indent using tab or 4 spaces
- 
+* We indent using tab of 4 spaces
+
 Thanks
