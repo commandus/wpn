@@ -49,13 +49,14 @@ static const char* progname = "ec";
 
 int main(int argc, char **argv) 
 {
-	struct arg_str *a_key = arg_str0(NULL, NULL, "<key>", "Public(encrypt) or private key(decrypt)");
+	struct arg_str *a_key = arg_str0(NULL, NULL, "<base64>", "Public(encrypt) or private key(decrypt)");
+	struct arg_str *a_auth = arg_str0("a", "auth", "<base64>", "Auth");
 	struct arg_lit *a_generate = arg_lit0("g", "keys", "Generate public/private keys");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
-		a_key, a_generate,
+		a_key, a_auth, a_generate,
 		a_help, a_end 
 	};
 
@@ -76,6 +77,13 @@ int main(int argc, char **argv)
 			nerrors++;
 	}
 
+	std::string auth;
+	if (a_auth->count)
+		auth = *a_auth->sval;
+	else {
+		auth = "";
+	}
+
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)
 	{
@@ -91,6 +99,7 @@ int main(int argc, char **argv)
 	// length public: 87, private 43
 	bool encrypt = key.length() > 43;
 	bool generate = a_generate->count > 0;
+
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
 	OpenSSL_add_all_algorithms();
@@ -99,16 +108,14 @@ int main(int argc, char **argv)
 	if (generate) {
 		std::string pub;
 		std::string priv;
-		std::string auth;
 		r = generateKeys(priv, pub, auth);
 		if (r) {
 			std::cerr << "Error generate keys" << std::endl;
 		} else {
-			std::cout << pub << "\t" << priv << std::endl;
+			std::cout << pub << "\t" << priv << "\t" << auth << std::endl;
 		}
 	} else {
 		std::string s;
-		std::string auth = "";
 		// don't skip the whitespace while reading
 		std::cin >> std::noskipws;
 		// use stream iterators to copy the stream to a string

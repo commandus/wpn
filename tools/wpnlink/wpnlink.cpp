@@ -58,10 +58,10 @@ void onLog
 
 int main(int argc, char **argv) 
 {
-	struct arg_str *a_source_pubkey = arg_str1("s", "source", "<Base64 public key>", "Authorized entity.");
-	struct arg_str *a_android_id = arg_str1("i", "id", "<number>", "Android identifier.");
-	struct arg_str *a_security_number = arg_str1("t", "token", "<number>", "Security token.");
-	struct arg_str *a_appId = arg_str1("a", "app", "<base64>", "application identifier");
+	struct arg_str *a_source_pubkey = arg_str1("s", "source", "<Base64 public key>", "Authorized entity (subscription key).");
+	struct arg_str *a_android_id = arg_str1("i", "id", "<number>", "Android identifier, decimal number.");
+	struct arg_str *a_security_number = arg_str1("t", "token", "<number>", "Security token, decimal number.");
+	struct arg_str *a_appId = arg_str1("a", "app", "<id>", "application identifier, e.g. base64 string");
 
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
