@@ -380,7 +380,7 @@ std::string webpushVapidCmd(
 	cipherFile.write(cipherString.c_str(), cipherString.size());
 	cipherFile.close();
 
-	if (expiration ==0)
+	if (expiration == 0)
 		expiration = time(NULL) + (12 * 60 * 60);
 	std::stringstream r;
 	if (contentEncoding == AES128GCM) {
@@ -401,7 +401,7 @@ std::string webpushVapidCmd(
 	return r.str();
 }
 
-static std::string getECECErrorString
+std::string getECECErrorString
 (
 	int code
 )
@@ -529,6 +529,7 @@ int webpushVapid(
 	std::string cryptoKeyHeader;
 	std::string encryptionHeader;
 	int code;
+
 	if (contentEncoding == AES128GCM) {
 		code = WPCipher128(cipherString, p256dh, auth, body);
 	} else {
@@ -548,6 +549,7 @@ int webpushVapid(
 	CURLcode res;
 	
 	struct curl_slist *chunk = NULL;
+
 	chunk = curl_slist_append(chunk, ("Content-Type: application/octet-stream"));
 	chunk = curl_slist_append(chunk, ("TTL: 2419200"));
 	
@@ -585,6 +587,7 @@ int webpushVapid(
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 	}
 	curl_easy_cleanup(curl);
+	curl_slist_free_all(chunk);
 	return http_code;
 }
 

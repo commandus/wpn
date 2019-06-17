@@ -40,6 +40,8 @@
  */
 #define APP_CATEGORY	"org.chromium.linux"
 
+std::string getECECErrorString(int code);
+
 /**
  * Helper function for testing
  * Print out "curl ..."  command line string
