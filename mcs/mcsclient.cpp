@@ -831,7 +831,7 @@ static void doSmth
 					break;
 				}
 			} else {
-				client->log << severity(0) << "Decoding error "
+				client->log << severity(0) << "Decoding error " << dr << ",\n" 
 				<< " private key: " << base64UrlEncode(client->privateKey, ECE_WEBPUSH_PRIVATE_KEY_LENGTH) << "\n"
 				<< " auth secret: " << base64UrlEncode(client->authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH) << "\n"
 				<< " Header: cryptoKey: " << cryptoKeyHeader << "\n"
