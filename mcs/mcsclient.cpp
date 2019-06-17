@@ -831,11 +831,11 @@ static void doSmth
 					break;
 				}
 			} else {
-				client->log << severity(0) << "Decoding error " << dr << ",\n" 
-				<< " private key: " << base64UrlEncode(client->privateKey, ECE_WEBPUSH_PRIVATE_KEY_LENGTH) << "\n"
-				<< " auth secret: " << base64UrlEncode(client->authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH) << "\n"
-				<< " Header: cryptoKey: " << cryptoKeyHeader << "\n"
-				<< " Header: encryptionHeader: " << encryptionHeader << "\n"
+				client->log << severity(0) << "Decoding error " << dr << ": " << getECECErrorString(dr) << "\n" 
+				<< "private key: " << base64UrlEncode(client->privateKey, ECE_WEBPUSH_PRIVATE_KEY_LENGTH) << "\n"
+				<< "auth secret: " << base64UrlEncode(client->authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH) << "\n"
+				<< "Header: cryptoKey: " << cryptoKeyHeader << "\n"
+				<< "Header: encryptionHeader: " << encryptionHeader << "\n"
 				<< "\n";
 			}
 		}

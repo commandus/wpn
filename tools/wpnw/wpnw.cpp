@@ -61,6 +61,7 @@ int main(int argc, char **argv)
 	
 	// message itself
 	struct arg_str *a_subject = arg_str0("t", "subject", "<Text>", "Subject (topic)");
+	struct arg_str *a_body = arg_str0("b", "body", "<Text>", "Default read from stdin");
 	struct arg_str *a_icon = arg_str0("i", "icon", "<URL>", "http[s]:// icon address.");
 	struct arg_str *a_link = arg_str0("l", "link", "<URL>", "http[s]:// action address.");
 
@@ -82,7 +83,7 @@ int main(int argc, char **argv)
 	void* argtable[] = { 
 		a_subscriptionid,
 		a_registrationid, a_p256dh, a_auth, 
-		a_subject, a_icon, a_link,
+		a_subject, a_body, a_icon, a_link,
 		// from
 		a_contact, 
 		// to
@@ -193,6 +194,11 @@ int main(int argc, char **argv)
 		provider = PROVIDER_FIREFOX;
 	}
 
+	std::string body;
+	if (a_body->count)
+		body = *a_body->sval;
+	else
+		body = "";
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)
 	{
@@ -211,15 +217,17 @@ int main(int argc, char **argv)
 	curl_global_init(CURL_GLOBAL_ALL);
 	OpenSSL_add_all_algorithms();
 
-	int r  = 0;
+	int r = 0;
 
 	// read body
-	// don't skip the whitespace while reading
-	std::cin >> std::noskipws;
-	// use stream iterators to copy the stream to a string
- 	std::istream_iterator<char> it(std::cin);
-	std::istream_iterator<char> end;
-	std::string body(it, end);
+	if (body.empty()) {
+		// don't skip the whitespace while reading
+		std::cin >> std::noskipws;
+		// use stream iterators to copy the stream to a string
+		std::istream_iterator<char> it(std::cin);
+		std::istream_iterator<char> end;
+		body = std::string(it, end);
+	}
 
 	// override keys
 	if (!force_privatekey.empty())
@@ -228,23 +236,27 @@ int main(int argc, char **argv)
 		publicKey = force_publickey;
 
 	// write
-	std::string retval;
-	std::string endPoint = endpoint(registrationid, 1, (int) provider);	///< 0- Chrome, 1- Firefox
+	std::string endPoint = endpoint(registrationid, true, (int) provider);	///< 0- Chrome, 1- Firefox
+	std::string msg  = mkNotificationJson(registrationid, subject, body, icon, link);
 
-	if (verbosity > 0)
-	{
+	if (verbosity > 0) {
 		std::cerr
 			<< "endpoint: " << endPoint << std::endl
 			<< "provider: " << (provider == PROVIDER_FIREFOX ? "firefox" : "chrome") << std::endl
 			<< "privateKey: " << privateKey << std::endl
-			<< "publicKey: " << publicKey << std::endl;
+			<< "publicKey: " << publicKey << std::endl
+			<< "p256dh: " << p256dh << std::endl 
+			<< "auth: " << auth << std::endl 
+			<< "msg: " << msg << std::endl 
+			<< "contact: " << contact << std::endl 
+			<< (aesgcm ? "AESGCM" : "AES128GCM") << std::endl;
 	}
 	
-	std::string msg  = mkNotificationJson(registrationid, subject, body, icon, link);
 	time_t t = time(NULL) + 86400 - 60;
-	if (verbosity > 1)
-	{
-		retval = webpushVapidCmd(
+	
+	if (verbosity > 1) {
+		// print out curl
+		std::string retval = webpushVapidCmd(
 			publicKey,
 			privateKey,
 			cmdFileName,
@@ -256,21 +268,25 @@ int main(int argc, char **argv)
 			aesgcm ? AESGCM : AES128GCM,
 			t
 		);
-		std::cerr << "curl: " << std::endl << retval << std::endl;
+		std::cerr << retval << std::endl;
 	}
 	
+	std::string retval;
+
 	r = webpushVapid(
 		retval, 
 		publicKey,
 		privateKey,
 		endPoint,
-		p256dh.c_str(),
-		auth.c_str(),
-		msg.c_str(),
-		contact.c_str(),
+		p256dh,
+		auth,
+		msg,
+		contact,
 		aesgcm ? AESGCM : AES128GCM,
 		t
 	);
+
+	std::cerr << r << std::endl;
 
 	if (r < 200 || r > 299) 
 	{
@@ -278,6 +294,6 @@ int main(int argc, char **argv)
 			<< ": " << retval
 			<< std::endl;
 		return r;
-	} 
+	}
 	return r;
 }
