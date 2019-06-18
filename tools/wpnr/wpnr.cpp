@@ -58,25 +58,39 @@ void onNotify
 	const NotifyMessageC *msg
 )
 {
+	ConfigFile *config = (ConfigFile *) env;
+	Subscription *s = config->subscriptions->findByPublicKey(from);
+
 	time_t t = sent / 1000;
 	struct tm *tm = localtime(&t);
-	std::cerr<< "Notify " << "persistent_id: " << persistent_id << std::endl
-		<< "from: " << from << std::endl
-		<< "sent: " << std::asctime(tm) << std::endl
-		<< std::endl << std::endl;
+	if (config->clientOptions->getVerbosity() > 0) {
+		std::cerr<< "Notify " << "persistent_id: " << persistent_id << std::endl
+			<< "from: " << from << std::endl
+			<< "sent: " << std::asctime(tm) << std::endl
+			<< std::endl << std::endl;
+	}
 	if (msg) {
-		std::cout 
-		<< msg->title << std::endl
-		<< msg->category << std::endl
-		<< msg->extra << std::endl
-		<< msg->icon << std::endl
-		<< msg->link << std::endl
-		<< msg->linkType << std::endl
-		<< msg->sound << std::endl
-		<< msg->timeout << std::endl
-		<< msg->urgency << std::endl
-		<< msg->body << std::endl
-		<< std::endl;
+		if (s) {
+			std::string name = s->getName();
+			if (name.empty())
+				name = "noname";
+			std::cout << s->getWpnKeys().id << "(" << name << ")\t";
+		} else {
+			std::cout << "Unknown" << "\t" <<  from << "\t";
+		}
+		if (config->clientOptions->getVerbosity() > 1) {
+			std::cout 
+			<< msg->title << std::endl
+			<< msg->category << std::endl
+			<< msg->extra << std::endl
+			<< msg->icon << std::endl
+			<< msg->link << std::endl
+			<< msg->linkType << std::endl
+			<< msg->sound << std::endl
+			<< msg->timeout << std::endl
+			<< msg->urgency << std::endl;
+		}
+		std::cout << msg->body << std::endl;
 	}
 }
 
@@ -87,7 +101,10 @@ void onLog
 	const char *message
 )
 {
-	std::cerr << message;
+	ConfigFile *config = (ConfigFile *) env;
+	if (config->clientOptions->getVerbosity() > 0) {
+		std::cerr << message;
+	}
 }
 
 int main(int argc, char **argv) 
@@ -138,6 +155,8 @@ int main(int argc, char **argv)
 
 	// load config file
 	ConfigFile wpnConfig(filename);
+	wpnConfig.clientOptions->setVerbosity(verbosity);
+
 	RegistryClient rclient(&wpnConfig);
 	if (!rclient.validate(verbosity)) {
 		std::cerr << "Error register client" << std::endl;
@@ -156,8 +175,8 @@ int main(int argc, char **argv)
 		wpnConfig.wpnKeys->getAuthSecret(),
 		wpnConfig.androidCredentials->getAndroidId(),
 		wpnConfig.androidCredentials->getSecurityToken(),
-		onNotify, NULL,
-		onLog, NULL,
+		onNotify, &wpnConfig,
+		onLog, &wpnConfig,
 		verbosity
 	);
 	std::cout << "Enter q to quit" << std::endl;

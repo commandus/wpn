@@ -30,6 +30,7 @@ using json = nlohmann::json;
 class ClientOptions
 {
 private:
+	int verbosity;
 	void read(
 		std::istream &strm,
 		const std::string &delimiter
@@ -57,11 +58,15 @@ public:
 		const std::string &delimiter = DEF_DELIMITER,
 		const int writeFormat = FORMAT_TEXT
 	) const;
+
 	std::ostream::pos_type write(
 		const std::string &fileName
 	) const;
-	json toJson(
-	) const;
+
+	json toJson() const;
+
+	int getVerbosity();
+	void setVerbosity(int value);
 };
 
 class AndroidCredentials
@@ -409,6 +414,8 @@ public:
 	) const;
 	Subscription *getById(uint64_t id) const;
 	Subscription *findByNameOrId(const std::string &name) const;
+	Subscription *findByPublicKey(const std::string &value) const;
+
 	void putSubsciptionVapidPubKey(
 		uint64_t id,
 		const std::string &vapidPublicKey

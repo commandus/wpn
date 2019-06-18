@@ -230,7 +230,7 @@ client12 'll receive messages sent by client11
 
 wpnlinkj produces VAPID public key (subscription VAPID key). 
 
-Sender must must provide this key in the "To" field.
+Sender must must provide this key in the "to" field.
 
 You can not send message using reciever's VAPID public key of the receiver, you 'll need subscription's key.
 
@@ -248,6 +248,7 @@ code message11-to-12.js <- "to": cbcGO31NFjY:APA91bEqATE-_V...
 ```
 
 #### curl
+
 ```
 curl -i -H "Accept:application/json" -H "Content-Type:application/json" -X POST https://fcm.googleapis.com/fcm/connect/subscribe -d '{"endpoint": "https://fcm.googleapis.com/fcm/send/eBj1u43iA9Q:APA91bHz7hxB0ImaMZM_4G1K9Lv8MPgIu_Ta0r5Gt9LtI_Gm34B9nkTEOZVZxiZu2YjAIpWo5aZ1SaoBy3n8t_F_lqTsGhwzjdVVhf9kGT6E8KH7CGZBggrKxDxBgj21gb6MlyzTxrbr","encryption_key":"BM97-HP_Pw_RIrkp1mwVaYTEgR21Pl4PD1QYzDGYi5o7mp-YB6Cr9Pbz7_D7l3r5Zb4Ji-pLKubCza_lE4SsZIA","encryption_auth":"0L9jlM_NNYaurD3SSp_ZDg","authorized_entity":"103953800507"}
 ```

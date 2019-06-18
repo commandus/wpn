@@ -133,8 +133,8 @@ int main(int argc, char **argv)
 			std::cerr << "Error " << ERR_SUBSCRIPTION_TOKEN_NOT_FOUND << ": subscription "  << subscriptionid << " token not found." << std::endl;
 			exit(ERR_SUBSCRIPTION_TOKEN_NOT_FOUND);
 		}
-		privateKey = wpnConfig.wpnKeys->getPrivateKey();
 		publicKey = wpnConfig.wpnKeys->getPublicKey();
+		privateKey = wpnConfig.wpnKeys->getPrivateKey();
 
 		registrationid = s->getToken();
 		p256dh = s->getWpnKeys().getPublicKey();
@@ -241,6 +241,7 @@ int main(int argc, char **argv)
 
 	if (verbosity > 0) {
 		std::cerr
+			<< "registrationid: " <<  registrationid << std::endl
 			<< "endpoint: " << endPoint << std::endl
 			<< "provider: " << (provider == PROVIDER_FIREFOX ? "firefox" : "chrome") << std::endl
 			<< "privateKey: " << privateKey << std::endl
@@ -253,7 +254,7 @@ int main(int argc, char **argv)
 	}
 	
 	time_t t = time(NULL) + 86400 - 60;
-	
+
 	if (verbosity > 1) {
 		// print out curl
 		std::string retval = webpushVapidCmd(
@@ -275,18 +276,16 @@ int main(int argc, char **argv)
 
 	r = webpushVapid(
 		retval, 
-		publicKey,
-		privateKey,
+		publicKey,		// from
+		privateKey,		// from
 		endPoint,
-		p256dh,
-		auth,
+		p256dh,			// to
+		auth,			// to
 		msg,
 		contact,
 		aesgcm ? AESGCM : AES128GCM,
 		t
 	);
-
-	std::cerr << r << std::endl;
 
 	if (r < 200 || r > 299) 
 	{

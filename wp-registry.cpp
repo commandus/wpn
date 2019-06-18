@@ -262,7 +262,7 @@ bool RegistryClient::addSubscription(
 	bool c = false;
 	std::string v;
 	json js = {
-		{ "publicKey", config->wpnKeys->getPublicKey() },	// was s->getWpnKeys().getPublicKey()
+		{ "publicKey", config->wpnKeys->getPublicKey() },
 		{ "authSecret", config->wpnKeys->getAuthSecret() },
 		{ "token", s->getSentToken() }
 	};

@@ -52,13 +52,16 @@ void ClientOptions::read(
 }
 
 ClientOptions::ClientOptions()
+	: verbosity(0)
 {
 	this->name = DEF_NAME;
 }
 
 ClientOptions::ClientOptions(
 	const std::string &name
-) {
+)
+	: verbosity(0)
+{
 	this->name = name;
 }
 
@@ -66,16 +69,22 @@ ClientOptions::ClientOptions(
 	std::istream &strm,
 	const std::string &delimiter
 )
+	: verbosity(0)
 {
 	read(strm, delimiter);
 }
 
 ClientOptions::ClientOptions(
 	const json &value
-) {
+)
+	: verbosity(0)
+{
 	json::const_iterator f = value.find("name");
 	if (f != value.end())
 		name = f.value();
+	f = value.find("verbosity");
+	if (f != value.end())
+		verbosity = f.value();
 }
 
 std::ostream::pos_type ClientOptions::write(
@@ -91,7 +100,7 @@ std::ostream::pos_type ClientOptions::write(
 			strm << toJson().dump();
 			break;
 		default:
-			strm << name << std::endl;
+			strm << name << delimiter << verbosity << std::endl;
 	}
 	r = strm.tellp() - r;
 	return r;
@@ -110,9 +119,22 @@ std::ostream::pos_type ClientOptions::write(
 json ClientOptions::toJson() const
 {
 	json r = {
-		{ "name", name }
+		{ "name", name },
+		{ "verbosity", verbosity }
 	};
 	return r;
+}
+
+int ClientOptions::getVerbosity()
+{
+	return verbosity;
+}
+
+void ClientOptions::setVerbosity(
+	int value
+)
+{
+	verbosity = value;
 }
 
 // --------------- AndroidCredentials ---------------
@@ -707,17 +729,6 @@ void Subscription::fromJson(const json &value)
 		break;
 	case SUBSCRIBE_FORCE_VAPID:
 	{
-		uint64_t id;
-		uint64_t secret = 0;
-		std::string publicKey;
-		std::string privateKey;
-		std::string authSecret;
-		f = value.find("id");
-		if (f != value.end())
-			id = f.value();
-		else
-			id = 0;
-
 		/*
 		f = value.find("secret");
 		if (f != value.end()) {
@@ -734,14 +745,22 @@ void Subscription::fromJson(const json &value)
 		if (f != value.end())
 			pushSet = f.value();
 		*/
-
+		uint64_t id;
+		std::string publicKey;
+		std::string privateKey;
+		std::string authSecret;
+		f = value.find("id");
+		if (f != value.end())
+			id = f.value();
+		else
+			id = 0;
 		f = value.find("publicKey");
 		if (f != value.end())
 			publicKey = f.value();
 		f = value.find("authSecret");
 		if (f != value.end())
 			authSecret = f.value();
-		this->wpnKeys.init(id, secret, publicKey, privateKey, authSecret);
+		this->wpnKeys.init(id, 0, privateKey, publicKey, authSecret);
 		f = value.find("name");
 		if (f != value.end())
 			name = f.value();
@@ -1253,6 +1272,20 @@ Subscription *Subscriptions::findByNameOrId(
 		else
 			return (Subscription *) &(*it);
 	}
+}
+
+Subscription *Subscriptions::findByPublicKey(
+	const std::string &value
+) const
+{
+	if (value.empty())
+		return NULL;
+	std::vector<Subscription>::const_iterator it = std::find_if(list.begin(), list.end(),
+		[value](const Subscription &m) -> bool { return m.getWpnKeys().getPublicKey() == value; });
+	if (it == list.end())
+		return NULL;
+	else
+		return (Subscription *) &(*it);
 }
 
 bool Subscriptions::rmById(
