@@ -9,7 +9,7 @@
 			"type": "cppdbg",
 			"request": "launch",
 			"program": "${workspaceFolder}/wpnw",
-			"args": ["-c", "6.js", "-b", "msg", "5", "-vvv"],
+			"args": ["-c", "2.js", "-b", "msg", "1", "-vvv"],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",
 			"environment": [],
