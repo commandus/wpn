@@ -76,7 +76,7 @@ void onNotify
 				name = "noname";
 			std::cout << s->getWpnKeys().id << "(" << name << ")\t";
 		} else {
-			std::cout << "Unknown" << "\t" <<  from << "\t";
+			std::cout << from << "(unknown)\t";
 		}
 		if (config->clientOptions->getVerbosity() > 1) {
 			std::cout 
