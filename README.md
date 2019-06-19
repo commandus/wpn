@@ -869,6 +869,8 @@ brew install protobuf
 - -20 Invalid auth secret
 - -21 Error generate keys
 - -22 Error decrypt truncated
+- -30 Error read configuration file
+- -31 Error parse configuration file
 
 ## Errors
 

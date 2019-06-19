@@ -127,7 +127,7 @@ RegistryClient::RegistryClient(
  */
 bool RegistryClient::validate(
 	int verbosity
-	)
+)
 {
 	// check-in and register if needed
 	int r = 200;

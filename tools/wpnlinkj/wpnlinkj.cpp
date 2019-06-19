@@ -53,12 +53,13 @@ int main(int argc, char **argv)
 {
 	struct arg_file *a_files = arg_filen(NULL, NULL, "<file>", 2, 100, "Config file(s), 2..100");
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
+	struct arg_lit *a_force = arg_lit0("f", "force", "Create config files if not exists");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
 		a_files,
-		a_verbosity,
+		a_force, a_verbosity,
 		a_help, a_end 
 	};
 
@@ -73,55 +74,58 @@ int main(int argc, char **argv)
 	int nerrors = arg_parse(argc, argv, argtable);
 	
 	int r = 0;
-	int verbosity;
-	std::vector<ConfigFile> configs;
+	int verbosity = a_verbosity->count;
+	int force_create_config_file = a_force->count;
+	std::vector<ConfigFile*> configs;
 
-	if (nerrors == 0) {
-		verbosity = a_verbosity->count;
-		if (a_files->count > 0) {
-			configs.reserve(a_files->count);
-			for (int i = 0; i < a_files->count; i++) {
-				ClientConfig c;
-				std::string subscriberString = file2string(a_files->filename[i]);
-				// Check is file empty or not
-				if (subscriberString.empty()) {
-					std::cerr << "Subscriber configuration file empty." << std::endl;
-					nerrors++;
-				} else {
-					r = parseConfig(
-						subscriberString,
-						c.provider,
-						c.registrationId,
-						c.privateKey,
-						c.publicKey,
-						c.authSecret,
-						c.androidId,
-						c.securityToken,
-						c.appId,
-						c.lastPersistentId
-					);
-					if (r != 0) {
-						std::cerr << "Subscriber configuration file " << a_files->filename[i] << " is invalid." << std::endl;
-						nerrors++;
+	if ((nerrors == 0) && (a_files->count > 0)) {
+		configs.reserve(a_files->count);
+		for (int i = 0; i < a_files->count; i++) {
+			ClientConfig c;
+			std::string subscriberString = file2string(std::string(a_files->filename[i]));
+			// Check is file empty or not
+			r = parseConfig(
+				subscriberString,
+				c.provider,
+				c.registrationId,
+				c.privateKey,
+				c.publicKey,
+				c.authSecret,
+				c.androidId,
+				c.securityToken,
+				c.appId,
+				c.lastPersistentId
+			);
+			if (r != 0) {
+				if (force_create_config_file) {
+					ConfigFile newConfig(std::string(a_files->filename[i]));
+					RegistryClient rclient(&newConfig);
+					// check client consistency
+					if (!rclient.validate(verbosity)) {
+						std::cerr << "Error check-in and/or register client, file " << a_files->filename[i] << std::endl;
 					} else {
-						configs.push_back(ConfigFile(a_files->filename[i]));
+						newConfig.save();
 					}
-				} 
+				}
+
+				std::cerr << "Subscriber configuration file " << a_files->filename[i] << " does not exists, empty or invalid." << std::endl;
+				nerrors++;
+			} else {
+				configs.push_back(new ConfigFile(a_files->filename[i]));
 			}
 		}
 	}
 
 	// special case: '--help' takes precedence over error reporting
-	if ((a_help->count) || nerrors)
-	{
+	if ((a_help->count) || nerrors) {
 		if (nerrors)
 			arg_print_errors(stderr, a_end, progname);
 		std::cerr << "Usage: " << progname << std::endl;
 		arg_print_syntax(stderr, argtable, "\n");
-		std::cerr << "Subscribe to VAPID provider" << std::endl;
+		std::cerr << "Subscribe everyone at all." << std::endl;
 		arg_print_glossary(stderr, argtable, "  %-27s %s\n");
 		arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
-		return 1;
+		exit(-30);
 	}
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
@@ -131,11 +135,12 @@ int main(int argc, char **argv)
 
 	// User can subscribe one or more subscribers to the publisher
 
-	for (std::vector<ConfigFile>::const_iterator it_publisher(configs.begin()); it_publisher != configs.end(); ++it_publisher) {
-		for (std::vector<ConfigFile>::iterator it_subscriber(configs.begin()); it_subscriber != configs.end(); ++it_subscriber) {
+	for (std::vector<ConfigFile*>::const_iterator it_publisher(configs.begin()); it_publisher != configs.end(); ++it_publisher) {
+		ConfigFile *publisher = *it_publisher;
+		for (std::vector<ConfigFile*>::iterator it_subscriber(configs.begin()); it_subscriber != configs.end(); ++it_subscriber) {
 			if (it_publisher == it_subscriber)
 				continue;
-			ConfigFile *subscriber = &*it_subscriber;
+			ConfigFile *subscriber = *it_subscriber;
 			RegistryClient rclient(subscriber);
 			// check client consistency
 			if (!rclient.validate(verbosity)) {
@@ -144,21 +149,21 @@ int main(int argc, char **argv)
 
 			if (verbosity > 1) {
 				std::cerr << "Subscribe Android id: " 
-				<< it_subscriber->androidCredentials->getAndroidId() << ", security token: " 
-				<< it_subscriber->androidCredentials->getSecurityToken() << ", application id: " << it_subscriber->androidCredentials->getAppId()
+				<< subscriber->androidCredentials->getAndroidId() << ", security token: " 
+				<< subscriber->androidCredentials->getSecurityToken() << ", application id: " << subscriber->androidCredentials->getAppId()
 				<< std::endl;
 			}
 
 			// check does subscription exists
-			Subscription *s = subscriber->subscriptions->findByPublicKey(it_publisher->wpnKeys->getPublicKey());
+			Subscription *s = subscriber->subscriptions->findByPublicKey(publisher->wpnKeys->getPublicKey());
 			if (s) 
 				continue;	// already subscribed
 			// Make subscription
 			Subscription ns;
 			// Set VAPID public key
-			ns.getWpnKeysPtr()->setPublicKey(it_publisher->wpnKeys->getPublicKey());
-			ns.getWpnKeysPtr()->setAuthSecret(it_publisher->wpnKeys->getAuthSecret());
-			ns.setName(it_publisher->clientOptions->name);
+			ns.getWpnKeysPtr()->setPublicKey(publisher->wpnKeys->getPublicKey());
+			ns.getWpnKeysPtr()->setAuthSecret(publisher->wpnKeys->getAuthSecret());
+			ns.setName(publisher->clientOptions->name);
 			// Make sure it is not got from the service
 			ns.getWpnKeysPtr()->id = 0;
 			ns.setSubscribeMode(SUBSCRIBE_FORCE_VAPID);
@@ -170,10 +175,10 @@ int main(int argc, char **argv)
 			std::string pushset;		///< returns pushset. Not implemented. Returns empty string
 			int r = subscribe(&retval, &headers, 
 				token, pushset, 
-				std::to_string(it_subscriber->androidCredentials->getAndroidId()),
-				std::to_string(it_subscriber->androidCredentials->getSecurityToken()),
-				it_subscriber->androidCredentials->getAppId(),
-				it_publisher->wpnKeys->getPublicKey(),
+				std::to_string(subscriber->androidCredentials->getAndroidId()),
+				std::to_string(subscriber->androidCredentials->getSecurityToken()),
+				subscriber->androidCredentials->getAppId(),
+				publisher->wpnKeys->getPublicKey(),
 				verbosity
 			);
 			if (!((r >= 200) && (r < 300))) {
@@ -181,8 +186,12 @@ int main(int argc, char **argv)
 				break;
 			}
 			ns.setToken(token);
+			subscriber->subscriptions->list.push_back(ns);
 			subscriber->save();
 		}
 	}
-	return r;
+	// free config files
+	for (std::vector<ConfigFile*>::iterator it(configs.begin()); it != configs.end(); ++it) {
+		delete *it;
+	}
 }

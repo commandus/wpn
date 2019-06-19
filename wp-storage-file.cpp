@@ -192,16 +192,23 @@ AndroidCredentials::AndroidCredentials(
 	json::const_iterator f = value.find("appId");
 	if (f != value.end())
 		appId = f.value();
+	else
+		appId = "";
 	f = value.find("androidId");
 	if (f != value.end())
 		androidId = f.value();
+	else
+		androidId = 0;
 	f = value.find("securityToken");
 	if (f != value.end())
 		securityToken = f.value();
+	else
+		securityToken = 0;
 	f = value.find("GCMToken");
 	if (f != value.end())
 		GCMToken = f.value();
-
+	else
+		GCMToken = "";
 	init(appId, androidId, securityToken, GCMToken);
 }
 
@@ -1382,11 +1389,12 @@ void ConfigFile::read(
 ConfigFile::ConfigFile(
 	const std::string &filename
 )
-	: fileName(filename), clientOptions(NULL), androidCredentials(NULL), wpnKeys(NULL), subscriptions(NULL)
+	: errorCode(0), errorDescription(""), fileName(filename), clientOptions(NULL), androidCredentials(NULL), wpnKeys(NULL), subscriptions(NULL)
 {
 	std::ifstream configRead(filename.c_str());
 	if (configRead.fail()) {
-		std::cerr << "Error read " << filename << std::endl;
+		errorCode = ERR_CONFIG_FILE_READ;
+		errorDescription = "Error read " + filename;
 	} else {
 		if (filename.find(".js") != std::string::npos) {
 			json j;
@@ -1394,10 +1402,13 @@ ConfigFile::ConfigFile(
 				configRead >> j;
 			}
 			catch (json::exception e) {
-				std::cerr << filename <<  " error " << e.what() << std::endl;
+				errorCode = ERR_CONFIG_FILE_PARSE_JSON;
+				errorDescription = filename + " error " + e.what();
 			}
 			catch (...) {
-				std::cerr << "Error parse " << filename << std::endl;
+				errorCode = ERR_CONFIG_FILE_PARSE_JSON;
+				errorDescription = "Error parse " + filename;
+
 			}
 			fromJson(j);
 		} else {

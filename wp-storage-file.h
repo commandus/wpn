@@ -11,7 +11,6 @@
 #define WP_STORAGE_FILE_H_	1
 
 #include <string>
-#include <iostream>
 #include <vector>
 #include <ece.h>
 #include "nlohmann/json.hpp"
@@ -24,6 +23,9 @@
 
 #define FORMAT_TEXT					0
 #define FORMAT_JSON					1
+
+#define ERR_CONFIG_FILE_READ		-30
+#define ERR_CONFIG_FILE_PARSE_JSON	-31
 
 using json = nlohmann::json;
 
@@ -436,6 +438,8 @@ private:
 	bool fromJson(const json &value);
 	void invalidate();
 public:
+	int errorCode;
+	std::string errorDescription;
 	std::string fileName;
 	ClientOptions *clientOptions;
 	AndroidCredentials *androidCredentials;
