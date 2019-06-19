@@ -14,8 +14,8 @@ lib_LTLIBRARIES = \
 
 #	Binaries
 bin_PROGRAMS = \
-	wpnr wpnw wpn-print wpn-grant wpn wpnlink ec
-#	 webpush-curl wpnlinkj wpnwj 
+	wpnr wpnw wpn-print wpn-grant wpn wpnlink ec wpnlinkj
+#	 webpush-curl wpnwj 
 
 # commoncppflags = -O2 -I/usr/local/include -Imcs/gen -Ithird_party
 # commoncppflags = -O2 -I/usr/include -Imcs/gen -Ithird_party
@@ -193,11 +193,10 @@ wpnlink_CPPFLAGS = $(commoncppflags)
 #	wpnlinkj
 #
 wpnlinkj_SOURCES= \
-	tools/wpnlinkj/wpnlinkj.cpp config-filename.cpp endpoint.cpp utilinstance.cpp wp-subscribe.cpp \
-	utilfile.cpp vapid.cpp utilvapid.cpp utilstring.cpp \
+	tools/wpnlinkj/wpnlinkj.cpp \
 	$(common_src)
 
-wpnlinkj_LDADD = $(curllibs) -L. -lece
+wpnlinkj_LDADD = $(commonlibs) -L. -lwpnpp -lece $(curllibs) $(mcslibs)
 wpnlinkj_CPPFLAGS = $(commoncppflags)
 
 #

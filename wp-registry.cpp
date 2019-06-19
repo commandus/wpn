@@ -124,13 +124,14 @@ RegistryClient::RegistryClient(
 }
 
 /**
- * Invalidate device registration
+ * Invalidate device registration, check-in and register if needed
+ * @param verbosity 0..3
  */
 bool RegistryClient::validate(
 	int verbosity
 	)
 {
-	// register if needed
+	// check-in and register if needed
 	int r = 200;
 
 	// check in
@@ -148,6 +149,7 @@ bool RegistryClient::validate(
 			config->save();
 	}
 
+	// register
 	if (config->androidCredentials->getGCMToken().empty()) {
 		for (int i = 0; i < 5; i++) {
 			std::string gcmToken;

@@ -71,7 +71,8 @@ public:
 	);
 
 	/**
-	 * Invalidate device registration
+	 * Invalidate device registration, check-in and register if needed
+     * @param verbosity 0..3
 	 */
 	bool validate(
 		int verbosity

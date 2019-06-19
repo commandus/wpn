@@ -128,8 +128,9 @@ int main(int argc, char **argv)
 	}
 
 	RegistryClient rclient(&wpnConfig);
+	// check client consistency
 	if (!rclient.validate(verbosity)) {
-		std::cerr << "Error register client" << std::endl;
+		std::cerr << "Error check-in and/or register client" << std::endl;
 	}
 
 	if (credentials) {
