@@ -42,34 +42,22 @@
 #include "utilstring.h"
 #include "endpoint.h"
 #include "wp-subscribe.h"
-
+#include "wp-registry.h"
 
 using json = nlohmann::json;
 
 static const char* progname = "wpnlinkj";
 #undef SUPPORT_FIREFOX
 
-void onLog
-(
-	void *env,
-	int severity,
-	const char *message
-)
-{
-	std::cerr << message;
-}
-
 int main(int argc, char **argv) 
 {
-	struct arg_str *a_pub = arg_str1(NULL, NULL, "<sender-file>", "Subscribe to ");
-	struct arg_str *a_receivers = arg_strn(NULL, NULL, "<reciever-file>", 1, 100, "Subscriber's config file(s), up to 100");
-
+	struct arg_file *a_files = arg_filen(NULL, NULL, "<file>", 2, 100, "Config file(s), 2..100");
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
-		a_pub, a_receivers,
+		a_files,
 		a_verbosity,
 		a_help, a_end 
 	};
@@ -86,47 +74,15 @@ int main(int argc, char **argv)
 	
 	int r = 0;
 	int verbosity;
-	ClientConfig pub;
-	std::vector<ClientConfig> tos;
+	std::vector<ConfigFile> configs;
 
-	if (nerrors == 0)
-	{
+	if (nerrors == 0) {
 		verbosity = a_verbosity->count;
-
-		std::string pubString = file2string(*a_pub->sval);
-		// Check is file empty or not
-		if (pubString.empty()) {
-			std::cerr << "Publisher configuration file empty." << std::endl;
-			nerrors++;
-		} else {
-			r = parseConfig(
-				pubString,
-				pub.provider,
-				pub.registrationId,
-				pub.privateKey,
-				pub.publicKey,
-				pub.authSecret,
-				pub.androidId,
-				pub.securityToken,
-				pub.appId,
-				pub.lastPersistentId
-			);
-			if (r != 0) {
-				std::cerr << "Publisher configuration file is invalid." << std::endl;
-				nerrors++;
-			} else {
-				if (pub.publicKey.empty()) {
-					nerrors++;
-					std::cerr << "Publisher publicKey missed." << std::endl;
-				}
-			}
-		}
-
-		if (a_receivers->count > 0) {
-			tos.reserve(a_receivers->count);
-			for (int i = 0; i < a_receivers->count; i++) {
+		if (a_files->count > 0) {
+			configs.reserve(a_files->count);
+			for (int i = 0; i < a_files->count; i++) {
 				ClientConfig c;
-				std::string subscriberString = file2string(a_receivers->sval[i]);
+				std::string subscriberString = file2string(a_files->filename[i]);
 				// Check is file empty or not
 				if (subscriberString.empty()) {
 					std::cerr << "Subscriber configuration file empty." << std::endl;
@@ -145,24 +101,12 @@ int main(int argc, char **argv)
 						c.lastPersistentId
 					);
 					if (r != 0) {
-						std::cerr << "Subscriber configuration file " << a_receivers->sval[i] << " is invalid." << std::endl;
+						std::cerr << "Subscriber configuration file " << a_files->filename[i] << " is invalid." << std::endl;
 						nerrors++;
 					} else {
-						if (pub.androidId == 0) {
-							nerrors++;
-							std::cerr << "Subscriber Android id missed in " << a_receivers->sval[i] << " file." << std::endl;
-						}
-						if (pub.securityToken == 0) {
-							nerrors++;
-							std::cerr << "Subscriber security token missed " << a_receivers->sval[i] << " file." << std::endl;
-						}
-						if (pub.appId.empty()) {
-							nerrors++;
-							std::cerr << "Subscriber application instance id missed " << a_receivers->sval[i] << " file." << std::endl;
-						}
+						configs.push_back(ConfigFile(a_files->filename[i]));
 					}
-				}
-				tos.push_back(c);
+				} 
 			}
 		}
 	}
@@ -187,32 +131,57 @@ int main(int argc, char **argv)
 
 	// User can subscribe one or more subscribers to the publisher
 
-	for (std::vector<ClientConfig>::const_iterator it(tos.begin()); it != tos.end(); ++it) 
-	{
-		std::string retval;
-		std::string headers;
-		std::string token;		///< returns subscription token
-		std::string pushset;		///< returns pushset. Not implemented. Returns empty string
+	for (std::vector<ConfigFile>::const_iterator it_publisher(configs.begin()); it_publisher != configs.end(); ++it_publisher) {
+		for (std::vector<ConfigFile>::iterator it_subscriber(configs.begin()); it_subscriber != configs.end(); ++it_subscriber) {
+			if (it_publisher == it_subscriber)
+				continue;
+			ConfigFile *subscriber = &*it_subscriber;
+			RegistryClient rclient(subscriber);
+			// check client consistency
+			if (!rclient.validate(verbosity)) {
+				std::cerr << "Error check-in and/ or register client" << std::endl;
+			}
 
-		if (verbosity > 1) {
-			std::cerr << "Subscribe Android id: " 
-			<< it->androidId << ", security token: " << it->securityToken << ", application id: " << it->appId
-			<< std::endl;
+			if (verbosity > 1) {
+				std::cerr << "Subscribe Android id: " 
+				<< it_subscriber->androidCredentials->getAndroidId() << ", security token: " 
+				<< it_subscriber->androidCredentials->getSecurityToken() << ", application id: " << it_subscriber->androidCredentials->getAppId()
+				<< std::endl;
+			}
+
+			// check does subscription exists
+			Subscription *s = subscriber->subscriptions->findByPublicKey(it_publisher->wpnKeys->getPublicKey());
+			if (s) 
+				continue;	// already subscribed
+			// Make subscription
+			Subscription ns;
+			// Set VAPID public key
+			ns.getWpnKeysPtr()->setPublicKey(it_publisher->wpnKeys->getPublicKey());
+			ns.getWpnKeysPtr()->setAuthSecret(it_publisher->wpnKeys->getAuthSecret());
+			ns.setName(it_publisher->clientOptions->name);
+			// Make sure it is not got from the service
+			ns.getWpnKeysPtr()->id = 0;
+			ns.setSubscribeMode(SUBSCRIBE_FORCE_VAPID);
+			
+			// Subscribe
+			std::string retval;
+			std::string headers;
+			std::string token;			///< returns subscription token
+			std::string pushset;		///< returns pushset. Not implemented. Returns empty string
+			int r = subscribe(&retval, &headers, 
+				token, pushset, 
+				std::to_string(it_subscriber->androidCredentials->getAndroidId()),
+				std::to_string(it_subscriber->androidCredentials->getSecurityToken()),
+				it_subscriber->androidCredentials->getAppId(),
+				it_publisher->wpnKeys->getPublicKey(),
+				verbosity
+			);
+			if (!((r >= 200) && (r < 300))) {
+				std::cerr << "Error " << r << ": " << retval << std::endl;
+				break;
+			}
+			ns.setToken(token);
 		}
-		// Make subscription
-		int r = subscribe(&retval, &headers, 
-			token, pushset, 
-			std::to_string(it->androidId),  std::to_string(it->securityToken), it->appId,
-			pub.publicKey,
-			verbosity
-		);
-		if ((r >= 200) && (r < 300)) {
-			std::cout << token << std::endl;
-		} else {
-			std::cerr << "Error " << r << ": " << retval << std::endl;
-		}
-		if (r)
-			break;
 	}
 	return r;
 }
