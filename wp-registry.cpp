@@ -13,8 +13,6 @@
 
 using json = nlohmann::json;
 
-#define DEBUG true
-
 #define ENDPOINT "https://surephone.commandus.com/wpn-registry/"
 #define HEADER_AUTH	"Authorization: U "
 #define METHOD_GET "GET"
@@ -182,7 +180,8 @@ bool RegistryClient::add(
 {
 	bool c = false;
 	std::string r;
-	if (rpc(&r, METHOD_POST, PATH_KEY, 0, config->wpnKeys->getPublicKey(), DEBUG)) {
+	bool v = (config && config->clientOptions->getVerbosity() > 0);
+	if (rpc(&r, METHOD_POST, PATH_KEY, 0, config->wpnKeys->getPublicKey(), v)) {
 		c = true;
 		uint64_t v = string2id(r);	// contains trailing "\n"
 		config->wpnKeys->id = v;
@@ -200,7 +199,8 @@ bool RegistryClient::get(
 {
 	bool c = false;
 	std::string v;
-	if (rpc(&v, METHOD_GET, PATH_KEY, id, "", DEBUG)) {
+	bool verbosity = (config && config->clientOptions->getVerbosity() > 0);
+	if (rpc(&v, METHOD_GET, PATH_KEY, id, "", verbosity)) {
 		c = true;
 		v = trim(v);
 		config->subscriptions->putSubsciptionVapidPubKey(id, v);
@@ -230,11 +230,12 @@ bool RegistryClient::subscribeById(
 	std::string rettoken;
 	std::string retpushset;			///< returns pushset. Not implemented. Returns empty string
 	std::string subscriptionVAPIDKey = s->getWpnKeys().getPublicKey();
+	int verbosity = config->clientOptions->getVerbosity();
 	int r = subscribe(&retval, &retheaders, rettoken, retpushset, 
 		std::to_string(config->androidCredentials->getAndroidId()),
 		std::to_string(config->androidCredentials->getSecurityToken()),
 		config->androidCredentials->getAppId(),
-		subscriptionVAPIDKey, DEBUG ? 3 : 0
+		subscriptionVAPIDKey, verbosity
 	);
 	if ((r >= 200) && (r < 300)) {
 		c = true;
@@ -268,7 +269,8 @@ bool RegistryClient::addSubscription(
 		{ "authSecret", config->wpnKeys->getAuthSecret() },
 		{ "token", s->getSentToken() }
 	};
-	if (rpc(&v, METHOD_POST, PATH_SUBSCRIPTION, id2, js.dump(), DEBUG)) {
+	bool verbosity = (config && config->clientOptions->getVerbosity() > 0);
+	if (rpc(&v, METHOD_POST, PATH_SUBSCRIPTION, id2, js.dump(), verbosity)) {
 		c = true;
 	}
 	return c;
@@ -284,7 +286,8 @@ int RegistryClient::getSubscription(
 	bool c = false;
 
 	std::string v;
-	if (!rpc(&v, METHOD_GET, PATH_SUBSCRIPTION, id2, "", DEBUG)) {
+	bool verbosity = (config && config->clientOptions->getVerbosity() > 0);
+	if (!rpc(&v, METHOD_GET, PATH_SUBSCRIPTION, id2, "", verbosity)) {
 		return false;
 	}
 	json j;

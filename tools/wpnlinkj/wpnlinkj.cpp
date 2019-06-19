@@ -181,6 +181,7 @@ int main(int argc, char **argv)
 				break;
 			}
 			ns.setToken(token);
+			subscriber->save();
 		}
 	}
 	return r;
