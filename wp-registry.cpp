@@ -98,7 +98,9 @@ bool RegistryClient::rpc
 	else
 	{
 		errorDescription = "";
-		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &errorCode);
+		long r;
+		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &r);
+		errorCode = r;
 		if ((errorCode >= 200) && (errorCode < 300))
 		{
 			c = true;

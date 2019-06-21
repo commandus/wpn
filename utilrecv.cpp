@@ -146,7 +146,7 @@ int curlPost
 
 	res = curl_easy_perform(curl);
 
-	int http_code;
+	long http_code;
 	if (res != CURLE_OK)
 	{
 		if (retval)

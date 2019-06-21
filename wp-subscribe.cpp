@@ -68,7 +68,7 @@ static int curlPost
 	if (retval)
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, retval);
     res = curl_easy_perform(curl);
-	int http_code;
+	long http_code;
 
 	if ((verbosity > 2) && (headers != NULL)) 
 	{

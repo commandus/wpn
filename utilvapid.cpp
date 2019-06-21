@@ -535,17 +535,18 @@ int webpushVapid(
 	} else {
 		code = WPCipher(cipherString, cryptoKeyHeader, encryptionHeader, p256dh, auth, body);
 	}
+
 	if (code) {
 		retval = "cipher, " + getECECErrorString(code) + "; p256dh: " + p256dh + "; auth: " + auth;
 		return code;
 	}
-
 	if (expiration == 0)
 		expiration = time(NULL) + (12 * 60 * 60);
 
 	CURL *curl = curl_easy_init();
 	if (!curl)
 		return CURLE_FAILED_INIT; 
+
 	CURLcode res;
 	
 	struct curl_slist *chunk = NULL;
@@ -575,8 +576,8 @@ int webpushVapid(
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_string);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &retval);
 	res = curl_easy_perform(curl);
-	int http_code;
 
+	long http_code;
     if (res != CURLE_OK)
 	{
 		retval = std::string(curl_easy_strerror(res));

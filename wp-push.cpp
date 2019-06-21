@@ -110,7 +110,7 @@ int push2ClientJSON
 		std::cerr << headers << std::endl;
 	}
 
-	int http_code;
+	long http_code;
 
     if (res != CURLE_OK)
 	{
