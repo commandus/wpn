@@ -76,45 +76,6 @@ std::string tabConfig
 	return ss.str();
 }
 
-/*
-int writeConfig
-(
-	const std::string &filename,
-	enum VAPID_PROVIDER provider,
- 	const char* registrationIdC,
-	const char* privateKeyC,
-	const char* publicKeyC,
-	const char* authSecretC,
-	uint64_t androidId,
-	uint64_t securityToken,
-	const std::string &appId,
-	const std::string &lastPersistentId
-)
-{
-	int r = 0;
-	std::string d = jsonConfig(
-		provider,
-		registrationIdC,
-		privateKeyC,
-		publicKeyC,
-		authSecretC,
-		androidId,
-		securityToken,
-		appId,
-		lastPersistentId
-	);
-	std::ofstream ostrm(filename);
-	try {
-		ostrm << d;
-	}
-	catch (...) {
-		r = -1;
-	}
-	ostrm.close();
-	return r;
-}
-*/
-
 /**
  * Parse config file
  * @return 0- success, -1: Invalid JSON, -2: Invalid config
@@ -193,40 +154,3 @@ int parseConfig
 	}
 	return r;
 }
-
-/**
- * Load config file
- * @return 0- success, -1: Invalid JSON, -2: Invalid config
- */
-/*
-int readConfig
-(
-	const std::string &filename,
-	enum VAPID_PROVIDER &provider,
-	std::string &registrationId,
-	std::string &privateKey,
-	std::string &publicKey,
-	std::string &authSecret,
-	uint64_t &androidId,
-	uint64_t &securityToken,
-	std::string &appId,
-	std::string &lastPersistentId
-)
-{
-	std::ifstream strm(filename);
-	std::string s((std::istreambuf_iterator<char>(strm)), std::istreambuf_iterator<char>());
-	strm.close();
-	return parseConfig(
-		s,
-		provider,
- 		registrationId,
-		privateKey,
-		publicKey,
-		authSecret,
-		androidId,
-		securityToken,
-		appId,
-		lastPersistentId
-	);
-}
-*/

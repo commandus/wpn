@@ -275,6 +275,7 @@ int main(int argc, char **argv)
 	std::string retval;
 
 	r = webpushVapid(
+		NULL,
 		retval, 
 		publicKey,		// from
 		privateKey,		// from

@@ -70,6 +70,7 @@ std::string webpushVapidCmd(
 
 /**
  * Send VAPID web push using CURL library
+ * @param reuseCurl may be NULL 
  * @param retval return error description string
  * @param From: publicKey e.g. "BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A";
  * @param From: privateKey e.g. "_93..";
@@ -82,6 +83,7 @@ std::string webpushVapidCmd(
  * @return 0 or positive- HTTP code(200..299- success), negative- error code
  */
 int webpushVapid(
+	void *reuseCurl,
 	std::string &retval,
 	const std::string &publicKey,
 	const std::string &privateKey,
@@ -96,6 +98,7 @@ int webpushVapid(
 
 /**
  * Send VAPID web push using CURL library
+ * @param reuseCurl may be NULL 
  * @param retval return error description string
  * @param subscriptionJSON: {public, private, endpoint, p256dh, auth, contact} 
  * @param subject 
@@ -107,6 +110,7 @@ int webpushVapid(
  * @return 0 or positive- HTTP code(200..299- success), negative- error code
  */
 int webpushVapidJSON(
+	void *reuseCurl,
 	std::string &retval,
 	const std::string &subscriptionJSON,
 	const std::string &subject,
@@ -119,6 +123,7 @@ int webpushVapidJSON(
 
 /**
  * Push "command output" to device
+ * @param reuseCurl may be NULL 
  * @param retval return string
  * @param From: publicKey e.g. "BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A";
  * @param From: privateKey e.g. "_93..";
@@ -137,6 +142,7 @@ int webpushVapidJSON(
 */
 int webpushVapidData
 (
+	void *reuseCurl,
 	std::string &retval,
 	const std::string &publicKey,
 	const std::string &privateKey,

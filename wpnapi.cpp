@@ -75,6 +75,7 @@ EXPORTDLL size_t webpushVapidCmdC(
 
 /**
  * Send VAPID web push using CURL library
+ * @param reuseCurl may be NULL 
  * @param retval return string
  * @param retvalsize can be 0
  * @param publicKey e.g. "BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A";
@@ -88,6 +89,7 @@ EXPORTDLL size_t webpushVapidCmdC(
  * @return >0- HTTP code, <0- error code
  */
 EXPORTDLL int webpushVapidC(
+	void *reuseCurl,
 	char* retval,
 	size_t retvalsize,
 	const char *publicKey,
@@ -103,6 +105,7 @@ EXPORTDLL int webpushVapidC(
 {
 	std::string r;
 	int c = webpushVapid(
+		reuseCurl,
 		r,
 		std::string(publicKey),
 		std::string(privateKey),
@@ -121,6 +124,7 @@ EXPORTDLL int webpushVapidC(
 
 /**
  * Push "command output" to device
+ * @param reuseCurl may be NULL  * 
  * @param retval return string
  * @param retvalsize can be 0
  * @param publicKey e.g. "BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A";
@@ -140,6 +144,7 @@ EXPORTDLL int webpushVapidC(
 */
 EXPORTDLL int webpushVapidDataC
 (
+	void *reuseCurl,
 	char* retval,
 	size_t retvalsize,
 	const char *publicKey,
@@ -160,6 +165,7 @@ EXPORTDLL int webpushVapidDataC
 {
 	std::string r;
 	int c = webpushVapidData(
+		reuseCurl,
 		r,
 		std::string(publicKey),
 		std::string(privateKey),

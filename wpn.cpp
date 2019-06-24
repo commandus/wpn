@@ -415,7 +415,7 @@ int main(int argc, char** argv)
 									<< "body: " << body << std::endl
 									<< "sub: " << config.sub << std::endl;
 							}
-							r = webpushVapid(retval, wpnKeys.getPublicKey(), wpnKeys.getPrivateKey(), *it, config.vapid_recipient_p256dh, config.auth_secret, 
+							r = webpushVapid(NULL, retval, wpnKeys.getPublicKey(), wpnKeys.getPrivateKey(), *it, config.vapid_recipient_p256dh, config.auth_secret, 
 								body, config.sub, config.aesgcm ? AESGCM : AES128GCM);
 							if (config.verbosity > 3) {
 								std::string filename = "aesgcm.bin";
@@ -434,7 +434,7 @@ int main(int argc, char** argv)
 							r = push2ClientDataFCM(&retval, serverKey, token, *it, "", config.command, 0, "", config.verbosity);
 							break;
 						case SUBSCRIBE_FORCE_VAPID:
-							r = webpushVapid(retval, wpnKeys.getPublicKey(), wpnKeys.getPrivateKey(), *it, config.vapid_recipient_p256dh, config.vapid_recipient_auth, 
+							r = webpushVapid(NULL, retval, wpnKeys.getPublicKey(), wpnKeys.getPrivateKey(), *it, config.vapid_recipient_p256dh, config.vapid_recipient_auth, 
 								body, config.sub, config.aesgcm ? AESGCM : AES128GCM);
 							break;
 					}

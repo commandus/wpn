@@ -501,6 +501,7 @@ static size_t write_string(void *contents, size_t size, size_t nmemb, void *user
 
 /**
  * Send VAPID web push request using CURL library
+ * @param reuseCurl may be NULL 
  * @param retval return string
  * @param publicKey e.g. "BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A";
  * @param privateKey e.g. "_93..";
@@ -513,6 +514,7 @@ static size_t write_string(void *contents, size_t size, size_t nmemb, void *user
  * @param expiration 0- 12 hours from now
 */
 int webpushVapid(
+	void *reuseCurl,
 	std::string &retval,
 	const std::string &publicKey,
 	const std::string &privateKey,
@@ -543,7 +545,12 @@ int webpushVapid(
 	if (expiration == 0)
 		expiration = time(NULL) + (12 * 60 * 60);
 
-	CURL *curl = curl_easy_init();
+	CURL *curl;
+	if (reuseCurl)
+		curl = (CURL *) reuseCurl;
+	else 
+		curl = curl_easy_init();
+
 	if (!curl)
 		return CURLE_FAILED_INIT; 
 
@@ -587,13 +594,16 @@ int webpushVapid(
 	{
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 	}
-	curl_easy_cleanup(curl);
+
+	if (!reuseCurl)
+		curl_easy_cleanup(curl);
 	curl_slist_free_all(chunk);
 	return http_code;
 }
 
 /**
  * Send VAPID web push using CURL library
+ * @param reuseCurl may be NULL 
  * @param retval return error description string
  * @param subscriptionJSON: {public, private, endpoint, p256dh, auth, contact}
  * @param subject 
@@ -605,6 +615,7 @@ int webpushVapid(
  * @return 0 or positive- HTTP code(200..299- success), negative- error code
  */
 int webpushVapidJSON(
+	void *reuseCurl,
 	std::string &retval,
 	const std::string &subscriptionJSON,
 	const std::string &subject,
@@ -617,11 +628,12 @@ int webpushVapidJSON(
 {
 	std::string publicKey, privateKey, endpoint, p256dh, auth, contact;
 	std::string jsonMsg = mkNotificationJson(subscriptionJSON, subject, body, icon, link);
-	return webpushVapid(retval, publicKey, privateKey, endpoint, p256dh, auth, jsonMsg, contact, contentEncoding, expiration);
+	return webpushVapid(reuseCurl, retval, publicKey, privateKey, endpoint, p256dh, auth, jsonMsg, contact, contentEncoding, expiration);
 }
 
 /**
  * Push "command output" to device
+ * @param reuseCurl may be NULL 
  * @param retval return string
  * @param publicKey e.g. "BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A";
  * @param privateKey e.g. "_93..";
@@ -640,6 +652,7 @@ int webpushVapidJSON(
 */
 int webpushVapidData
 (
+	void *reuseCurl,
 	std::string &retval,
 	const std::string &publicKey,
 	const std::string &privateKey,
@@ -671,7 +684,7 @@ int webpushVapidData
 			}
 		}
 	};
-	return webpushVapid(retval, publicKey, privateKey, endpoint, p256dh, auth,
+	return webpushVapid(reuseCurl, retval, publicKey, privateKey, endpoint, p256dh, auth,
 		requestBody.dump(), contact, contentEncoding, expiration);
 }
 
@@ -700,16 +713,21 @@ std::string mkNotificationJson
 )
 {
 	json requestBody = {
-		{ KEY_TO, to },
 		{ KEY_NOTIFICATION, 
 			{
-				{ KEY_TITLE, subject },
 				{ KEY_BODY, body },
-				{ KEY_ICON, icon},
-				{ KEY_CLICK_ACTION, link }
 			}
 		}
 	};
+	if (!to.empty())
+		requestBody[KEY_TO] = to;
+	json n = requestBody[KEY_NOTIFICATION];
+	if (subject.empty())
+		n[KEY_TITLE] = subject;
+	if (subject.empty())
+		n[KEY_ICON] = icon;
+	if (link.empty())
+		n[KEY_CLICK_ACTION] = link;
 	return requestBody.dump();
 }
 
