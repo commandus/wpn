@@ -223,6 +223,7 @@ int main(int argc, char **argv)
 
 	// write
 	int r = webpushVapid(
+		NULL,
 		retval,
 		from.publicKey,
 		from.privateKey,

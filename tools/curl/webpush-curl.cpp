@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 	}
 
 	if (curl_file.empty()) {
-		int httpcode = webpushVapid(r, publicKey, privateKey, endpoint, p256dh, auth, requestBody.dump(), contact, contentEncoding); 
+		int httpcode = webpushVapid(NULL, r, publicKey, privateKey, endpoint, p256dh, auth, requestBody.dump(), contact, contentEncoding); 
 		std::cout << r << std::endl;
 		if (httpcode < 0) {
 			std::cerr << httpcode << std::endl;
