@@ -823,6 +823,11 @@ int Subscription::getSubscribeMode() const
 
 std::string Subscription::getEndpoint() const
 {
+	/*
+	if (endpoint.empty()) {
+		endPoint = endpoint(token, true, 0);	///< 0- Chrome, 1- Firefox
+	}
+	*/
 	return endpoint;
 }
 
