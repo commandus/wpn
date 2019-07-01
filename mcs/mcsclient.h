@@ -33,6 +33,8 @@
 #include "sslfactory.h"
 #include "onullstream.hpp"
 
+#include "heartbeat.h"
+
 #define ERR_NO_CONFIG				-21
 #define ERR_NO_KEYS					-22
 #define ERR_NO_CREDS				-23
@@ -114,6 +116,8 @@ private:
 	std::string mLastPersistentId;
 	bool mStop;
 	SSL *mSsl;
+	HeartbeatManager *heartbeatManager;
+
 	bool hasIdNToken();
 	bool ready();
 	// Return 0 if incomplete and is not parcelable
@@ -122,6 +126,8 @@ private:
 	int process();
 	int logIn();
 	int sendVersion();
+	void sendHeartBeat();
+	void reconnect();
 public:
 	uint8_t privateKey[ECE_WEBPUSH_PRIVATE_KEY_LENGTH];
 	uint8_t authSecret[ECE_WEBPUSH_AUTH_SECRET_LENGTH];

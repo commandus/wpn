@@ -1000,6 +1000,18 @@ MCSClient::MCSClient(
 	this->onLogEnv = onLogEnv;
 	this->verbosity = verbosity;
 	log.setCallback(this->onLog, this->onLogEnv);
+
+	heartbeatManager = new HeartbeatManager(std::bind(&MCSClient::sendHeartBeat, this), std::bind(&MCSClient::reconnect, this));
+}
+
+void MCSClient::sendHeartBeat()
+{
+	log << severity(3) << "sendHeartBeat";
+}
+
+void MCSClient::reconnect()
+{
+	log << severity(3) << "reconnect";
 }
 
 MCSClient::MCSClient
