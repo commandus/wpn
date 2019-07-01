@@ -67,7 +67,7 @@ wpn_lib_source = \
 	wp-storage-file.cpp \
 	wp-push.cpp wp-subscribe.cpp wp-connection.cpp \
 	sslfactory.cpp \
-	mcs/mcsclient.cpp \
+	mcs/mcsclient.cpp mcs/heartbeat.cpp \
 	$(gengrpcs_c) \
 	utilfile.cpp utilstring.cpp params.cpp commandoutput.cpp endpoint.cpp \
 	utilqr.cpp $(QRSOURCES) \
@@ -107,7 +107,7 @@ nobase_dist_include_HEADERS = \
 	wpn-config.h wpn.h wpn-notify.h utilvapid.h utilrecv.h endpoint.h \
 	wp-storage-file.h wp-subscribe.h wp-connection.h wp-push.h wp-registry.h \
 	wpnapi.h sslfactory.h utilstring.h utilinstance.h utilfile.h commandoutput.h params.h \
-	mcs/mcsclient.h \
+	mcs/mcsclient.h mcs/heartbeat.h \
 	onullstream.hpp \
 	third_party/nlohmann/json.hpp \
 	utilqr.h $(QRHEADERS) $(ECECHEADERS) \
