@@ -1,7 +1,7 @@
 #include "heartbeat.h"
 
 #define MIN_INTERVAL    30 * 1000
-#define DEF_INTERVAL    60 * 1000
+#define DEF_INTERVAL    10 * 1000
 
 HeartbeatManager::HeartbeatManager(
     const OnSendHeartBeat &cbSendHeartbeat,
@@ -57,14 +57,16 @@ void HeartbeatManager::stop()
 
 void HeartbeatManager::runner()
 {
-    startTime = time(NULL);
-    while (!requestStop) {
+    reset();
+    while (true) {
         std::this_thread::sleep_for(std::chrono::milliseconds(intervalMs));
-        startTime = time(NULL);
+        if (requestStop)
+            break;
         if (!hasResponse()) {
             onReconnect();
             reset();
         } else {
+            startTime = time(NULL);
             onSendHeartbeat();
         }
     }
@@ -83,11 +85,12 @@ void HeartbeatManager::applyHeartbeatConfig(
 // Reset heartbeat timer
 void HeartbeatManager::reset()
 {
-    startTime = 0;
-    responseTime = 0;
+    startTime = time(NULL);
+    responseTime = startTime;
 }
 
 bool HeartbeatManager::hasResponse()
 {
-    return (responseTime - startTime) * 1000 < intervalMs;
+    int64_t d = (startTime - responseTime) * 1000;
+    return d < 3 * intervalMs;
 }
