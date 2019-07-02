@@ -1000,18 +1000,16 @@ MCSClient::MCSClient(
 	this->onLogEnv = onLogEnv;
 	this->verbosity = verbosity;
 	log.setCallback(this->onLog, this->onLogEnv);
-
-	heartbeatManager = new HeartbeatManager(std::bind(&MCSClient::sendHeartBeat, this), std::bind(&MCSClient::reconnect, this));
 }
 
 void MCSClient::sendHeartBeat()
 {
-	log << severity(3) << "sendHeartBeat";
+	log << severity(3) << "send heart beat request\n";
 }
 
 void MCSClient::reconnect()
 {
-	log << severity(3) << "reconnect";
+	log << severity(3) << "reconnect request\n";
 }
 
 MCSClient::MCSClient
@@ -1076,11 +1074,14 @@ int MCSClient::connect()
 		listenerThread = new std::thread(readLoop, this);
 		listenerThread->detach();
 	}
+	heartbeatManager = new HeartbeatManager(std::bind(&MCSClient::sendHeartBeat, this), std::bind(&MCSClient::reconnect, this));
 	return r;
 }
 
 void MCSClient::disconnect()
 {
+	delete heartbeatManager;
+	heartbeatManager = NULL;
 	mStop = true;
 	if (mSocket && mSsl)
 		mSSLFactory.disconnect(mSocket, mSsl);
