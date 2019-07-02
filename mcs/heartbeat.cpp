@@ -1,7 +1,7 @@
 #include "heartbeat.h"
 
 #define MIN_INTERVAL    30 * 1000
-#define DEF_INTERVAL    10 * 1000
+#define DEF_INTERVAL    60 * 1000
 
 HeartbeatManager::HeartbeatManager(
     const OnSendHeartBeat &cbSendHeartbeat,

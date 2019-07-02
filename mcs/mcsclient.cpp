@@ -337,23 +337,25 @@ static void logMessage
 	break;
 	case kHeartbeatAckTag:
 	{
-		HeartbeatAck* r = (HeartbeatAck*)message;
-		if (log && (verbosity >= 2))
+		HeartbeatAck* r = (HeartbeatAck*) message;
+		if (log && (verbosity >= 2)) {
 			*log << " HeartbeatAck " << "\n";
-		if (r->has_last_stream_id_received())
-		{
-			if (log && (verbosity >= 2))
-				*log << " last_stream_id_received: " << r->last_stream_id_received() << " ";
-		}
-		if (r->has_status())
-		{
-			if (log && (verbosity >= 2))
-				*log << " status: " << r->status() << " ";
-		}
-		if (r->has_stream_id())
-		{
-			if (log && (verbosity >= 2))
-				*log << " stream_id: " << r->stream_id() << " ";
+			if (r->has_last_stream_id_received())
+			{
+				if (log && (verbosity >= 2))
+					*log << " last_stream_id_received: " << r->last_stream_id_received() << " ";
+			}
+			if (r->has_status())
+			{
+				if (log && (verbosity >= 2))
+					*log << " status: " << r->status() << " ";
+			}
+			if (r->has_stream_id())
+			{
+				if (log && (verbosity >= 2))
+					*log << " stream_id: " << r->stream_id() << " ";
+			}
+			*log << "\n";
 		}
 	}
 	break;
@@ -577,9 +579,7 @@ static int decode_aesgcm
 	}
 	size_t outSize = ece_aes128gcm_plaintext_max_length((const uint8_t*)source.c_str(), source.size());
 	if (outSize == 0)
-	{
 		return ERR_MEM;
-	}
 	else
 	{
 		if (outSize < 4096)
@@ -612,9 +612,7 @@ static int decode_aes128gcm
 {
 	size_t outSize = ece_aes128gcm_plaintext_max_length((const uint8_t*) source.c_str(), source.size());
 	if (outSize == 0)
-	{
 		return ERR_MEM;
-	}
 
 	if (outSize < 4096)
 		outSize = 4096;
@@ -639,6 +637,12 @@ static void doSmth
 	case kLoginResponseTag:
 		break;
 	case kHeartbeatAckTag:
+		// heart beat acked
+		if (client && client->heartbeatManager) {
+			// start again heartbeat
+			client->heartbeatManager->reset();
+			client->log << severity(3) << "reset heartbeat\n";
+		}
 		break;
 	case kHeartbeatPingTag:
 		{
@@ -1005,11 +1009,16 @@ MCSClient::MCSClient(
 void MCSClient::sendHeartBeat()
 {
 	log << severity(3) << "send heart beat request\n";
+	// Send ping, after pong received, reset heartbeat manager
+	ping();
 }
 
 void MCSClient::reconnect()
 {
 	log << severity(3) << "reconnect request\n";
+	// after 3 ping lossed, re-connect
+	disconnect();
+	connect();
 }
 
 MCSClient::MCSClient
