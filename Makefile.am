@@ -90,15 +90,19 @@ libwpnpp_a_CPPFLAGS = $(commoncppflags)
 
 #
 #	libwpn.la C++ shared library
+#   $(wpn_lib_source)
 #
-libwpn_la_SOURCES = $(wpn_lib_source)
+libwpn_la_SOURCES = 
+libwpn_la_LIBADD = -L. -lwpnpp -lece $(mcslibs)
 libwpn_la_CPPFLAGS = $(commoncppflags)
 libwpn_la_LDFLAGS = -version-info 0:2:0
 
 #
 #	libwpnapi.la C shared library (Delphi compatible)
+#	$(wpn_lib_source)
 #
-libwpnapi_la_SOURCES = $(wpn_lib_source) wpnapi.cpp
+libwpnapi_la_SOURCES = wpnapi.cpp
+libwpnapi_la_LIBADD = -L. -lwpnpp -lece $(mcslibs)
 libwpnapi_la_CPPFLAGS = $(commoncppflags) 
 libwpnapi_la_LDFLAGS = -version-info 0:2:0
 
@@ -223,6 +227,9 @@ wpn_grant_CPPFLAGS = $(commoncppflags)
 # ----- Build library first -----
 #
 $(commonlibs) : libece.a
+
+libwpnpp.la : libwpnpp.a
+libwpnapi.la : libwpnpp.a
 
 #
 # ----- With static libraries, library first -----
