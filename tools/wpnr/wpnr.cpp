@@ -185,6 +185,10 @@ int main(int argc, char **argv)
 	std::string l;
 	do {
 		std::cin >> l;
+		if (l == "a") {
+			// send ack
+			client->sendStreamAck("");
+		}
 	} while (l != "q");
 
 	std::cout << client->getLastPersistentId() << std::endl;

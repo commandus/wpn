@@ -11,7 +11,6 @@ HeartbeatManager::HeartbeatManager(
     onSendHeartbeat(cbSendHeartbeat), onReconnect(cbReconnect),
     thread(NULL), requestStop(0)
 {
-    start();
 }
 
 HeartbeatManager::~HeartbeatManager()

@@ -122,7 +122,6 @@ private:
 	void put(const void *buf, int size);
 	std::thread *listenerThread;
 	int process();
-	int logIn();
 	int sendVersion();
 	// called by HeartbeatManager
 	void sendHeartBeat();
@@ -158,6 +157,7 @@ public:
 	MCSClient(const MCSClient& other);
 	~MCSClient();
 
+	int logIn();
 	int connect();
 	void disconnect();
 	int send
@@ -209,6 +209,8 @@ public:
 	) const;
 
 	CallbackLogger log;
+
+	int sendStreamAck(const std::string &persistent_id);
 };
 
 /**

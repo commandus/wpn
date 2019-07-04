@@ -17,6 +17,7 @@
  */
 
 #include <functional>
+#include <chrono>
 #include <stdint.h>
 #include <fstream>
 #include <sstream>
@@ -40,6 +41,7 @@
 
 #include "utilvapid.h"
 #include "utilrecv.h"
+#include "utilstring.h"
 #include "params.h"
 
 #ifdef _MSC_VER
@@ -103,9 +105,19 @@ static std::string &getTagName
 		return MCSProtoTagNames[value];
 };
 
+/**
+ * @return message persistent if for new message
+ */
+static std::string nextPersistentId() 
+{
+	return std::to_string(
+		std::chrono::duration_cast<std::chrono::milliseconds>(
+		std::chrono::system_clock::now().time_since_epoch()).count());
+}
+
 enum MCSIqStanzaExtension {
   kSelectiveAck = 12,
-  kStreamAck = 13,
+  kStreamAck = 13
 };
 
 using namespace mcs_proto;
@@ -137,15 +149,27 @@ static MessageLite *mkHeartbeatAck()
 	return req;
 }
 
-static MessageLite *mkStreamAck()
+static MessageLite *mkStreamAck(
+	const std::string &persistent_id
+)
 {
 	IqStanza *req = new IqStanza();
 	if (!req)
 		return NULL;
 	req->set_type(mcs_proto::IqStanza::SET);
 	req->set_id("");
+
+	std::string persistentId;
+	if (persistent_id.empty())
+		persistentId = nextPersistentId();
+	else
+		persistentId = persistent_id;
+std::cerr << "mkStreamAck persistent id: " << persistentId << std::endl;
+
+	req->set_persistent_id(persistentId);
 	req->mutable_extension()->set_id(kStreamAck);
 	req->mutable_extension()->set_data("");
+
 	return req;
 }
 
@@ -157,6 +181,7 @@ static MessageLite *mkSelectiveAck
 	IqStanza *req = new IqStanza();
 	req->set_type(mcs_proto::IqStanza::SET);
 	req->set_id("");
+	req->set_persistent_id(nextPersistentId());
 	req->mutable_extension()->set_id(kSelectiveAck);
 	SelectiveAck ack;
 	for (size_t i = 0; i < ids.size(); ++i)
@@ -269,13 +294,18 @@ CallbackLogger &CallbackLogger::flush()
 
 static std::string getExtensionName(int extensionId)
 {
-	if (extensionId == 12)
+	switch (extensionId) {
+	case kSelectiveAck:
 		return "SelectiveAck";
-	else
-		if (extensionId == 12)
-			return "StreamAck";
-		else
-			return "Unknown";
+	case kStreamAck:
+		return "StreamAck";
+	default:
+		{
+			std::stringstream ss;
+			ss << "Unknown " << (int) extensionId;
+			return ss.str();
+		}
+	}
 }
 
 static bool BuildPersistentIdListFromProto(const google::protobuf::string& bytes, std::vector<std::string>* id_list) 
@@ -626,6 +656,33 @@ static int decode_aes128gcm
 	return r;
 }
 
+static uint32_t getLastStreamIdReceived(
+	enum MCSProtoTag tag,
+	const MessageLite *msg
+) {
+	switch (tag) {
+		case kHeartbeatPingTag:
+			return reinterpret_cast<const mcs_proto::HeartbeatPing*>(msg)->last_stream_id_received();
+			break;
+		case kHeartbeatAckTag:
+			return reinterpret_cast<const mcs_proto::HeartbeatAck*>(msg)->last_stream_id_received();
+			break;
+		case kLoginResponseTag:
+			return reinterpret_cast<const mcs_proto::LoginResponse*>(msg)->last_stream_id_received();
+			break;
+		case kIqStanzaTag:
+			return reinterpret_cast<const mcs_proto::IqStanza*>(msg)->last_stream_id_received();
+			break;
+		case kDataMessageStanzaTag:
+			return reinterpret_cast<const mcs_proto::DataMessageStanza*>(msg)->last_stream_id_received();
+			break;
+		default:
+			// Not all message types have last stream ids. Just return 0.		
+			break;
+	}
+	return 0;
+}
+
 static void doSmth
 (
 	enum MCSProtoTag tag,
@@ -635,6 +692,19 @@ static void doSmth
 	switch (tag)
 	{
 	case kLoginResponseTag:
+		{
+			LoginResponse *m = (LoginResponse *) message;
+			if (m->has_error() && m->error().code() != 0) {
+				client->log << severity(1) << "Login error " << m->error().code() 
+				<< ": " << m->error().message()
+				<< "\n";
+				client->logIn();
+				break;
+			}
+		}
+		// start heart beat
+		if (client && client->heartbeatManager)
+			client->heartbeatManager->start();
 		break;
 	case kHeartbeatAckTag:
 		// heart beat acked
@@ -666,37 +736,37 @@ static void doSmth
 		break;
 	case kIqStanzaTag:
 		{
-		/*
-		if (!((IqStanza*) message)->has_extension())
-			break;
-		const mcs_proto::Extension& iqExtension =  ((IqStanza*) message)->extension();
-		switch (iqExtension.id()) 
-		{
-			case kSelectiveAck: 
+			if (!((IqStanza*) message)->has_extension())
+				break;
+			const mcs_proto::Extension& iqExtension =  ((IqStanza*) message)->extension();
+			switch (iqExtension.id()) 
 			{
-				std::vector<std::string> ackedIds;
-				if (BuildPersistentIdListFromProto(iqExtension.data(), &ackedIds)) 
+				case kSelectiveAck: 
 				{
-					std::stringstream ss;
-					for (std::vector<std::string>::const_iterator it = ackedIds.begin(); it != ackedIds.end(); ++it)
+					std::vector<std::string> ackedIds;
+					if (BuildPersistentIdListFromProto(iqExtension.data(), &ackedIds)) 
 					{
-						ss << *it << "; ";
-					}
-					client->log << severity(3) << "Send selective ACK to " << ss.str() << "\n";
-					MessageLite *resp = mkSelectiveAck(ackedIds);
-					if (resp) 
-					{
-						int r = client->send(kIqStanzaTag, resp);
-						if (r < 0)
-							client->log << severity(3) << "Send selective ACK with error " << r << "\n";
-						else
-							client->log << severity(0) << "Sent selective ACK successfully " << r << " bytes\n";
-						delete resp;
+						std::stringstream ss;
+						for (std::vector<std::string>::const_iterator it = ackedIds.begin(); it != ackedIds.end(); ++it)
+						{
+							ss << *it << "; ";
+						}
+						client->log << severity(3) << "Received selective ACK to [" << ss.str() << "]\n";
+						/*
+						MessageLite *resp = mkSelectiveAck(ackedIds);
+						if (resp) 
+						{
+							int r = client->send(kIqStanzaTag, resp);
+							if (r < 0)
+								client->log << severity(3) << "Send selective ACK with error " << r << "\n";
+							else
+								client->log << severity(0) << "Sent selective ACK successfully " << r << " bytes\n";
+							delete resp;
+						}
+						*/
 					}
 				}
 			}
-		}
-		*/
 		}
 		break;
 	case kDataMessageStanzaTag:
@@ -726,17 +796,9 @@ static void doSmth
 		std::string appId = "";
 		int64_t sent = r->sent();
 
+		client->sendStreamAck(persistent_id);
+
 		/*
-		MessageLite *messageAck = mkStreamAck();
-		if (messageAck) {
-			int r = client->send(kIqStanzaTag, messageAck);
-			if (r < 0)
-				client->log << severity(3) << "Send ACK id: " << persistent_id << " with error " << r << "\n";
-			else
-				client->log << severity(0) << "Sent ACK id: " << persistent_id << " successfully " << r << " bytes\n";
-			delete messageAck;
-		}
-		
 		MessageLite *messageAck1 = mkSelectiveAck1(persistent_id);
 		if (messageAck1) {
 			int r = client->send(kIqStanzaTag, messageAck1);
@@ -747,7 +809,7 @@ static void doSmth
 			delete messageAck;
 		}
 		*/
-		
+
 		if (r->has_raw_data())
 		{
 			std::string d;
@@ -1140,6 +1202,7 @@ int MCSClient::logIn()
 			log << severity(3) << *it << "\n";
 		}
 	}
+
 	MessageLite *messageLogin =  mkLoginRequest(androidId, securityToken, persistentIds);
 	if (!messageLogin)
 		return ERR_MEM;
@@ -1408,6 +1471,10 @@ int MCSClient::process()
 				continue;
 			}
 			logMessage(tag, m, verbosity, &log);
+			uint32_t lastStreamId = getLastStreamIdReceived(tag, m);
+			if (lastStreamId) {
+				log << severity(3) << "Received last stream id: " << lastStreamId << "\n";
+			}
 			doSmth(tag, m, this);
 			delete m;
 			count++;
@@ -1431,6 +1498,23 @@ int MCSClient::read()
 		{
 			log << severity(3) << "Total: " << c << " message(s)" << "\n\n";
 		}
+	}
+	return r;
+}
+
+int MCSClient::sendStreamAck(
+	const std::string &persistent_id
+)
+{
+	int r = 0;
+	MessageLite *messageAck = mkStreamAck(persistent_id);
+	if (messageAck) {
+		r = send(kIqStanzaTag, messageAck);
+		if (r < 0)
+			log << severity(3) << "Send ACK id: " << persistent_id << " with error " << r << "\n";
+		else
+			log << severity(0) << "Sent ACK id: " << persistent_id << " successfully " << r << " bytes\n";
+		delete messageAck;
 	}
 	return r;
 }
