@@ -64,7 +64,7 @@ void onNotify
 	time_t t = sent / 1000;
 	struct tm *tm = localtime(&t);
 	if (config->clientOptions->getVerbosity() > 0) {
-		std::cerr<< "Notify " << "persistent_id: " << persistent_id << std::endl
+		std::cerr<< "Notify persistent_id: " << persistent_id << std::endl
 			<< "from: " << from << std::endl
 			<< "sent: " << std::asctime(tm) << std::endl
 			<< std::endl << std::endl;
