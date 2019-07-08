@@ -30,6 +30,7 @@
 #include <ece.h>
 
 #include "wpn-notify.h"
+#include "wp-storage-file.h"
 #include "sslfactory.h"
 #include "onullstream.hpp"
 
@@ -113,7 +114,7 @@ private:
 	SSLFactory mSSLFactory;
 	int mSocket;
 	std::string mStream;
-	std::string mLastPersistentId;
+	Subscriptions *mSubscriptions;
 	bool mStop;
 	SSL *mSsl;
 	bool hasIdNToken();
@@ -138,12 +139,10 @@ public:
 	void *onLogEnv;
 
 	int verbosity;
-	// const std::string gcmToken;
-	const std::string &getLastPersistentId();
-	void setLastPersistentId(const std::string &value);
+	void setLastPersistentId(const std::string &subscriptionKey, const std::string &persistentId);
 
 	MCSClient(
-		const std::string &lastPersistentId,
+		Subscriptions *subscriptions,
 		const std::string &privateKey,
 		const std::string &authSecret,
 		uint64_t androidId,
@@ -220,7 +219,7 @@ public:
 void *startClient
 (
 	int *retcode,
-	const std::string &lastPersistentId,
+	Subscriptions *subscriptions,
 	const std::string &privateKey,
 	const std::string &authSecret,
 	uint64_t androidId,

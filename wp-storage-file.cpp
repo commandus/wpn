@@ -1300,6 +1300,25 @@ Subscription *Subscriptions::findByPublicKey(
 		return (Subscription *) &(*it);
 }
 
+/**
+ * @param limit. Default 0 TODO
+ * @return last persisten id list for all subscriptions
+ */
+std::vector<std::string> Subscriptions::getPersistentIdList
+(
+	const int limit
+)
+{
+	// TODO add limit
+	std::vector<std::string> r;
+	for (std::vector<Subscription>::const_iterator it = list.begin(); it != list.end(); ++it) 
+	{
+		std::string v = it->getPersistentId();
+		if (!v.empty())
+		r.push_back(v);
+	}
+}
+
 bool Subscriptions::rmById(
 	uint64_t id
 )

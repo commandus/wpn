@@ -170,7 +170,7 @@ int main(int argc, char **argv)
 	int retcode;
 	MCSClient *client = (MCSClient*) startClient(
 		&retcode,
-		EMPTY_LAST_PERSISTENT_ID,
+		wpnConfig.subscriptions,
 		wpnConfig.wpnKeys->getPrivateKey(),
 		wpnConfig.wpnKeys->getAuthSecret(),
 		wpnConfig.androidCredentials->getAndroidId(),
@@ -191,7 +191,6 @@ int main(int argc, char **argv)
 		}
 	} while (l != "q");
 
-	std::cout << client->getLastPersistentId() << std::endl;
 	stopClient(client);
 	return 0;
 }

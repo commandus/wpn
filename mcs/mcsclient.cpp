@@ -839,7 +839,7 @@ static void doSmth
 				{
 					// TODO save persistent
 					// if (!client->getConfig()->setPersistentId(notification.authorizedEntity, persistent_id))
-					client->setLastPersistentId(persistent_id);
+					client->setLastPersistentId(from, persistent_id);
 				}
 				int mt = client->parseJSONNotifyMessage(notification, d);
 				switch (mt) {
@@ -1032,18 +1032,23 @@ static int nextMessage(
 
 //----------------------------- MCSClient -----------------------------
 
-void MCSClient::setLastPersistentId(const std::string &value)
+void MCSClient::setLastPersistentId
+(
+	const std::string &subscriptionKey,
+	const std::string &persistentId
+)
 {
-	mLastPersistentId = value;
-}
-
-const std::string &MCSClient::getLastPersistentId()
-{
-	return mLastPersistentId;
+	if (persistentId.empty())
+		return;
+	if (!mSubscriptions)
+		return;
+	Subscription *r = mSubscriptions->findByPublicKey(subscriptionKey);
+	if (r)
+		r->setPersistentId(subscriptionKey);
 }
 
 MCSClient::MCSClient(
-	const std::string &lastPersistentId,
+	Subscriptions *subscriptions,
 	const std::string &privateKey,
 	const std::string &authSecret,
 	uint64_t androidId,
@@ -1054,7 +1059,7 @@ MCSClient::MCSClient(
 	void *onLogEnv,
 	int verbosity
 )
-	: mLastPersistentId(lastPersistentId), state(STATE_VERSION), listenerThread(NULL)
+	: mSubscriptions(subscriptions), state(STATE_VERSION), listenerThread(NULL)
 {
 	ece_base64url_decode(privateKey.c_str(), privateKey.size(), ECE_BASE64URL_REJECT_PADDING, this->privateKey, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
 	ece_base64url_decode(authSecret.c_str(), authSecret.size(), ECE_BASE64URL_REJECT_PADDING, this->authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
@@ -1189,9 +1194,12 @@ int MCSClient::logIn()
 
 	std::vector<std::string> persistentIds;
 	// TODO get persistent ids
-	if (!mLastPersistentId.empty())
-	{
-		persistentIds.push_back(mLastPersistentId);
+	if (mSubscriptions) {
+		std::vector<std::string> ps = mSubscriptions->getPersistentIdList();
+		for (std::vector<std::string>::const_iterator it(ps.begin()); it != ps.end(); ++it)
+		{
+			persistentIds.push_back(*it);
+		}
 	}
 
 	if (verbosity >= 3)
@@ -1526,7 +1534,7 @@ int MCSClient::sendStreamAck(
 void *startClient
 (
 	int *retcode,
-	const std::string &lastPersistentId,
+	Subscriptions *subscriptions,
 	const std::string &privateKey,
 	const std::string &authSecret,
 	uint64_t androidId,
@@ -1539,7 +1547,7 @@ void *startClient
 )
 {
 	MCSClient *client = new MCSClient(
-		lastPersistentId,
+		subscriptions,
 		privateKey,
 		authSecret,
 		androidId,
