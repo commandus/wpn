@@ -158,7 +158,7 @@ int main(int argc, char **argv)
 	wpnConfig.clientOptions->setVerbosity(verbosity);
 
 	RegistryClient rclient(&wpnConfig);
-	if (!rclient.validate(verbosity)) {
+	if (!rclient.validate()) {
 		std::cerr << "Error register client" << std::endl;
 	}
 
@@ -192,5 +192,7 @@ int main(int argc, char **argv)
 	} while (l != "q");
 
 	stopClient(client);
+	// Save last persistent ids
+	wpnConfig.save();
 	return 0;
 }

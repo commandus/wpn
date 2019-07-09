@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 					ConfigFile newConfig(std::string(a_files->filename[i]));
 					RegistryClient rclient(&newConfig);
 					// check client consistency
-					if (!rclient.validate(verbosity)) {
+					if (!rclient.validate()) {
 						std::cerr << "Error check-in and/or register client, file " << a_files->filename[i] << std::endl;
 					} else {
 						newConfig.save();
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
 			ConfigFile *subscriber = *it_subscriber;
 			RegistryClient rclient(subscriber);
 			// check client consistency
-			if (!rclient.validate(verbosity)) {
+			if (!rclient.validate()) {
 				std::cerr << "Error check-in and/ or register client" << std::endl;
 			}
 

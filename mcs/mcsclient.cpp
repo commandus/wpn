@@ -837,8 +837,7 @@ static void doSmth
 				NotifyMessage notification;
 				if (!persistent_id.empty())
 				{
-					// TODO save persistent
-					// if (!client->getConfig()->setPersistentId(notification.authorizedEntity, persistent_id))
+					// save persistent id
 					client->setLastPersistentId(from, persistent_id);
 				}
 				int mt = client->parseJSONNotifyMessage(notification, d);
@@ -1044,7 +1043,7 @@ void MCSClient::setLastPersistentId
 		return;
 	Subscription *r = mSubscriptions->findByPublicKey(subscriptionKey);
 	if (r)
-		r->setPersistentId(subscriptionKey);
+		r->setPersistentId(persistentId);
 }
 
 MCSClient::MCSClient(
@@ -1195,11 +1194,7 @@ int MCSClient::logIn()
 	std::vector<std::string> persistentIds;
 	// TODO get persistent ids
 	if (mSubscriptions) {
-		std::vector<std::string> ps = mSubscriptions->getPersistentIdList();
-		for (std::vector<std::string>::const_iterator it(ps.begin()); it != ps.end(); ++it)
-		{
-			persistentIds.push_back(*it);
-		}
+		 persistentIds = mSubscriptions->getPersistentIdList();
 	}
 
 	if (verbosity >= 3)
@@ -1211,7 +1206,7 @@ int MCSClient::logIn()
 		}
 	}
 
-	MessageLite *messageLogin =  mkLoginRequest(androidId, securityToken, persistentIds);
+	MessageLite *messageLogin =  mkLoginRequest(androidId, securityToken, mSubscriptions->getPersistentIdList());
 	if (!messageLogin)
 		return ERR_MEM;
 

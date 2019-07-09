@@ -129,7 +129,7 @@ int main(int argc, char **argv)
 	// load config file
 	ConfigFile wpnConfig(filename);
 	RegistryClient rclient(&wpnConfig);
-	if (!rclient.validate(verbosity)) {
+	if (!rclient.validate()) {
 		std::cerr << "Error register client" << std::endl;
 	}
 
