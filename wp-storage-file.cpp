@@ -745,13 +745,13 @@ void Subscription::fromJson(const json &value)
 		f = value.find("privateKey");
 		if (f != value.end())
 			privateKey = f.value();
-		f = value.find("persistentId");
-		if (f != value.end())
-			persistentId = f.value();
 		f = value.find("pushSet");
 		if (f != value.end())
 			pushSet = f.value();
 		*/
+		f = value.find("persistentId");
+		if (f != value.end())
+			persistentId = f.value();
 		uint64_t id;
 		std::string publicKey;
 		std::string privateKey;
@@ -1012,9 +1012,8 @@ json Subscription::toJson(
 			{ "pushSet", getPushSet() },
 			{ "secret", wpnKeys.secret },
 			{ "privateKey", wpnKeys.getPrivateKey() },
-			{ "persistentId", getPersistentId() }
 			*/
-
+			{ "persistentId", getPersistentId() },
 			{ "publicKey", wpnKeys.getPublicKey() },
 			{ "authSecret", wpnKeys.getAuthSecret() }
 		};
@@ -1315,8 +1314,9 @@ std::vector<std::string> Subscriptions::getPersistentIdList
 	{
 		std::string v = it->getPersistentId();
 		if (!v.empty())
-		r.push_back(v);
+			r.push_back(v);
 	}
+	return r;
 }
 
 bool Subscriptions::rmById(

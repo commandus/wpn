@@ -45,17 +45,17 @@ bool RegistryClient::rpc
 	const std::string &method,
 	const std::string &path,
 	uint64_t id,
-	const std::string &value,
-	bool debug
+	const std::string &value
 )
 {
+	int verbosity = config ? config->clientOptions->getVerbosity() : 0;
 	bool c = false;
 	CURL *curl = curl_easy_init();
 	if (!curl)
 		errorCode = - CURLE_FAILED_INIT;
 	CURLcode res;
 	
-	if (debug) {
+	if (verbosity > 2) {
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, true);	
 		std::cerr << value << std::endl;
 	}
@@ -110,7 +110,7 @@ bool RegistryClient::rpc
 	}
 	curl_slist_free_all(chunk);
 	curl_easy_cleanup(curl);
-	if (debug)
+	if (verbosity > 0)
 		std::cerr << r << std::endl;
 	return c;
 }
@@ -120,7 +120,6 @@ RegistryClient::RegistryClient(
 )
 	: config(a_config), errorCode(0), errorDescription("")
 {
-	
 }
 
 /**
@@ -128,12 +127,11 @@ RegistryClient::RegistryClient(
  * @param verbosity 0..3
  */
 bool RegistryClient::validate(
-	int verbosity
 )
 {
 	// check-in and register if needed
 	int r = 200;
-
+	int verbosity = config ? config->clientOptions->getVerbosity() : 0;
 	// check in
 	if (config->androidCredentials->getAndroidId() == 0)
 	{
@@ -176,19 +174,22 @@ RegistryClient::~RegistryClient()
 
 }
 
+/**
+ * @param retval Return identifier number
+ * @return identifier number
+ */
 bool RegistryClient::add(
 	uint64_t *retval
 )
 {
 	bool c = false;
 	std::string r;
-	bool v = (config && config->clientOptions->getVerbosity() > 0);
-	if (rpc(&r, METHOD_POST, PATH_KEY, 0, config->wpnKeys->getPublicKey(), v)) {
+	if (rpc(&r, METHOD_POST, PATH_KEY, 0, config->wpnKeys->getPublicKey())) {
 		c = true;
-		uint64_t v = string2id(r);	// contains trailing "\n"
-		config->wpnKeys->id = v;
+		uint64_t id = string2id(r);	// contains trailing "\n"
+		config->wpnKeys->id = id;
 		if (retval) {
-			*retval = v;
+			*retval = id;
 		}
 	}
 	return c;
@@ -201,8 +202,7 @@ bool RegistryClient::get(
 {
 	bool c = false;
 	std::string v;
-	bool verbosity = (config && config->clientOptions->getVerbosity() > 0);
-	if (rpc(&v, METHOD_GET, PATH_KEY, id, "", verbosity)) {
+	if (rpc(&v, METHOD_GET, PATH_KEY, id, "")) {
 		c = true;
 		v = trim(v);
 		config->subscriptions->putSubsciptionVapidPubKey(id, v);
@@ -222,6 +222,7 @@ bool RegistryClient::subscribeById(
 ) 
 {
 	bool c = false;
+	int verbosity = config ? config->clientOptions->getVerbosity() : 0;
 	Subscription *s = config->subscriptions->getById(id);
 	if (!s) {
 		errorDescription = "Subscription not found.";
@@ -232,7 +233,6 @@ bool RegistryClient::subscribeById(
 	std::string rettoken;
 	std::string retpushset;			///< returns pushset. Not implemented. Returns empty string
 	std::string subscriptionVAPIDKey = s->getWpnKeys().getPublicKey();
-	int verbosity = config->clientOptions->getVerbosity();
 	int r = subscribe(&retval, &retheaders, rettoken, retpushset, 
 		std::to_string(config->androidCredentials->getAndroidId()),
 		std::to_string(config->androidCredentials->getSecurityToken()),
@@ -272,7 +272,7 @@ bool RegistryClient::addSubscription(
 		{ "token", s->getSentToken() }
 	};
 	bool verbosity = (config && config->clientOptions->getVerbosity() > 0);
-	if (rpc(&v, METHOD_POST, PATH_SUBSCRIPTION, id2, js.dump(), verbosity)) {
+	if (rpc(&v, METHOD_POST, PATH_SUBSCRIPTION, id2, js.dump())) {
 		c = true;
 	}
 	return c;
@@ -288,8 +288,7 @@ int RegistryClient::getSubscription(
 	bool c = false;
 
 	std::string v;
-	bool verbosity = (config && config->clientOptions->getVerbosity() > 0);
-	if (!rpc(&v, METHOD_GET, PATH_SUBSCRIPTION, id2, "", verbosity)) {
+	if (!rpc(&v, METHOD_GET, PATH_SUBSCRIPTION, id2, "")) {
 		return false;
 	}
 	json j;

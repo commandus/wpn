@@ -302,6 +302,8 @@ uint64_t string2id(
 	const std::string &v
 )
 {
+std::cerr << "string2id(" << v << ")" << std::endl;
+std::cerr << " = " << std::atoll(v.c_str()) << std::endl;
 	return std::atoll(v.c_str());	// contains trailing "\n"
 }
 

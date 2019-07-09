@@ -18,6 +18,7 @@ private:
 * @param method "POST", "GET", "DELETE"
 * @param path "key", "subscription"
 * @param value JSON serialized message.  See push2ClientNotificationFCM()
+* @param verbosity 0- quiet, 1- error, 2- info, 3- debug
 * @return true- success
 */
 bool rpc
@@ -26,8 +27,7 @@ bool rpc
 	const std::string &method,
 	const std::string &path,
 	uint64_t id,
-	const std::string &value,
-	bool debug
+	const std::string &value
 );
 public:
 	ConfigFile *config;
@@ -72,10 +72,8 @@ public:
 
 	/**
 	 * Invalidate device registration, check-in and register if needed
-     * @param verbosity 0..3
 	 */
 	bool validate(
-		int verbosity
 	);
 };
 
