@@ -142,21 +142,34 @@ static const char *IQTYPE_NAMES[] =
 	"GET", "SET", "RESULT", "IQ_ERROR"
 };
 
-static MessageLite *mkPing()
+static MessageLite *mkPing(
+	uint32_t lastStreamIdRecieved
+)
 {
 	HeartbeatPing *req = new HeartbeatPing();
+	if (lastStreamIdRecieved) {
+		req->set_last_stream_id_received(lastStreamIdRecieved);
+	}
+
 	// req->set_status(0);
 	return req;
 }
 
-static MessageLite *mkHeartbeatAck()
+static MessageLite *mkHeartbeatAck
+(
+	uint32_t lastStreamIdRecieved
+)
 {
 	HeartbeatAck *req = new HeartbeatAck();
+	if (lastStreamIdRecieved) {
+		req->set_last_stream_id_received(lastStreamIdRecieved);
+	}
 	// req->set_status(0);
 	return req;
 }
 
 static MessageLite *mkStreamAck(
+	uint32_t lastStreamIdRecieved,
 	const std::string &persistent_id
 )
 {
@@ -166,14 +179,18 @@ static MessageLite *mkStreamAck(
 	req->set_type(mcs_proto::IqStanza::SET);
 	req->set_id("");
 
+	if (lastStreamIdRecieved) {
+		req->set_last_stream_id_received(lastStreamIdRecieved);
+	}
+
 	std::string persistentId;
 	if (persistent_id.empty())
 		persistentId = nextPersistentId();
 	else
 		persistentId = persistent_id;
-std::cerr << "mkStreamAck persistent id: " << persistentId << std::endl;
-
 	req->set_persistent_id(persistentId);
+	// std::cerr << "mkStreamAck persistent id: " << persistentId << std::endl;
+
 	req->mutable_extension()->set_id(kStreamAck);
 	req->mutable_extension()->set_data("");
 
@@ -182,12 +199,16 @@ std::cerr << "mkStreamAck persistent id: " << persistentId << std::endl;
 
 static MessageLite *mkSelectiveAck
 (
+	uint32_t lastStreamIdRecieved,
 	const std::vector<std::string> &ids
 ) 
 {
 	IqStanza *req = new IqStanza();
 	req->set_type(mcs_proto::IqStanza::SET);
 	req->set_id("");
+		if (lastStreamIdRecieved) {
+		req->set_last_stream_id_received(lastStreamIdRecieved);
+	}
 	req->set_persistent_id(nextPersistentId());
 	req->mutable_extension()->set_id(kSelectiveAck);
 	SelectiveAck ack;
@@ -201,12 +222,16 @@ static MessageLite *mkSelectiveAck
 
 static MessageLite *mkSelectiveAck1
 (
+	uint32_t lastStreamIdRecieved,
 	const std::string &id
 ) 
 {
 	IqStanza *req = new IqStanza();
 	req->set_type(mcs_proto::IqStanza::SET);
 	req->set_id("");
+	if (lastStreamIdRecieved) {
+		req->set_last_stream_id_received(lastStreamIdRecieved);
+	}
 	req->mutable_extension()->set_id(kSelectiveAck);
 	SelectiveAck ack;
 	ack.add_id(id);
@@ -663,6 +688,34 @@ static int decode_aes128gcm
 	return r;
 }
 
+void setLastStreamIdReceived(
+	enum MCSProtoTag tag,
+	MessageLite *msg,
+	uint32_t val
+)
+{
+	switch (tag) {
+		case kHeartbeatPingTag:
+			reinterpret_cast<HeartbeatPing*>(msg)->set_last_stream_id_received(val);
+			break;
+		case kHeartbeatAckTag:
+			reinterpret_cast<HeartbeatAck*>(msg)->set_last_stream_id_received(val);
+			break;
+		case kLoginResponseTag:
+			reinterpret_cast<LoginResponse*>(msg)->set_last_stream_id_received(val);
+			break;
+		case kIqStanzaTag:
+			reinterpret_cast<IqStanza*>(msg)->set_last_stream_id_received(val);
+			break;
+		case kDataMessageStanzaTag:
+			reinterpret_cast<DataMessageStanza*>(msg)->set_last_stream_id_received(val);
+			break;
+		default:
+			// Not all message types have last stream ids. Just return 0.		
+			break;
+	}
+}
+	
 static uint32_t getLastStreamIdReceived(
 	enum MCSProtoTag tag,
 	const MessageLite *msg
@@ -769,7 +822,7 @@ static void doSmth
 		break;
 	case kHeartbeatPingTag:
 		{
-			MessageLite *messageHeartbeatAck = mkHeartbeatAck();
+			MessageLite *messageHeartbeatAck = mkHeartbeatAck(client ? client->getLastStreamIdRecieved() : 0);
 			if (messageHeartbeatAck) 
 			{
 				int r = client->send(kHeartbeatAckTag, messageHeartbeatAck);
@@ -860,7 +913,7 @@ static void doSmth
 		}
 
 		/*
-		MessageLite *messageAck1 = mkSelectiveAck1(persistent_id);
+		MessageLite *messageAck1 = mkSelectiveAck1(lastStreamIdRecieved, persistent_id);
 		if (messageAck1) {
 			int r = client->send(kIqStanzaTag, messageAck1);
 			if (r < 0)
@@ -1119,7 +1172,9 @@ MCSClient::MCSClient(
 	void *onLogEnv,
 	int verbosity
 )
-	: mSubscriptions(subscriptions), state(STATE_VERSION), listenerThread(NULL)
+	: mSubscriptions(subscriptions), state(STATE_VERSION), listenerThread(NULL),
+	lastStreamIdRecieved(0), lastStreamIdSent(0)
+
 {
 	ece_base64url_decode(privateKey.c_str(), privateKey.size(), ECE_BASE64URL_REJECT_PADDING, this->privateKey, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
 	ece_base64url_decode(authSecret.c_str(), authSecret.size(), ECE_BASE64URL_REJECT_PADDING, this->authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
@@ -1308,7 +1363,7 @@ int MCSClient::send
 int MCSClient::ping()
 {
 	log << severity(3) << "ping.." << "\n";
-	MessageLite *l =  mkPing();
+	MessageLite *l =  mkPing(lastStreamIdRecieved);
 	if (!l)
 		return ERR_MEM;
 	int r = send(kHeartbeatPingTag, l);
@@ -1540,12 +1595,17 @@ int MCSClient::process()
 			logMessage(tag, m, verbosity, &log);
 			uint32_t lastStreamId = getLastStreamIdReceived(tag, m);
 			if (lastStreamId) {
+				lastStreamIdRecieved = lastStreamId;
 				log << severity(3) << "Received last stream id: " << lastStreamId << "\n";
 			}
 			std::string persistent_id = getPersistentId(tag, m);
+			
+			/*
 			if (!persistent_id.empty()) {
 				sendStreamAck(persistent_id);
 			}
+			*/
+			sendStreamAck(persistent_id);
 
 			doSmth(tag, m, this);
 			delete m;
@@ -1574,12 +1634,24 @@ int MCSClient::read()
 	return r;
 }
 
+uint32_t MCSClient::getLastStreamIdRecieved()
+{
+	return lastStreamIdRecieved;
+}
+
+void MCSClient::setLastStreamIdRecieved(
+	uint32_t value
+)
+{
+	lastStreamIdRecieved = value;
+}
+
 int MCSClient::sendStreamAck(
 	const std::string &persistent_id
 )
 {
 	int r = 0;
-	MessageLite *messageAck = mkStreamAck(persistent_id);
+	MessageLite *messageAck = mkStreamAck(lastStreamIdRecieved, persistent_id);
 	if (messageAck) {
 		r = send(kIqStanzaTag, messageAck);
 		if (r < 0)

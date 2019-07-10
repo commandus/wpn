@@ -122,6 +122,8 @@ private:
 	// Return 0 if incomplete and is not parcelable
 	void put(const void *buf, int size);
 	std::thread *listenerThread;
+	uint32_t lastStreamIdRecieved;
+	uint32_t lastStreamIdSent;
 	int process();
 	int sendVersion();
 	// called by HeartbeatManager
@@ -210,6 +212,8 @@ public:
 	CallbackLogger log;
 
 	int sendStreamAck(const std::string &persistent_id);
+	uint32_t getLastStreamIdRecieved();
+	void setLastStreamIdRecieved(uint32_t value);
 };
 
 /**
