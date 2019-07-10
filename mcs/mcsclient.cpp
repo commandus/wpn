@@ -880,7 +880,7 @@ static void doSmth
 									std::string sub = "";
 									std::string contact = "";
 									rp = webpushVapidData(NULL, output, serverKey, serverKey, token,
-										p256dh, auth, persistent_id, command, retcode, r, 0, contact, AES128GCM, 0);
+										p256dh, auth, persistent_id, command, retcode, r, contact, AES128GCM, 0);
 								}
 								if ((rp >= 200) && (rp <= 399))
 								{
