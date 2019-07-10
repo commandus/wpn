@@ -669,19 +669,19 @@ static uint32_t getLastStreamIdReceived(
 ) {
 	switch (tag) {
 		case kHeartbeatPingTag:
-			return reinterpret_cast<const mcs_proto::HeartbeatPing*>(msg)->last_stream_id_received();
+			return reinterpret_cast<const HeartbeatPing*>(msg)->last_stream_id_received();
 			break;
 		case kHeartbeatAckTag:
-			return reinterpret_cast<const mcs_proto::HeartbeatAck*>(msg)->last_stream_id_received();
+			return reinterpret_cast<const HeartbeatAck*>(msg)->last_stream_id_received();
 			break;
 		case kLoginResponseTag:
-			return reinterpret_cast<const mcs_proto::LoginResponse*>(msg)->last_stream_id_received();
+			return reinterpret_cast<const LoginResponse*>(msg)->last_stream_id_received();
 			break;
 		case kIqStanzaTag:
-			return reinterpret_cast<const mcs_proto::IqStanza*>(msg)->last_stream_id_received();
+			return reinterpret_cast<const IqStanza*>(msg)->last_stream_id_received();
 			break;
 		case kDataMessageStanzaTag:
-			return reinterpret_cast<const mcs_proto::DataMessageStanza*>(msg)->last_stream_id_received();
+			return reinterpret_cast<const DataMessageStanza*>(msg)->last_stream_id_received();
 			break;
 		default:
 			// Not all message types have last stream ids. Just return 0.		
@@ -690,6 +690,23 @@ static uint32_t getLastStreamIdReceived(
 	return 0;
 }
 
+static std::string getPersistentId(
+	enum MCSProtoTag tag,
+	const MessageLite *msg
+) {
+	switch (tag) {
+		case kIqStanzaTag:
+			return reinterpret_cast<const IqStanza*>(msg)->persistent_id();
+			break;
+		case kDataMessageStanzaTag:
+			return reinterpret_cast<const DataMessageStanza*>(msg)->persistent_id();
+			break;
+		default:
+			// Not all message types have persistent id. Just return empty string.		
+			break;
+	}
+	return "";
+}
 
 static int replyMCSSelfMessage(
 	MCSClient *client,
@@ -843,7 +860,6 @@ static void doSmth
 		}
 
 		/*
-		client->sendStreamAck(persistent_id);
 		MessageLite *messageAck1 = mkSelectiveAck1(persistent_id);
 		if (messageAck1) {
 			int r = client->send(kIqStanzaTag, messageAck1);
@@ -1526,6 +1542,11 @@ int MCSClient::process()
 			if (lastStreamId) {
 				log << severity(3) << "Received last stream id: " << lastStreamId << "\n";
 			}
+			std::string persistent_id = getPersistentId(tag, m);
+			if (!persistent_id.empty()) {
+				sendStreamAck(persistent_id);
+			}
+
 			doSmth(tag, m, this);
 			delete m;
 			count++;
