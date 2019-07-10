@@ -4,6 +4,7 @@
 #include "wp-connection.h"
 
 /**
+ * I dont remember what is it
  * Connect to the push service and process push messages
  * @param wpnKeys keys
  * @param subscription connection properties

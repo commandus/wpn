@@ -31,6 +31,12 @@ static size_t write_string(void *contents, size_t size, size_t nmemb, void *user
 	return size * nmemb;
 }
 
+static size_t write_header(char* buffer, size_t size, size_t nitems, void *userp) {
+	size_t sz = size * nitems;
+	((std::string*)userp)->append((char*)buffer, sz);
+    return sz;
+}
+
 /**
 * Remote call
 * @param retval return value
@@ -54,10 +60,13 @@ bool RegistryClient::rpc
 	if (!curl)
 		errorCode = - CURLE_FAILED_INIT;
 	CURLcode res;
-	
+
+	std::string headers;
 	if (verbosity > 2) {
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, true);	
 		std::cerr << value << std::endl;
+		curl_easy_setopt(curl, CURLOPT_HEADERDATA, &headers);
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &write_header);
 	}
 
 	struct curl_slist *chunk = NULL;
@@ -90,6 +99,12 @@ bool RegistryClient::rpc
 	std::string r;
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &r);
 	res = curl_easy_perform(curl);
+
+	if (verbosity > 2) 
+	{
+		std::cerr << headers << std::endl;
+	}
+
 	if (res != CURLE_OK)
 	{
 		errorDescription = curl_easy_strerror(res);
@@ -98,9 +113,9 @@ bool RegistryClient::rpc
 	else
 	{
 		errorDescription = "";
-		long r;
-		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &r);
-		errorCode = r;
+		long errc;
+		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &errc);
+		errorCode = errc;
 		if ((errorCode >= 200) && (errorCode < 300))
 		{
 			c = true;

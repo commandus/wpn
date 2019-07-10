@@ -97,11 +97,11 @@ int main(int argc, char **argv)
 		name = *a_name->sval;
 	bool credentials = a_credentials->count > 0;
 	bool remove = a_rm->count > 0;
-	std::string config;
+	std::string configFileName;
 	if (a_config->count)
-		config = *a_config->sval;
+		configFileName = *a_config->sval;
 	else
-		config = getDefaultConfigFileName(DEF_CONFIG_FILE_NAME);
+		configFileName = getDefaultConfigFileName(DEF_CONFIG_FILE_NAME);
 
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)
@@ -121,7 +121,9 @@ int main(int argc, char **argv)
 
 	OpenSSL_add_all_algorithms();
 
-	ConfigFile wpnConfig(config);
+	ConfigFile wpnConfig(configFileName);
+	wpnConfig.clientOptions->setVerbosity(verbosity);
+	
 	if (!wpnConfig.wpnKeys->id && !reRegister) {
 		std::cerr << "No registration identifier supplied, register with -R." << std::endl;
 		exit(1);

@@ -133,8 +133,6 @@ int webpushVapidJSON(
  * @param persistent_id reference to request. If empty, it is request, otherwise response
  * @param command command line
  * @param code execution return code, usually 0
- * @param output result from stdout
- * @param verbosity level
  * @param contact mailto:
  * @param contentEncoding AESGCM or AES128GCM
  * @param expiration expiration time unix epoch seconds, default 0- now + 12 hours
@@ -154,7 +152,6 @@ int webpushVapidData
 	const std::string &command,
 	int code,
 	const std::string &output,
-	int verbosity,
  
  	const std::string &contact,
 	int contentEncoding,
