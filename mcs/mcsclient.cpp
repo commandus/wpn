@@ -95,6 +95,13 @@ static std::string MCSProtoTagNames [18] =
 	"Unknown"
 };
 
+// The category of messages intended for the GCM client itself from MCS.
+const char MCSSelfCategory[] = "com.google.android.gsf.gtalkservice";
+// The from field for messages originating in the GCM client.
+const char clientGCMFromField[] = "gcm@android.com";
+// MCS status message types.
+const char statusIdleNotification[] = "IdleNotification";
+
 static std::string &getTagName
 (
 	uint8_t value
@@ -683,6 +690,35 @@ static uint32_t getLastStreamIdReceived(
 	return 0;
 }
 
+
+static int replyMCSSelfMessage(
+	MCSClient *client,
+	DataMessageStanza *msg
+)
+{
+	DataMessageStanza response;
+	response.set_from(clientGCMFromField);
+	response.set_sent(time(NULL) * 1000);
+	response.set_ttl(0);
+	bool send = false;
+	for (int i = 0; i < msg->app_data_size(); ++i) {
+		const mcs_proto::AppData& app_data = msg->app_data(i);
+		if (app_data.key() == statusIdleNotification) {
+			// Tell the MCS server the client is not idle.
+			send = true;
+			mcs_proto::AppData data;
+			data.set_key(statusIdleNotification);
+			data.set_value("false");
+			response.add_app_data()->CopyFrom(data);
+			response.set_category(MCSSelfCategory);
+		}
+	}
+	if (send) {
+		return client->send(kHeartbeatAckTag, &response);
+	}
+	return 0;
+}
+
 static void doSmth
 (
 	enum MCSProtoTag tag,
@@ -796,9 +832,18 @@ static void doSmth
 		std::string appId = "";
 		int64_t sent = r->sent();
 
-		client->sendStreamAck(persistent_id);
+		if (r->category() == MCSSelfCategory) {
+			int c = replyMCSSelfMessage(client, r);
+			if (c) {
+				client->log << severity(0) << "Send no idle response error" << c << "\n";
+			} else {
+				client->log << severity(3) << "Send idle response\n";
+			}
+			break;
+		}
 
 		/*
+		client->sendStreamAck(persistent_id);
 		MessageLite *messageAck1 = mkSelectiveAck1(persistent_id);
 		if (messageAck1) {
 			int r = client->send(kIqStanzaTag, messageAck1);
@@ -1227,6 +1272,9 @@ int MCSClient::sendVersion()
 	return SSL_write(mSsl, r.c_str(), r.size());
 }
 
+/**
+ * @return 0- success
+ */
 int MCSClient::send
 (
 	uint8_t tag,
