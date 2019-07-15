@@ -33,6 +33,8 @@
 #include <fstream>
 #include <cstring>
 
+#include <signal.h>
+
 #include "sslfactory.h"
 
 #include "config-filename.h"
@@ -44,8 +46,70 @@
 #include <mcs/mcsclient.h>
 
 static const char* progname = "wpnr";
+
 #define DEF_CONFIG_FILE_NAME			".wpn.js"
 #define	EMPTY_LAST_PERSISTENT_ID		""
+#define MSG_INTERRUPTED 				"Interrupted "
+#define MSG_RELOAD_CONFIG_REQUEST		"Re-read config "
+
+static int quitFlag = 0;
+
+void signalHandler(int signal)
+{
+	switch(signal)
+	{
+	case SIGHUP:
+		std::cerr << MSG_RELOAD_CONFIG_REQUEST << std::endl;
+		quitFlag = 2;
+		break;
+	case SIGINT:
+		std::cerr << MSG_INTERRUPTED << std::endl;
+		quitFlag = 1;
+		break;
+	default:
+		std::cerr << "Handle " << signal << std::endl;
+		break;
+	}
+}
+
+#ifdef _MSC_VER
+// TODO
+void setSignalHandler()
+{
+}
+#else
+void setSignalHandler()
+{
+	struct sigaction action;
+	memset(&action, 0, sizeof(struct sigaction));
+	action.sa_handler = &signalHandler;
+	sigset_t   set; 
+	sigemptyset(&set);                                                             
+	sigaddset(&set, SIGHUP); 
+	sigaddset(&set, SIGINT);
+	action.sa_mask = set;
+	sigaction(SIGHUP, &action, NULL);
+	sigaction(SIGINT, &action, NULL);
+}
+#endif
+
+void readLoop(
+	int *quitFlag,
+	std::istream &strm,
+	MCSClient *client
+)
+{
+	std::string line;
+	do {
+		strm >> line;
+		if (line == "a") {
+			// send ack
+			client->sendStreamAck("");
+		}
+		if ((!*quitFlag) && (line == "q"))
+			*quitFlag = 1;
+	} while (*quitFlag == 0);
+}
 
 void onNotify
 (
@@ -153,46 +217,46 @@ int main(int argc, char **argv)
 	}
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
-	// load config file
-	ConfigFile wpnConfig(filename);
-	wpnConfig.clientOptions->setVerbosity(verbosity);
-
-	RegistryClient rclient(&wpnConfig);
-	if (!rclient.validate()) {
-		std::cerr << "Error register client" << std::endl;
-	}
-
 	// In windows, this will init the winsock stuff
 	curl_global_init(CURL_GLOBAL_ALL);
 	OpenSSL_add_all_algorithms();
 
-	// read
-	int retcode;
-	MCSClient *client = (MCSClient*) startClient(
-		&retcode,
-		wpnConfig.subscriptions,
-		wpnConfig.wpnKeys->getPrivateKey(),
-		wpnConfig.wpnKeys->getAuthSecret(),
-		wpnConfig.androidCredentials->getAndroidId(),
-		wpnConfig.androidCredentials->getSecurityToken(),
-		onNotify, &wpnConfig,
-		onLog, &wpnConfig,
-		verbosity
-	);
-	std::cout << "Enter q to quit" << std::endl;
+	// Signal handler
+	setSignalHandler();
 
-	// loop
-	std::string l;
 	do {
-		std::cin >> l;
-		if (l == "a") {
-			// send ack
-			client->sendStreamAck("");
-		}
-	} while (l != "q");
+		quitFlag = 0;
+		// load config file
+		ConfigFile wpnConfig(filename);
+		wpnConfig.clientOptions->setVerbosity(verbosity);
 
-	stopClient(client);
-	// Save last persistent ids
-	wpnConfig.save();
+		RegistryClient rclient(&wpnConfig);
+		if (!rclient.validate()) {
+			std::cerr << "Error register client" << std::endl;
+		}
+
+		// read
+		int retcode;
+		MCSClient *client = (MCSClient*) startClient(
+			&retcode,
+			wpnConfig.subscriptions,
+			wpnConfig.wpnKeys->getPrivateKey(),
+			wpnConfig.wpnKeys->getAuthSecret(),
+			wpnConfig.androidCredentials->getAndroidId(),
+			wpnConfig.androidCredentials->getSecurityToken(),
+			onNotify, &wpnConfig,
+			onLog, &wpnConfig,
+			verbosity
+		);
+		std::cout << "Enter q to quit" << std::endl;
+
+		// loop
+		readLoop(&quitFlag, std::cin, client);
+
+		stopClient(client);
+		// Save last persistent ids
+		wpnConfig.save();
+	} while (quitFlag == 2);
+
 	return 0;
 }

@@ -56,17 +56,14 @@ If the program is not already installed, \
 <a href=\"https://play.google.com/store/apps/details?id=com.commandus.surephone\">install it</a>.\
 <br/>$body</body></html>"
 
-#ifdef _MSC_VER
-
-void setSignalHandler(int signal)
-{
-}
-
-#else
 void signalHandler(int signal)
 {
 	switch(signal)
 	{
+	case SIGHUP:
+		std::cerr << MSG_RELOAD_CONFIG_REQUEST << std::endl;
+		std::cerr << "Not supported" << std::endl;
+		break;
 	case SIGINT:
 		std::cerr << MSG_INTERRUPTED << std::endl;
 		break;
@@ -75,12 +72,19 @@ void signalHandler(int signal)
 	}
 }
 
-void setSignalHandler(int signal)
+#ifdef _MSC_VER
+// TODO
+void setSignalHandler()
+{
+}
+#else
+void setSignalHandler()
 {
 	struct sigaction action;
 	memset(&action, 0, sizeof(struct sigaction));
 	action.sa_handler = &signalHandler;
-	sigaction(signal, &action, NULL);
+	sigaction(SIGINT, &action, NULL);
+	sigaction(SIGHUP, &action, NULL);
 }
 #endif
 
@@ -147,7 +151,7 @@ void readCommand(MCSClient *client, std::istream &strm)
 int main(int argc, char** argv)
 {
 	// Signal handler
-	setSignalHandler(SIGINT);
+	setSignalHandler();
 #ifdef _MSC_VER
 	initWindows();
 #endif
@@ -485,7 +489,7 @@ int main(int argc, char** argv)
 				{
 				}
 				MCSClient client(
-					NULL,
+					config.config->subscriptions,
 					config.config->wpnKeys->getPrivateKey(),
 					config.config->wpnKeys->getAuthSecret(),
 					config.config->androidCredentials->getAndroidId(),
