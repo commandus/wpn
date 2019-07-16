@@ -24,6 +24,9 @@
  * 
  * @file wpnr.cpp
  * 
+ * Signals:
+ * 1 SIGHUP re-read config
+ * 2 SIGINT interrupt
  */
 
 #include <string>
@@ -83,7 +86,7 @@ void setSignalHandler()
 	struct sigaction action;
 	memset(&action, 0, sizeof(struct sigaction));
 	action.sa_handler = &signalHandler;
-	sigset_t   set; 
+	sigset_t set; 
 	sigemptyset(&set);                                                             
 	sigaddset(&set, SIGHUP); 
 	sigaddset(&set, SIGINT);
@@ -93,7 +96,7 @@ void setSignalHandler()
 }
 #endif
 
-void readLoop(
+void readCommand(
 	int *quitFlag,
 	std::istream &strm,
 	MCSClient *client
@@ -101,12 +104,16 @@ void readLoop(
 {
 	std::string line;
 	do {
+		if (strm.eof()) {
+			// after any signal received stdin is closed and marked as eof()
+			break;
+		}
 		strm >> line;
 		if (line == "a") {
 			// send ack
 			client->sendStreamAck("");
 		}
-		if ((!*quitFlag) && (line == "q"))
+		if (line == "q")
 			*quitFlag = 1;
 	} while (*quitFlag == 0);
 }
@@ -223,7 +230,6 @@ int main(int argc, char **argv)
 
 	// Signal handler
 	setSignalHandler();
-
 	do {
 		quitFlag = 0;
 		// load config file
@@ -251,7 +257,7 @@ int main(int argc, char **argv)
 		std::cout << "Enter q to quit" << std::endl;
 
 		// loop
-		readLoop(&quitFlag, std::cin, client);
+		readCommand(&quitFlag, std::cin, client);
 
 		stopClient(client);
 		// Save last persistent ids

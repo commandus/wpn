@@ -56,16 +56,20 @@ If the program is not already installed, \
 <a href=\"https://play.google.com/store/apps/details?id=com.commandus.surephone\">install it</a>.\
 <br/>$body</body></html>"
 
+static int quitFlag = 0;
+
 void signalHandler(int signal)
 {
 	switch(signal)
 	{
 	case SIGHUP:
 		std::cerr << MSG_RELOAD_CONFIG_REQUEST << std::endl;
-		std::cerr << "Not supported" << std::endl;
+		quitFlag = 2;
+		fclose(0);
 		break;
 	case SIGINT:
 		std::cerr << MSG_INTERRUPTED << std::endl;
+		quitFlag = 1;
 		break;
 	default:
 		break;
@@ -131,14 +135,18 @@ void onNotify(
 	}
 }
 
-void readCommand(MCSClient *client, std::istream &strm)
+void readCommand(
+	int *quitFlag,
+	std::istream &strm,
+	MCSClient *client
+)
 {
 	std::string s;
-	while (!strm.eof())
+	while ((*quitFlag == 0) && (!strm.eof()))
 	{
 		strm >> s;
 		if ((s == "q") || (s == "quit")) {
-			client->disconnect();
+			*quitFlag = 1;
 			break;
 		}
 		if ((s == "p") || (s == "ping"))
@@ -484,70 +492,66 @@ int main(int argc, char** argv)
 			break;
 		default:
 			{
-				config.loadNotifyFuncs();
-				if (config.verbosity > 0)
-				{
-				}
-				MCSClient client(
-					config.config->subscriptions,
-					config.config->wpnKeys->getPrivateKey(),
-					config.config->wpnKeys->getAuthSecret(),
-					config.config->androidCredentials->getAndroidId(),
-					config.config->androidCredentials->getSecurityToken(),
-					onNotify, &config, onLog, &config,
-					config.verbosity
-				);
+				do {
+					quitFlag = 0;
+					config.loadNotifyFuncs();
+					MCSClient client(
+						config.config->subscriptions,
+						config.config->wpnKeys->getPrivateKey(),
+						config.config->wpnKeys->getAuthSecret(),
+						config.config->androidCredentials->getAndroidId(),
+						config.config->androidCredentials->getSecurityToken(),
+						onNotify, &config, onLog, &config,
+						config.verbosity
+					);
 
-				// check in
-				if (config.config->androidCredentials->getAndroidId() == 0)
-				{
-					uint64_t androidId = config.config->androidCredentials->getAndroidId();
-					uint64_t securityToken = config.config->androidCredentials->getSecurityToken();
-					int r = checkIn(&androidId, &securityToken, config.verbosity);
-					if (r < 200 || r >= 300)
+					// check in
+					if (config.config->androidCredentials->getAndroidId() == 0)
 					{
-						return ERR_NO_ANDROID_ID_N_TOKEN;
-					}
-					config.config->androidCredentials->setAndroidId(androidId);
-					config.config->androidCredentials->setSecurityToken(securityToken);
-				}
-				// register
-				if (config.config->androidCredentials->getGCMToken().empty())
-				{
-					int r;
-					for (int i = 0; i < 5; i++)
-					{
-						std::string gcmToken;
-						r = registerDevice(&gcmToken,
-							config.config->androidCredentials->getAndroidId(),
-							config.config->androidCredentials->getSecurityToken(),
-							config.config->androidCredentials->getAppId(),
-							config.verbosity
-						);
-						if (r >= 200 && r < 300)
+						uint64_t androidId = config.config->androidCredentials->getAndroidId();
+						uint64_t securityToken = config.config->androidCredentials->getSecurityToken();
+						int r = checkIn(&androidId, &securityToken, config.verbosity);
+						if (r < 200 || r >= 300)
 						{
-							config.config->androidCredentials->setGCMToken(gcmToken);
-							break;
+							return ERR_NO_ANDROID_ID_N_TOKEN;
 						}
-						sleep(1);
+						config.config->androidCredentials->setAndroidId(androidId);
+						config.config->androidCredentials->setSecurityToken(securityToken);
 					}
-					if (r < 200 || r >= 300)
+					// register
+					if (config.config->androidCredentials->getGCMToken().empty())
 					{
-						return ERR_NO_FCM_TOKEN;
+						int r;
+						for (int i = 0; i < 5; i++)
+						{
+							std::string gcmToken;
+							r = registerDevice(&gcmToken,
+								config.config->androidCredentials->getAndroidId(),
+								config.config->androidCredentials->getSecurityToken(),
+								config.config->androidCredentials->getAppId(),
+								config.verbosity
+							);
+							if (r >= 200 && r < 300)
+							{
+								config.config->androidCredentials->setGCMToken(gcmToken);
+								break;
+							}
+							sleep(1);
+						}
+						if (r < 200 || r >= 300)
+						{
+							return ERR_NO_FCM_TOKEN;
+						}
 					}
-				}
 
-				client.connect();
-				NotifyMessage notification, reply;
-				notification.title = "Started";
-				notification.body = "Hi there";
-				// onNotify(&config, "", "", "", config.androidCredentials->getAppId(), 0, &notification, &reply);
-				std::cerr << "Listen" << std::endl
-				<< "Enter q to quit" << std::endl
-				<< "p: ping" << std::endl;
-				readCommand(&client, std::cin);
-				client.disconnect();
-				config.unloadNotifyFuncs();
+					client.connect();
+					std::cerr << "Listen" << std::endl
+						<< "Enter q to quit" << std::endl
+						<< "p: ping" << std::endl;
+					readCommand(&quitFlag, std::cin, &client);
+					client.disconnect();
+					config.unloadNotifyFuncs();
+				} while (quitFlag == 2);
 			}
 	}
 	config.config->save();
