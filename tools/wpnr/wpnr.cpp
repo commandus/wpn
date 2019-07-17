@@ -109,10 +109,6 @@ void readCommand(
 			break;
 		}
 		strm >> line;
-		if (line == "a") {
-			// send ack
-			client->sendStreamAck("");
-		}
 		if (line == "q")
 			*quitFlag = 1;
 	} while (*quitFlag == 0);
