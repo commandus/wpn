@@ -54,6 +54,7 @@ static const char* progname = "wpnr";
 #define	EMPTY_LAST_PERSISTENT_ID		""
 #define MSG_INTERRUPTED 				"Interrupted "
 #define MSG_RELOAD_CONFIG_REQUEST		"Re-read config "
+#define PROMPT_STARTED					"Enter q or press Ctrl+C to quit"
 
 static int quitFlag = 0;
 
@@ -109,7 +110,7 @@ void readCommand(
 			break;
 		}
 		strm >> line;
-		if (line == "q")
+		if (line.find_first_of("qQ") == 0)
 			*quitFlag = 1;
 	} while (*quitFlag == 0);
 }
@@ -250,11 +251,9 @@ int main(int argc, char **argv)
 			onLog, &wpnConfig,
 			verbosity
 		);
-		std::cout << "Enter q to quit" << std::endl;
-
+		std::cerr << PROMPT_STARTED << std::endl;
 		// loop
 		readCommand(&quitFlag, std::cin, client);
-
 		stopClient(client);
 		// Save last persistent ids
 		wpnConfig.save();

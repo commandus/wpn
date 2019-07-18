@@ -50,6 +50,8 @@
 
 #define ERR_WSA		-1
 
+#define PROMPT_STARTED		"Enter q or press Ctrl+C to quit, p to ping"
+
 #define LINK_SUREPHONE_D	"https://mail.surephone.commandus.com/?d="
 #define DEF_EMAIL_TEMPLATE	"<html><body>$subject<br/>Hi, $name<br/>Click the link below on the phone, tablet or other device on which surephone is installed.\
 If the program is not already installed, \
@@ -145,11 +147,12 @@ void readCommand(
 	while ((*quitFlag == 0) && (!strm.eof()))
 	{
 		strm >> s;
-		if ((s == "q") || (s == "quit")) {
+		if (s.find_first_of("qQ") == 0)
+		{
 			*quitFlag = 1;
 			break;
 		}
-		if ((s == "p") || (s == "ping"))
+		if (s.find_first_of("pP") == 0)
 		{
 			client->ping();
 		}
@@ -545,9 +548,7 @@ int main(int argc, char** argv)
 					}
 
 					client.connect();
-					std::cerr << "Listen" << std::endl
-						<< "Enter q to quit" << std::endl
-						<< "p: ping" << std::endl;
+					std::cerr << PROMPT_STARTED << std::endl;
 					readCommand(&quitFlag, std::cin, &client);
 					client.disconnect();
 					config.unloadNotifyFuncs();
