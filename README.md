@@ -631,6 +631,10 @@ curl -v -X POST -H "Content-Type: application/octet-stream" -H "Content-Encoding
 
 C++11 compliant compiler required.
 
+- gcc, g++ 4.8+
+
+Tested with g++ 4.9
+
 Check list:
 
 - Tools
@@ -652,6 +656,19 @@ If you want, install:
 
 ```
 sudo make install
+```
+
+### Problems
+
+Error: undefined reference to `google::protobuf::internal::empty_string_
+
+Different versions of gcc 4/5+ used to compile sources and protobuf library.
+
+Rebuild protobuf lib:
+
+```
+cd tools
+./install-protobuf-2.6.1.sh
 ```
 
 ### Encryption/decryption tool using AES128GCM
@@ -968,6 +985,7 @@ because script untar downloaded OpenSSL tarball each time and overrides changes 
 ### ECEC library
 
 Bugs:
+
 - Chrome padding bug
 - -fPic issue
 
@@ -1046,3 +1064,4 @@ cd ..
 cd winbuild
 nmake /f Makefile.vc mode=static nmake /f Makefile.vc mode=static VC=15 RTLIBCFG=static WITH_SSL=static WITH_DEVEL=D:\l\deps\zlib_x64_static
 ```
+

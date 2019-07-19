@@ -80,7 +80,7 @@ AM_CXXFLAGS = -std=c++11
 #	libece.a
 #
 libece_a_SOURCES = $(ECECSOURCES)
-libece_a_CPPFLAGS = $(commoncppflags) -Ithird_party/ecec
+libece_a_CPPFLAGS = -std=c99 $(commoncppflags) -Ithird_party/ecec
 
 #
 #	libwpnpp.a C++ static library

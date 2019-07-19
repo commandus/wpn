@@ -1,5 +1,6 @@
 #include "utilvapid.h"
 #include <fstream>
+#include <sstream>
 
 #include <curl/curl.h>
 #include "nlohmann/json.hpp"
