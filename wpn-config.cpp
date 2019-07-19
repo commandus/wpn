@@ -193,6 +193,7 @@ int WpnConfig::parseCmd
 
 	// read config
 	config = new ConfigFile(file_name);
+	config->clientOptions->setVerbosity(a_verbosity->count);
 
 	if (a_subscribe_url->count)
 		subscribeUrl = *a_subscribe_url->sval;
@@ -497,7 +498,6 @@ int WpnConfig::parseCmd
 	}
 
 	aesgcm = a_aesgcm->count > 0;
-	verbosity = a_verbosity->count;
 	
 	invert_qrcode = a_invert_qrcode->count > 0;
 	
@@ -579,7 +579,7 @@ size_t WpnConfig::loadNotifyFuncs()
 			SO_INSTANCE so = loadPlugin(*it);
 			if (!so)
 			{
-				if (verbosity > 1)
+				if (config && config->clientOptions && config->clientOptions->getVerbosity() > 1)
 				{
 					std::cerr << "Can not open shared library file: " << *it << std::endl;
 				}
@@ -589,13 +589,13 @@ size_t WpnConfig::loadNotifyFuncs()
 			OnNotifyC desktopNotify = loadDesktopNotifyC(so, notifyFunctionName);
 			if (!desktopNotify)
 			{
-				if (verbosity > 1)
+				if (config && config->clientOptions && config->clientOptions->getVerbosity() > 1)
 				{
 					std::cerr << "Can not bind " << notifyFunctionName << "() from shared library file: " << *it << std::endl;
 				}
 				continue;
 			}
-			if (verbosity > 2)
+			if (config && config->clientOptions && config->clientOptions->getVerbosity() > 2)
 			{
 				std::cerr << "Shared library " << *it << " loaded successfully." << std::endl;
 			}
@@ -603,7 +603,7 @@ size_t WpnConfig::loadNotifyFuncs()
 			r++;
 		}
 	}
-	if (verbosity > 1)
+	if (config && config->clientOptions && config->clientOptions->getVerbosity() > 1)
 	{
 		std::cerr << "Shared libraries loaded: " << r << std::endl;
 	}

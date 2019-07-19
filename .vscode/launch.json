@@ -5,11 +5,11 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "wpnw",
+			"name": "wpn",
 			"type": "cppdbg",
 			"request": "launch",
-			"program": "${workspaceFolder}/wpnw",
-			"args": ["-c", "6.js", "5", "-b", "msg1"],
+			"program": "${workspaceFolder}/wpn",
+			"args": ["-c", "21.js"],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",
 			"environment": [],

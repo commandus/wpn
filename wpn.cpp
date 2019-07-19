@@ -115,7 +115,11 @@ void onLog
 	const char *message
 )
 {
-	std::cerr << message;
+	WpnConfig *c = (WpnConfig *) env;
+	if (c && c->config && c->config->clientOptions->getVerbosity() >= severity)
+	{
+		std::cerr << message;
+	}
 }
 
 /**
@@ -131,6 +135,14 @@ void onNotify(
 	const NotifyMessageC *notification
 )
 {
+	WpnConfig *c = (WpnConfig *) env;
+	if (c && c->config && c->config->clientOptions->getVerbosity() > 2)
+	{
+		if (notification)
+		{
+			std::cerr << "Body:" << notification->body << std::endl;
+		}
+	}
 	for (std::vector <OnNotifyC>::const_iterator it(((WpnConfig*) env)->onNotifyList.begin()); it != ((WpnConfig*)env)->onNotifyList.end(); ++it)
 	{
 		(*it) (env, persistent_id, from, appName, appId, sent, notification);
@@ -178,14 +190,14 @@ int main(int argc, char** argv)
 	{
 		case CMD_LIST:
 			{
-				if ((config.outputFormat == 0) && (config.verbosity > 0))
+				if ((config.outputFormat == 0) && (config.config->clientOptions->getVerbosity() > 0))
 					std::cout << "subscribeUrl\tsubscribe mode\tendpoint\tauthorized entity\tFCM token\tpushSet" << std::endl;
 				config.config->subscriptions->write(std::cout, "\t", config.outputFormat);
 			}
 			break;
 		case CMD_LIST_QRCODE:
 			{
-				if ((config.outputFormat == 0) && (config.verbosity > 0))
+				if ((config.outputFormat == 0) && (config.config->clientOptions->getVerbosity() > 0))
 					std::cout << "FCM QRCodes:" << std::endl;
 				
 				long r = 0;
@@ -275,7 +287,7 @@ int main(int argc, char** argv)
 			break;
 		case CMD_CREDENTIALS:
 			{
-				if ((config.outputFormat == 0) && (config.verbosity > 0))
+				if ((config.outputFormat == 0) && (config.config->clientOptions->getVerbosity() > 0))
 					std::cout << "application identifer\tandroid identifer\tsecurity token\tGCM token" << std::endl;
 				config.config->androidCredentials->write(std::cout, "\t", config.outputFormat);
 				std::cout << std::endl;
@@ -283,7 +295,7 @@ int main(int argc, char** argv)
 			break;
 		case CMD_KEYS:
 			{
-				if ((config.outputFormat == 0) && (config.verbosity > 0))
+				if ((config.outputFormat == 0) && (config.config->clientOptions->getVerbosity() > 0))
 					std::cout << "private key\tpublic key\tauthentication secret" << std::endl;
 				config.config->wpnKeys->write(std::cout, "\t", config.outputFormat);
 				std::cout << std::endl;
@@ -299,7 +311,7 @@ int main(int argc, char** argv)
 					config.config->wpnKeys->getPublicKey(),
 					config.config->wpnKeys->getAuthSecret(),  
 					config.subscribeUrl, config.getDefaultFCMEndPoint(), config.authorizedEntity,
-					config.verbosity);
+					config.config->clientOptions->getVerbosity());
 				if ((r < 200) || (r >= 300))
 				{
 					std::cerr << "Error " << r << ": " << d << std::endl;
@@ -315,7 +327,7 @@ int main(int argc, char** argv)
 					subscription.setEndpoint(config.getDefaultFCMEndPoint());
 					subscription.setAuthorizedEntity(config.authorizedEntity);
 					config.config->subscriptions->list.push_back(subscription);
-					if (config.verbosity > 0)
+					if (config.config->clientOptions->getVerbosity() > 0)
 					{
 						subscription.write(std::cout, "\t", config.outputFormat);
 					}
@@ -327,7 +339,7 @@ int main(int argc, char** argv)
 				// TODO
 				Subscription subscription;
 				config.config->subscriptions->list.push_back(subscription);
-				if (config.verbosity > 0)
+				if (config.config->clientOptions->getVerbosity() > 0)
 				{
 					subscription.write(std::cout, "\t", config.outputFormat);
 				}
@@ -413,15 +425,15 @@ int main(int argc, char** argv)
 				int r;
 				if (config.command.empty())
 				{
-					if (config.verbosity > 1)
+					if (config.config->clientOptions->getVerbosity() > 1)
 						std::cout << "Sending notification to " << *it << std::endl;
 					switch (config.subscriptionMode) {
 						case SUBSCRIBE_FORCE_FIREBASE:
 							r = push2ClientNotificationFCM(&retval, serverKey, *it,
-								config.subject, config.body, config.icon, config.link, config.verbosity);
+								config.subject, config.body, config.icon, config.link, config.config->clientOptions->getVerbosity());
 							break;
 						case SUBSCRIBE_FORCE_VAPID:
-							if (config.verbosity > 3) {
+							if (config.config->clientOptions->getVerbosity() > 3) {
 								std::cerr << "sender public key: " << wpnKeys.getPublicKey() << std::endl 
 									<< "sender private key: " << wpnKeys.getPrivateKey() << std::endl
 									<< "endpoint: " << *it << std::endl
@@ -432,7 +444,7 @@ int main(int argc, char** argv)
 							}
 							r = webpushVapid(NULL, retval, wpnKeys.getPublicKey(), wpnKeys.getPrivateKey(), *it, config.vapid_recipient_p256dh, config.auth_secret, 
 								body, config.sub, config.aesgcm ? AESGCM : AES128GCM);
-							if (config.verbosity > 3) {
+							if (config.config->clientOptions->getVerbosity() > 3) {
 								std::string filename = "aesgcm.bin";
 								retval = webpushVapidCmd(wpnKeys.getPublicKey(), wpnKeys.getPrivateKey(), filename, *it, config.vapid_recipient_p256dh, config.auth_secret, 
 								body, config.sub, config.aesgcm ? AESGCM : AES128GCM);
@@ -442,11 +454,11 @@ int main(int argc, char** argv)
 				}
 				else
 				{
-					if (config.verbosity > 1)
+					if (config.config->clientOptions->getVerbosity() > 1)
 						std::cout << "Execute command " << config.command << " on " << *it << std::endl;
 					switch (config.subscriptionMode) {
 						case SUBSCRIBE_FORCE_FIREBASE:
-							r = push2ClientDataFCM(&retval, serverKey, token, *it, "", config.command, 0, "", config.verbosity);
+							r = push2ClientDataFCM(&retval, serverKey, token, *it, "", config.command, 0, "", config.config->clientOptions->getVerbosity());
 							break;
 						case SUBSCRIBE_FORCE_VAPID:
 							r = webpushVapid(NULL, retval, wpnKeys.getPublicKey(), wpnKeys.getPrivateKey(), *it, config.vapid_recipient_p256dh, config.vapid_recipient_auth, 
@@ -505,7 +517,7 @@ int main(int argc, char** argv)
 						config.config->androidCredentials->getAndroidId(),
 						config.config->androidCredentials->getSecurityToken(),
 						onNotify, &config, onLog, &config,
-						config.verbosity
+						config.config->clientOptions->getVerbosity()
 					);
 
 					// check in
@@ -513,7 +525,7 @@ int main(int argc, char** argv)
 					{
 						uint64_t androidId = config.config->androidCredentials->getAndroidId();
 						uint64_t securityToken = config.config->androidCredentials->getSecurityToken();
-						int r = checkIn(&androidId, &securityToken, config.verbosity);
+						int r = checkIn(&androidId, &securityToken, config.config->clientOptions->getVerbosity());
 						if (r < 200 || r >= 300)
 						{
 							return ERR_NO_ANDROID_ID_N_TOKEN;
@@ -532,7 +544,7 @@ int main(int argc, char** argv)
 								config.config->androidCredentials->getAndroidId(),
 								config.config->androidCredentials->getSecurityToken(),
 								config.config->androidCredentials->getAppId(),
-								config.verbosity
+								config.config->clientOptions->getVerbosity()
 							);
 							if (r >= 200 && r < 300)
 							{

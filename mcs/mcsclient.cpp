@@ -827,9 +827,9 @@ static void doSmth
 			{
 				int r = client->send(kHeartbeatAckTag, messageHeartbeatAck);
 				if (r < 0)
-					client->log << severity(3) << "Send heartbeat ACK with error " << r << "\n";
+					client->log << severity(2) << "Send heartbeat ACK with error " << r << "\n";
 				else
-					client->log << severity(0) << "Sent heartbeat ACK successfully " << r << " bytes\n";
+					client->log << severity(3) << "Sent heartbeat ACK successfully " << r << " bytes\n";
 				delete messageHeartbeatAck;
 			}
 		}
@@ -864,9 +864,9 @@ static void doSmth
 						{
 							int r = client->send(kIqStanzaTag, resp);
 							if (r < 0)
-								client->log << severity(3) << "Send selective ACK with error " << r << "\n";
+								client->log << severity(2) << "Send selective ACK with error " << r << "\n";
 							else
-								client->log << severity(0) << "Sent selective ACK successfully " << r << " bytes\n";
+								client->log << severity(3) << "Sent selective ACK successfully " << r << " bytes\n";
 							delete resp;
 						}
 						*/
@@ -917,9 +917,9 @@ static void doSmth
 		if (messageAck1) {
 			int r = client->send(kIqStanzaTag, messageAck1);
 			if (r < 0)
-				client->log << severity(3) << "Send ACK id: " << persistent_id << " with error " << r << "\n";
+				client->log << severity(2) << "Send ACK id: " << persistent_id << " with error " << r << "\n";
 			else
-				client->log << severity(0) << "Sent ACK id: " << persistent_id << " successfully " << r << " bytes\n";
+				client->log << severity(3) << "Sent ACK id: " << persistent_id << " successfully " << r << " bytes\n";
 			delete messageAck;
 		}
 		*/
@@ -1655,9 +1655,9 @@ int MCSClient::sendStreamAck(
 	if (messageAck) {
 		r = send(kIqStanzaTag, messageAck);
 		if (r < 0)
-			log << severity(3) << "Send ACK id: " << persistent_id << " with error " << r << "\n";
+			log << severity(2) << "Send ACK id: " << persistent_id << " with error " << r << "\n";
 		else
-			log << severity(0) << "Sent ACK id: " << persistent_id << " successfully " << r << " bytes\n";
+			log << severity(3) << "Sent ACK id: " << persistent_id << " successfully " << r << " bytes\n";
 		delete messageAck;
 	}
 	return r;
