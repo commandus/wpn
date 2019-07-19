@@ -13,6 +13,11 @@ app id      android id  security token	GCM token
 2ea0892f-.. 57468817..  2325..   d5DROBGRLmk:A..
 ```
 
+## Read messages
+
+User wpnr or wpn to read messages.
+You need provide plugin with wpn, how to do this please see section "Output plugins".
+
 ### GCM token as QR code
 
 on black screen (white characters, black background:
