@@ -238,10 +238,8 @@ dist_config_DATA = \
 	vs/icon1.ico vs/libwpn-c.vcxproj.user vs/resource-wpn.h vs/webpush-curl.vcxproj.user vs/wpn.vcxproj \
 	vs/libwpn-c.rc vs/resource-libwpn-c.h vs/webpush-curl.rc vs/wpn.rc vs/wpn.vcxproj.user \
 	CMakeLists.txt \
-	tools/mkcert \
-	LICENSE COPYING CODE_OF_CONDUCT.md CONTRIBUTING.md HISTORY README.md TODO \
-	autogen.sh \
+	LICENSE COPYING CODE_OF_CONDUCT.md CONTRIBUTING.md HISTORY README.md TODO autogen.sh \
 	incoming-call email-template.html \
-	tools/install-protobuf-2.6.1.sh \
+	tools/mkcert tools/install-protobuf-2.6.1.sh \
 	tools/android/build-curl tools/android/build-openssl tools/android/build-protobuf tools/android/build-wpn tools/android/build-z \
 	tools/wpn-print/README.wpn-print.md tools/wpnr/README.wpnr.md tools/wpnw/README.wpnw.md
