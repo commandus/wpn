@@ -48,7 +48,8 @@ public:
 		std::string *retVal
 	);
 
-	bool rm();
+	bool rm(
+	);
 
 	bool addSubscription(
 		uint64_t id2

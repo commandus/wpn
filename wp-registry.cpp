@@ -269,7 +269,19 @@ bool RegistryClient::subscribeById(
 
 bool RegistryClient::rm()
 {
-
+	// TODO test server implementation
+	uint64_t id = config->wpnKeys->id;
+	if (!id)
+		return false;
+	bool c = false;
+	std::string v;
+	bool verbosity = (config && config->clientOptions->getVerbosity() > 0);
+	if (rpc(&v, METHOD_DELETE, PATH_SUBSCRIPTION, id, "")) {
+		if (rpc(&v, METHOD_DELETE, PATH_KEY, id, "")) {
+			c = true;
+		}
+	}
+	return c;
 }
 
 bool RegistryClient::addSubscription(
@@ -347,5 +359,14 @@ int RegistryClient::rmSubscription(
 	uint64_t id2
 )
 {
-	
+	// TODO test server impementation
+	Subscription *s = config->subscriptions->getById(id2);
+	if (!s)
+		return false;
+	bool c = false;
+	bool verbosity = (config && config->clientOptions->getVerbosity() > 0);
+	if (rpc(&retval, METHOD_DELETE, PATH_SUBSCRIPTION, id2, s->toJson())) {
+		c = true;
+	}
+	return c;
 }

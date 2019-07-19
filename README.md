@@ -632,8 +632,11 @@ curl -v -X POST -H "Content-Type: application/octet-stream" -H "Content-Encoding
 C++11 compliant compiler required.
 
 - gcc, g++ 4.8+
+- clang, clang++ 3.4+
 
-Tested with g++ 4.9
+./configure CC=clang CXX=clang++
+
+Tested with gcc 4.9, clang 3.8
 
 Check list:
 
