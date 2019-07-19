@@ -6,6 +6,12 @@ AC_CONFIG_SRCDIR([wpn.cpp])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
+AC_LANG([C])
+AC_LANG([C++])
+
+m4_include([m4/ax_cxx_compile_stdcxx.m4])
+AX_CXX_COMPILE_STDCXX(11, noext, mandatory)
+
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_CC
