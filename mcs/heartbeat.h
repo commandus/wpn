@@ -1,6 +1,7 @@
 #ifndef HEARTBEAT_MANAGER_H
 #define HEARTBEAT_MANAGER_H
 
+#include <functional>
 #include <thread>
 #include "mcs.pb.h"
 
