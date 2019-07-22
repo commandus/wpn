@@ -169,6 +169,10 @@ public:
 
 	int ping();
 	int read();
+	int write(
+		const std::string &receiverId,
+		const std::string &value
+	);
 
 	/**
 	* Parse command

@@ -112,6 +112,11 @@ void readCommand(
 		strm >> line;
 		if (line.find_first_of("qQ") == 0)
 			*quitFlag = 1;
+		else {
+			if (client && !line.empty()) {
+				client->write("BHLrGrU0N6e-c8YrIjDXXnsyv2tw2T9eyfc_8TNrdlEtHJmbXcjvWDgduZ2M3hpxTcdjcmtq1_Gi1b2KlXpRHcc", line);
+			}
+		}
 	} while (*quitFlag == 0);
 }
 

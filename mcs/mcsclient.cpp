@@ -1634,6 +1634,47 @@ int MCSClient::read()
 	return r;
 }
 
+const int DEF_MAX_TTL = 24 * 60 * 60;   // 1 day.
+
+/**
+ * Write data to the recipient
+ * app_data 
+ * 		key: subtype data: wp:https://localhost/#BHLrGrU0N6e-c8YrIjDXXnsyv2tw2T9eyfc_8TNrdlEtHJmbXcjvWDgduZ2M3hpxTcdjcmtq1_Gi1b2KlXpRHcc
+ * 		key: content-encoding data: aes128gcm
+ * 		key: subtype data: wp:https://localhost/#BHLrGrU0N6e-c8YrIjDXXnsyv2tw2T9eyfc_8TNrdlEtHJmbXcjvWDgduZ2M3hpxTcdjcmtq1_Gi1b2KlXpRHcc
+ * id: 1528BDD7
+ * category: org.chromium.linux
+ * from: BHLrGrU0N6e-c8YrIjDXXnsyv2tw2T9eyfc_8TNrdlEtHJmbXcjvWDgduZ2M3hpxTcdjcmtq1_Gi1b2KlXpRHcc
+ * persistent_id: 0:1563772326434299%7031b2e6f9fd7ecd
+ * 
+ * @param receiverId repipient id
+ * @param value body
+ */
+int MCSClient::write(
+	const std::string &receiverId,
+	const std::string &value
+)
+{
+	if (!ready())
+		return ERR_DISCONNECTED;
+	DataMessageStanza stanza;
+	stanza.set_ttl(DEF_MAX_TTL);
+	stanza.set_sent(time(NULL));
+	stanza.set_id("111");
+	stanza.set_category("org.chromium.linux");
+	stanza.set_persistent_id(nextPersistentId());
+	stanza.set_from("BE2Q0dkvOTRSAWxwadHXr9t6g0TG-33gHrxYguhYHZqj0lKpJDulmE4yiWC_G4fCeN-KrnLv0km5XorKt0q2qq0");	// clientGCMFromField
+	stanza.set_to(receiverId);
+	stanza.set_raw_data(value);
+
+	/* TODO cipher  */
+	mcs_proto::AppData* app_data = stanza.add_app_data();
+    app_data->set_key("subtype");
+    app_data->set_value("wp:https://localhost/#" + receiverId);
+
+	send(kDataMessageStanzaTag, &stanza);
+}
+
 uint32_t MCSClient::getLastStreamIdRecieved()
 {
 	return lastStreamIdRecieved;
