@@ -275,7 +275,7 @@ int main(int argc, char **argv)
 	std::string retval;
 
 	r = webpushVapid(
-		NULL,
+		NULL,			// re-use CURL connection
 		retval, 
 		publicKey,		// from
 		privateKey,		// from
