@@ -199,25 +199,31 @@ int main(int argc, char** argv)
 			{
 				if ((config.outputFormat == 0) && (config.config->clientOptions->getVerbosity() > 0))
 					std::cout << "FCM QRCodes:" << std::endl;
-				
+
+				std::stringstream ss;
+				std::string foreground = u8"\u2588\u2588";
+				std::string background = "  ";
+				std::string v = config.config->wpnKeys->getPublicKey();
+				if (config.invert_qrcode)
+						v = qr2string(v, foreground, background);
+					else
+						v = qr2string(v, background, foreground);
+				std::cout 
+					<< config.config->wpnKeys->id << "\t"
+					<< config.config->clientOptions->name << std::endl
+					<< v << std::endl;
 				long r = 0;
 				for (std::vector<Subscription>::const_iterator it(config.config->subscriptions->list.begin()); it != config.config->subscriptions->list.end(); ++it)
 				{
-					std::stringstream ss;
-					ss 
-						<< it->getName() << ","
-						<< it->getAuthorizedEntity() << ","
-						<< it->getServerKey() << ","
-						<< it->getToken();
-					std::string v;
-
-					std::string foreground = u8"\u2588\u2588";
-					std::string background = "  ";
+					std::string v = it->getWpnKeys().getPublicKey();
 					if (config.invert_qrcode)
 						v = qr2string(v, foreground, background);
 					else
 						v = qr2string(v, background, foreground);
-					std::cout << v << std::endl;
+					std::cout 
+						<< it->getWpnKeys().id << "\t"
+						<< it->getName() << std::endl
+						<< v << std::endl;
 				}
 			}
 			break;
