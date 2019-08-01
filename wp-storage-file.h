@@ -425,7 +425,6 @@ public:
 	bool rmById(
 		uint64_t id
 	);
-
 };
 
 class ConfigFile

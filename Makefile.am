@@ -63,7 +63,7 @@ ECECHEADERS = \
 	third_party/ecec/ece.h \
 	third_party/ecec/ece/keys.h	third_party/ecec/ece/trailer.h
 wpn_lib_source = \
-	wp-storage-file.cpp \
+	wp-storage-file.cpp notify2string.cpp \
 	wp-push.cpp wp-subscribe.cpp wp-connection.cpp \
 	sslfactory.cpp \
 	mcs/mcsclient.cpp mcs/heartbeat.cpp \
@@ -106,7 +106,7 @@ libwpnapi_la_CPPFLAGS = $(commoncppflags)
 libwpnapi_la_LDFLAGS = -version-info 0:2:0
 
 nobase_dist_include_HEADERS = \
-	platform.h vapid.h \
+	platform.h vapid.h notify2string.h \
 	wpn-config.h wpn.h wpn-notify.h utilvapid.h utilrecv.h endpoint.h \
 	wp-storage-file.h wp-subscribe.h wp-connection.h wp-push.h wp-registry.h \
 	wpnapi.h sslfactory.h utilstring.h utilinstance.h utilfile.h commandoutput.h params.h \
