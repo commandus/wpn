@@ -46,7 +46,8 @@
 #include "utilinstance.h"
 #include "utilrecv.h"
 #include "endpoint.h"
-#include <mcs/mcsclient.h>
+#include "mcs/mcsclient.h"
+#include "notify2string.h"
 
 static const char* progname = "wpnr";
 
@@ -114,7 +115,8 @@ void readCommand(
 			*quitFlag = 1;
 		else {
 			if (client && !line.empty()) {
-				client->write("BHLrGrU0N6e-c8YrIjDXXnsyv2tw2T9eyfc_8TNrdlEtHJmbXcjvWDgduZ2M3hpxTcdjcmtq1_Gi1b2KlXpRHcc", line);
+				// Can not write to the push service
+				// client->write("BHLrGrU0N6e-c8YrIjDXXnsyv2tw2T9eyfc_8TNrdlEtHJmbXcjvWDgduZ2M3hpxTcdjcmtq1_Gi1b2KlXpRHcc", line);
 			}
 		}
 	} while (*quitFlag == 0);
@@ -151,7 +153,7 @@ void onNotify
 		} else {
 			std::cout << from << "(unknown)\t";
 		}
-		if (config->clientOptions->getVerbosity() > 1) {
+		if (config->clientOptions->getVerbosity() == 1) {
 			std::cout 
 			<< msg->title << std::endl
 			<< msg->category << std::endl
@@ -162,6 +164,10 @@ void onNotify
 			<< msg->sound << std::endl
 			<< msg->timeout << std::endl
 			<< msg->urgency << std::endl;
+		}
+		if (config->clientOptions->getVerbosity() == 2) {
+			std::cout 
+			<< notify2Json(msg) << std::endl;
 		}
 		std::cout << msg->body << std::endl;
 	}

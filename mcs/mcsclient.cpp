@@ -1637,7 +1637,7 @@ int MCSClient::read()
 const int DEF_MAX_TTL = 24 * 60 * 60;   // 1 day.
 
 /**
- * Write data to the recipient
+ * Write data to the recipient. It does not work- no reaction from the service,
  * app_data 
  * 		key: subtype data: wp:https://localhost/#BHLrGrU0N6e-c8YrIjDXXnsyv2tw2T9eyfc_8TNrdlEtHJmbXcjvWDgduZ2M3hpxTcdjcmtq1_Gi1b2KlXpRHcc
  * 		key: content-encoding data: aes128gcm
