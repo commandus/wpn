@@ -145,13 +145,16 @@ void onNotify
 			<< std::endl << std::endl;
 	}
 	if (msg) {
+		uint64_t id = s->getWpnKeys().id;
+		std::string name;
 		if (s) {
-			std::string name = s->getName();
+			name = s->getName();
 			if (name.empty())
 				name = "noname";
-			std::cout << s->getWpnKeys().id << "(" << name << ")\t";
+			std::cout << id << "(" << name << ")\t";
 		} else {
-			std::cout << from << "(unknown)\t";
+			name = "unknown";
+			std::cout << from << "(" << name << ")\t";
 		}
 		if (config->clientOptions->getVerbosity() == 1) {
 			std::cout 
@@ -167,7 +170,7 @@ void onNotify
 		}
 		if (config->clientOptions->getVerbosity() == 2) {
 			std::cout 
-			<< notify2Json(msg) << std::endl;
+			<< notify2Json(id, name.c_str(), persistent_id, from, appName, appId, sent, msg) << std::endl;
 		}
 		std::cout << msg->body << std::endl;
 	}
