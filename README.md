@@ -215,6 +215,36 @@ Subscribe client to recieve messages from another client without config files:
 ./wpnlink -s eBj1u43iA9Q:APA91bHz7hxB0ImaMZM_4G1K9Lv8MPgIu_Ta0r5Gt9LtI_Gm34B9nkTEOZVZxiZu2YjAIpWo5aZ1SaoBy3n8t_F_lqTsGhwzjdVVhf9kGT6E8KH7CGZBggrKxDxBgj21gb6MlyzTxrbr -k BM97-HP_Pw_RIrkp1mwVaYTEgR21Pl4PD1QYzDGYi5o7mp-YB6Cr9Pbz7_D7l3r5Zb4Ji-pLKubCza_lE4SsZIA -a 0L9jlM_NNYaurD3SSp_ZDg -vvv
 ```
 
+#### wpnr
+
+##### Options
+
+Use output format -o, -oo, -ooo to print out notification message meta information (in order as is, except JSON format):
+
+- id: client id (if not registered, 0)
+- name: client name (if not set, noname)
+- persistent_id: identifier of notification message
+- from: public key of the client
+- appName: application name
+- appId: appliocation identifier
+- sent: time when message was originated, can be 0 (not provided) seconds from the Unix epoch time
+- title: noitification title
+- body: notification message itself
+- icon: URL of the image
+- sound: URL of the notifiction sound
+- link: action URL
+- category: category
+- data: optional text
+
+If not provided, output notification message body only.
+
+-o JSON
+
+-oo tab delimited
+
+-ooo CSV
+
+
 #### wpnlinkj
 
 Subscribe client to recieve messages from another client using config files:

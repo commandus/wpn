@@ -437,6 +437,7 @@ private:
 	bool fromJson(const json &value);
 	void invalidate();
 public:
+	int outputFormatCode;
 	int errorCode;
 	std::string errorDescription;
 	std::string fileName;

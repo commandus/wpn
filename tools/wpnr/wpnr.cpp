@@ -156,23 +156,22 @@ void onNotify
 			name = "unknown";
 			std::cout << from << "(" << name << ")\t";
 		}
-		if (config->clientOptions->getVerbosity() == 1) {
-			std::cout 
-			<< msg->title << std::endl
-			<< msg->category << std::endl
-			<< msg->extra << std::endl
-			<< msg->icon << std::endl
-			<< msg->link << std::endl
-			<< msg->linkType << std::endl
-			<< msg->sound << std::endl
-			<< msg->timeout << std::endl
-			<< msg->urgency << std::endl;
+		std::stringstream ss;
+		switch (config->outputFormatCode) {
+		case 1:
+			ss << notify2Json(id, name.c_str(), persistent_id, from, appName, appId, sent, msg);
+			break;
+		case 2:
+			ss << notify2Delimiter("\t", id, name.c_str(), persistent_id, from, appName, appId, sent, msg);
+			break;
+		case 3:
+			ss << notify2Csv(id, name.c_str(), persistent_id, from, appName, appId, sent, msg);
+			break;
+		default:
+			ss << msg->body;
+			break;
 		}
-		if (config->clientOptions->getVerbosity() == 2) {
-			std::cout 
-			<< notify2Json(id, name.c_str(), persistent_id, from, appName, appId, sent, msg) << std::endl;
-		}
-		std::cout << msg->body << std::endl;
+		std::cout << ss.str() << std::endl;
 	}
 }
 
@@ -194,12 +193,13 @@ int main(int argc, char **argv)
 	struct arg_str *a_file_name = arg_str0("c", "config", "<file>", "Configuration file. Default ~/" DEF_CONFIG_FILE_NAME);
 	// TODO add Firefox read
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
+	struct arg_lit *a_output_format = arg_litn("o", "output", 0, 3, "0- body only, 1- JSON, 2- tab delimited, 3- CSV");
 	struct arg_lit *a_help = arg_lit0("h", "help", "Show this help");
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
 		a_file_name,
-		a_verbosity,
+		a_verbosity, a_output_format,
 		a_help, a_end 
 	};
 
@@ -220,6 +220,7 @@ int main(int argc, char **argv)
 		filename = getDefaultConfigFileName(DEF_CONFIG_FILE_NAME);
 
 	int verbosity = a_verbosity->count;
+	int outputFormatCode = a_output_format->count;
 
 	// special case: '--help' takes precedence over error reporting
 	if ((a_help->count) || nerrors)
@@ -246,6 +247,7 @@ int main(int argc, char **argv)
 		// load config file
 		ConfigFile wpnConfig(filename);
 		wpnConfig.clientOptions->setVerbosity(verbosity);
+		wpnConfig.outputFormatCode = outputFormatCode;
 
 		RegistryClient rclient(&wpnConfig);
 		if (!rclient.validate()) {

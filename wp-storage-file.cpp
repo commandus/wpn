@@ -1413,7 +1413,7 @@ void ConfigFile::read(
 ConfigFile::ConfigFile(
 	const std::string &filename
 )
-	: errorCode(0), errorDescription(""), fileName(filename), clientOptions(NULL), androidCredentials(NULL), wpnKeys(NULL), subscriptions(NULL)
+	: outputFormatCode(0), errorCode(0), errorDescription(""), fileName(filename), clientOptions(NULL), androidCredentials(NULL), wpnKeys(NULL), subscriptions(NULL)
 {
 	std::ifstream configRead(filename.c_str());
 	if (configRead.fail()) {
