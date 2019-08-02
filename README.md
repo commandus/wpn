@@ -217,6 +217,25 @@ Subscribe client to recieve messages from another client without config files:
 
 #### wpnr
 
+Read notification using default of provided configuration file with client properties.
+
+Print out received notification message body to stdout.
+
+Using default configuration file ~/.wpn.js:
+
+```
+./wpnr
+```
+
+Using configuration file 22.js
+
+```
+./wpnr -c 22.js
+```
+
+To stop, enter q or press Ctrl+C.
+
+
 ##### Options
 
 Use output format -o, -oo, -ooo to print out notification message meta information (in order as is, except JSON format):
