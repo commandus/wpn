@@ -1,8 +1,50 @@
 # Web push notification command line interface client
 
-wpn
+## Overview
 
-[Project description](https://docs.google.com/document/d/19pM4g-hvx2MUVV2Ggljw1MMTg9tMCEH7aHYYKpJMaWk/edit?usp=sharing)
+This software is intended for sending Web push notification from the command line and passing 
+notifications from stdout using pipes ('|') to other programs.
+
+- wpnw write notifications from stdin or command line option
+- wpnr read notifications and output received messages to stdout
+
+wpnw and wpnr uses configuration files.
+
+Each configuration file corresponds to one client. 
+Client has unique public and private keys.
+Client can be registered in the "yellow pages" service with a number.
+This number can be used instead of keys for simplicity.
+
+wpn-grant creates configuration file and register client's public key in the registry. 
+
+Your client need get access to write messages to specified client.
+To do this, wpn-grant give ability to subscribe client to receive messages from other client in 3 steps.
+
+In each step client subscribe to receive messages and creates and provide information how to send message from other client.
+
+For instance, clients 1 and 2 want to subscribe so client 1 and client 2 can read and write messages.
+
+- Step 1. Client 1 subscribes to 2.
+
+- Step 2. Client 2 subscribes to 1.
+
+- Step 3. Client 1 subscribes to 2 again.
+
+Initiator of subscription must repeat subscription one time because client 2 on step 1 does not provide information how to send message yet.
+
+Information how to send message can be used only by other client, nobody other can not use this information to send mesages.
+Service delete this information after 1 day, so you need finish subscription in one day.
+
+To avoid passing public key to the registry and use service for exchange keys you can use configuration files itself. 
+In this case you must somehow distribute configuration files. You don't need register configuration files with service.
+
+To do this there are other tools:
+
+- wpnlinkj subscribe client using configuration files
+- wpnlink subscribe client without configuration files (provide keys in command line options)
+- wpn read messages using output plugins (other way to send recieved messages to programs)
+
+[Project description, ru](https://docs.google.com/document/d/19pM4g-hvx2MUVV2Ggljw1MMTg9tMCEH7aHYYKpJMaWk/edit?usp=sharing)
 
 ## Print device identifiers and security tokens
 
@@ -27,7 +69,6 @@ Need:
 - to endpoint, subscription->getToken() => endpoint()
 - to public key, subscription->getWpnKeys().getPublicKey();
 - to auth, subscription->getWpnKeys().getAuthSecret();
-
 
 ### GCM token as QR code
 
@@ -682,6 +723,34 @@ Print out curl command line:
 curl -v -X POST -H "Content-Type: application/octet-stream" -H "Content-Encoding: aesgcm"  ...
 ```
 
+### Encryption/decryption tool using AES128GCM
+
+ec tool encrypt/decrypt small pieces of data for testing puproses only.
+
+Generate public/private keys
+
+```
+ec -g
+```
+
+Prints base64-encoded tab-delimited public and private key.
+
+#### Encryption
+
+Public key must be base64 encoded.
+
+```
+ec public_key < file_to_encrypt
+```
+
+#### Decryption
+
+Private key must be base64 encoded.
+
+```
+ec private_key < file_to_decrypt
+```
+
 ## Build
 
 C++11 compliant compiler required.
@@ -716,6 +785,32 @@ If you want, install:
 sudo make install
 ```
 
+### docker build
+
+Start docker shell with mounted source directory:
+
+```
+docker run -itv $HOME/src:$HOME/src centos:nova bash
+```
+
+Then rebuild
+
+```
+cd ~/wpn
+make clean; make
+```
+
+Then exit docker shell and cleanup (replace name to yours):
+
+```
+docker ps -a
+docker commit stoic_ramanujan
+docker images
+docker tag c30cb68a6443 centos:nova
+# remove closed containers
+docker rm $(docker ps -qa --no-trunc --filter "status=exited")
+```
+
 ### Problems
 
 Error: undefined reference to `google::protobuf::internal::empty_string_
@@ -728,35 +823,6 @@ Rebuild protobuf lib:
 cd tools
 ./install-protobuf-2.6.1.sh
 ```
-
-### Encryption/decryption tool using AES128GCM
-
-ec tool encrypt/decrypt small pieces of data for testing puproses only.
-
-Generate public/private keys
-
-```
-ec -g
-```
-
-Prints base64-encoded tab-delimited public and private key.
-
-#### Encryption
-
-Public key must be base64 encoded.
-
-```
-ec public_key < file_to_encrypt
-```
-
-#### Decryption
-
-Private key must be base64 encoded.
-
-```
-ec private_key < file_to_decrypt
-```
-
 
 ### Tools
 
@@ -1122,4 +1188,3 @@ cd ..
 cd winbuild
 nmake /f Makefile.vc mode=static nmake /f Makefile.vc mode=static VC=15 RTLIBCFG=static WITH_SSL=static WITH_DEVEL=D:\l\deps\zlib_x64_static
 ```
-
