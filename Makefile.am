@@ -7,10 +7,8 @@ EXTGENMCS = $(EXT_PRE)/mcs.pb.h $(EXT_PRE)/android_checkin.pb.h $(EXT_PRE)/check
 ACLOCAL_AMFLAGS = -I m4
 
 #	Libraries
-lib_LIBRARIES = \
-	libece.a libwpnpp.a
-lib_LTLIBRARIES = \
-	libwpn.la libwpnapi.la
+lib_LIBRARIES = libece.a libwpnpp.a
+lib_LTLIBRARIES = libwpnapi.la
 
 #	Binaries
 bin_PROGRAMS = \
@@ -23,7 +21,7 @@ commoncppflags += -I/usr/local/opt/openssl@1.1/include
 
 # curllibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl
 curllibs = -L. -lssl -lcrypto -lcurl
-mcslibs = -lprotobuf-lite
+protolibs = -lprotobuf-lite
 commonlibs = $(curllibs) $(mcslibs) -L. -lece
 commonlibs += -L/usr/local/opt/openssl@1.1/lib
 
@@ -86,13 +84,14 @@ libece_a_CPPFLAGS = -std=c99 $(commoncppflags) -Ithird_party/ecec
 #
 libwpnpp_a_SOURCES = $(wpn_lib_source)
 libwpnpp_a_CPPFLAGS = $(commoncppflags)
+libwpnpp_a_LDFLAGS = -lprotobuf-lite
 
 #
 #	libwpn.la C++ shared library
 #   $(wpn_lib_source)
 #
 libwpn_la_SOURCES = 
-libwpn_la_LIBADD = -L. -lwpnpp -lece $(mcslibs)
+libwpn_la_LIBADD = -L. -lwpnpp -lece
 libwpn_la_CPPFLAGS = $(commoncppflags)
 libwpn_la_LDFLAGS = -version-info 0:2:0
 
@@ -101,7 +100,7 @@ libwpn_la_LDFLAGS = -version-info 0:2:0
 #	$(wpn_lib_source)
 #
 libwpnapi_la_SOURCES = wpnapi.cpp
-libwpnapi_la_LIBADD = -L. -lwpnpp -lece $(mcslibs)
+libwpnapi_la_LIBADD = -L. -lwpnpp -lece $(protolibs)
 libwpnapi_la_CPPFLAGS = $(commoncppflags) 
 libwpnapi_la_LDFLAGS = -version-info 0:2:0
 
@@ -126,7 +125,8 @@ common_src = $(ARGT3SOURCES)
 wpn_SOURCES = \
 	wpn-config.cpp wpn.cpp \
 	$(common_src)
-wpn_LDADD = -L. -lwpnpp -lece $(curllibs) $(mcslibs) -ldl
+wpn_LDADD = -L. -lwpnpp -lece $(curllibs) $(protolibs) -ldl
+wpn_LDFLAGS = -static
 wpn_CPPFLAGS = $(commoncppflags)
 
 #
@@ -140,6 +140,7 @@ wpnr_SOURCES = \
 	tools/wpnr/wpnr.cpp \
 	$(common_src)
 wpnr_LDADD = -L. -lwpnpp -lece $(curllibs) $(mcslibs)
+wpnr_LDFLAGS = -static
 wpnr_CPPFLAGS = $(commoncppflags)
 
 #
@@ -149,6 +150,7 @@ wpnw_SOURCES= \
 	tools/wpnw/wpnw.cpp \
 	$(common_src)
 wpnw_LDADD = -L. -lwpnpp -lece $(curllibs) $(mcslibs)
+wpnw_LDFLAGS = -static
 wpnw_CPPFLAGS = $(commoncppflags)
 
 #
@@ -158,6 +160,7 @@ wpn_print_SOURCES= \
 	tools/wpn-print/wpn-print.cpp \
 	$(common_src)
 wpn_print_LDADD = $(commonlibs) -L. -lwpnpp -lece $(curllibs) $(mcslibs)
+wpn_print_LDFLAGS = -static
 wpn_print_CPPFLAGS = $(commoncppflags)
 
 #
@@ -168,6 +171,7 @@ wpnlink_SOURCES= \
 	$(common_src)
 
 wpnlink_LDADD = $(commonlibs) -L. -lwpnpp -lece $(curllibs)
+wpnlink_LDFLAGS = -static
 wpnlink_CPPFLAGS = $(commoncppflags)
 
 #
@@ -176,8 +180,8 @@ wpnlink_CPPFLAGS = $(commoncppflags)
 wpnlinkj_SOURCES= \
 	tools/wpnlinkj/wpnlinkj.cpp \
 	$(common_src)
-
 wpnlinkj_LDADD = $(commonlibs) -L. -lwpnpp -lece $(curllibs) $(mcslibs)
+wpnlinkj_LDFLAGS = -static
 wpnlinkj_CPPFLAGS = $(commoncppflags)
 
 #
@@ -198,6 +202,7 @@ wpn_grant_SOURCES = \
 	$(common_src)
 
 wpn_grant_LDADD = $(commonlibs) -L. -lwpnpp -lece $(curllibs) $(mcslibs)
+wpn_grant_LDFLAGS = -static
 wpn_grant_CPPFLAGS = $(commoncppflags)
 
 #
