@@ -32,7 +32,6 @@
 #include <curl/curl.h>
 #include <argtable3/argtable3.h>
 #include <fstream>
-#include "nlohmann/json.hpp"
 
 #include "utilinstance.h"
 #include "sslfactory.h"
@@ -43,8 +42,6 @@
 #include "endpoint.h"
 #include "wp-subscribe.h"
 #include "wp-registry.h"
-
-using json = nlohmann::json;
 
 static const char* progname = "wpnlinkj";
 #undef SUPPORT_FIREFOX
