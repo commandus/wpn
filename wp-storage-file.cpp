@@ -87,6 +87,15 @@ ClientOptions::ClientOptions(
 		verbosity = f.value();
 }
 
+json ClientOptions::toJson() const
+{
+	json r = {
+		{ "name", name },
+		{ "verbosity", verbosity }
+	};
+	return r;
+}
+
 std::ostream::pos_type ClientOptions::write(
 	std::ostream &strm,
 	const std::string &delimiter,
@@ -116,15 +125,6 @@ std::ostream::pos_type ClientOptions::write(
 	return r;
 }
 	
-json ClientOptions::toJson() const
-{
-	json r = {
-		{ "name", name },
-		{ "verbosity", verbosity }
-	};
-	return r;
-}
-
 int ClientOptions::getVerbosity()
 {
 	return verbosity;

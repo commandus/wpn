@@ -50,9 +50,13 @@ public:
 		std::istream &strm,
 		const std::string &delimiter = DEF_DELIMITER		 
 	);
+
 	ClientOptions(
 		const json &value
 	);
+
+	json toJson() const;
+
 	std::string name;
 
 	std::ostream::pos_type write(
@@ -64,9 +68,7 @@ public:
 	std::ostream::pos_type write(
 		const std::string &fileName
 	) const;
-
-	json toJson() const;
-
+	
 	int getVerbosity();
 	void setVerbosity(int value);
 };
