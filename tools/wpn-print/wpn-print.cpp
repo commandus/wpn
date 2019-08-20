@@ -159,17 +159,7 @@ int main(int argc, char **argv)
 		break;
 	default:
 		{
-		s = jsonConfig(
-			provider,
-			wpnConfig.wpnKeys->getPublicKey().c_str(),
-			wpnConfig.wpnKeys->getPrivateKey().c_str(),
-			wpnConfig.wpnKeys->getPublicKey().c_str(),
-			wpnConfig.wpnKeys->getAuthSecret().c_str(),
-			wpnConfig.androidCredentials->getAndroidId(),
-			wpnConfig.androidCredentials->getSecurityToken(),
-			wpnConfig.androidCredentials->getAppId(),
-			""
-		);
+			s = wpnConfig.toJsonString();
 		}
 		break;
 	}
