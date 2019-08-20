@@ -8,11 +8,8 @@
 
 #include <string>
 #include <vector>
-#include "nlohmann/json.hpp"
 #include "wp-storage-file.h"
 #include "wpn-notify.h"
-
-using json = nlohmann::json;
 
 #define CMD_LISTEN				0
 #define CMD_KEYS				1
