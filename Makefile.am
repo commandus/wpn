@@ -68,7 +68,7 @@ wpn_lib_source = \
 	$(gengrpcs_c) \
 	utilfile.cpp utilstring.cpp params.cpp commandoutput.cpp endpoint.cpp \
 	utilqr.cpp $(QRSOURCES) \
-	vapid.cpp utilvapid.cpp utilrecv.cpp utilinstance.cpp wp-registry.cpp \
+	vapid.cpp utilvapid.cpp utilrecv.cpp utilinstance.cpp wp-registry.cpp utiljson.cpp \
 	config-filename.cpp
 
 AM_CXXFLAGS = -std=c++11 
@@ -105,7 +105,7 @@ libwpnapi_la_LDFLAGS = -version-info 0:2:0
 
 nobase_dist_include_HEADERS = \
 	platform.h vapid.h notify2string.h \
-	wpn-config.h wpn.h wpn-notify.h utilvapid.h utilrecv.h endpoint.h \
+	wpn-config.h wpn.h wpn-notify.h utilvapid.h utilrecv.h utiljson.h endpoint.h \
 	wp-storage-file.h wp-subscribe.h wp-connection.h wp-push.h wp-registry.h \
 	wpnapi.h sslfactory.h utilstring.h utilinstance.h utilfile.h commandoutput.h params.h \
 	mcs/mcsclient.h mcs/heartbeat.h \

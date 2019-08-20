@@ -81,30 +81,17 @@ int main(int argc, char **argv)
 			ClientConfig c;
 			std::string subscriberString = file2string(std::string(a_files->filename[i]));
 			// Check is file empty or not
-			r = parseConfig(
-				subscriberString,
-				c.provider,
-				c.registrationId,
-				c.privateKey,
-				c.publicKey,
-				c.authSecret,
-				c.androidId,
-				c.securityToken,
-				c.appId,
-				c.lastPersistentId
-			);
-			if (r != 0) {
+			ConfigFile cf(a_files->filename[i]);
+			if (cf.errorCode) {
 				if (force_create_config_file) {
-					ConfigFile newConfig(std::string(a_files->filename[i]));
-					RegistryClient rclient(&newConfig);
+					RegistryClient rclient(&cf);
 					// check client consistency
 					if (!rclient.validate()) {
 						std::cerr << "Error check-in and/or register client, file " << a_files->filename[i] << std::endl;
 					} else {
-						newConfig.save();
+						cf.save();
 					}
 				}
-
 				std::cerr << "Subscriber configuration file " << a_files->filename[i] << " does not exists, empty or invalid." << std::endl;
 				nerrors++;
 			} else {

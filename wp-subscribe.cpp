@@ -4,12 +4,10 @@
 #include <sstream>
 #include <curl/curl.h>
 #include "ece.h"
-#include "nlohmann/json.hpp"
+#include "utiljson.h"
 #include "utilstring.h"
 #include "utilvapid.h"
 #include "wp-subscribe.h"
-
-using json = nlohmann::json;
 
 /**
   * @brief CURL write callback
@@ -159,13 +157,7 @@ int subscribeFCM
 	;
 #else
 	std::string mimetype = "application/json; charset=UTF-8";
-	json j = {
-		{ "authorized_entity", authorizedEntity },
-		{ "endpoint", endPoint },
-		{ "encryption_key", receiverAndroidId },
-		{ "encryption_auth", receiverSecurityToken }
-	};
-	std::string s = j.dump();
+	std::string s = jsSubscribeFCM(authorizedEntity, endPoint, receiverAndroidId, receiverSecurityToken);
 #endif	
 	if (verbosity > 2)
 		std::cerr << "Send: " << s << " to " << subscribeUrl << std::endl;
@@ -177,17 +169,16 @@ int subscribeFCM
 			std::cerr << "Receive response code: "<< r << ", body:" << *retVal << " from " << subscribeUrl << std::endl;
 		if (r >= 200 && r < 300)
 		{
-			json js = json::parse(*retVal);
-			retToken = js["token"];
-			retPushSet = js["pushSet"];
+			if (!jsSubscribeFCMParseResponse(*retVal, retToken, retPushSet)) {
+				r = ERROR_SUBSCRIBE;
+				*retVal = "Error parse JSON: " + *retVal;
+			}
 		}
 		else
 		{
-			json js = json::parse(*retVal);
 			if (retVal)
 			{
-				json e = js["error"];
-				*retVal = e["message"];
+				*retVal = jsSubscribeFCMParseErrorResponse(*retVal);
 			}
 		}
 	}

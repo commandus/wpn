@@ -74,19 +74,6 @@ ClientOptions::ClientOptions(
 	read(strm, delimiter);
 }
 
-ClientOptions::ClientOptions(
-	const json &value
-)
-	: verbosity(0)
-{
-	json::const_iterator f = value.find("name");
-	if (f != value.end())
-		name = f.value();
-	f = value.find("verbosity");
-	if (f != value.end())
-		verbosity = f.value();
-}
-
 json ClientOptions::toJson() const
 {
 	json r = {
@@ -1474,7 +1461,7 @@ std::ostream::pos_type ConfigFile::save
 	std::ofstream configWrite(fileName);
 	std::ostream::pos_type r;
 	if (fileName.find(".js") != std::string::npos) {
-		configWrite << toJson().dump(4) << std::endl;
+		configWrite << toJsonString() << std::endl;
 		r = configWrite.tellp();
 	} else
 		r = write(configWrite);
@@ -1482,7 +1469,7 @@ std::ostream::pos_type ConfigFile::save
 	return r;
 }
 
-json ConfigFile::toJson(
+std::string ConfigFile::toJsonString(
 ) const
 {
 	json o = clientOptions->toJson();
@@ -1495,5 +1482,5 @@ json ConfigFile::toJson(
 		{ "keys", k },
 		{ "subscriptions", s }
 	};
-	return r;
+	return r.dump(4);
 }

@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 #include <ece.h>
-#include "nlohmann/json.hpp"
+#include "utiljson.h"
 
 #define DEF_DELIMITER " "	// space character
 
@@ -26,8 +26,6 @@
 
 #define ERR_CONFIG_FILE_READ		-30
 #define ERR_CONFIG_FILE_PARSE_JSON	-31
-
-using json = nlohmann::json;
 
 class ClientOptions
 {
@@ -49,10 +47,6 @@ public:
 	ClientOptions(
 		std::istream &strm,
 		const std::string &delimiter = DEF_DELIMITER		 
-	);
-
-	ClientOptions(
-		const json &value
 	);
 
 	json toJson() const;
@@ -462,7 +456,7 @@ public:
 
 	std::ostream::pos_type save() const;
 
-	json toJson() const;
+	std::string toJsonString() const;
 };
 
 void generateVAPIDKeys

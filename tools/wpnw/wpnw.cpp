@@ -237,7 +237,7 @@ int main(int argc, char **argv)
 
 	// write
 	std::string endPoint = endpoint(registrationid, true, (int) provider);	///< 0- Chrome, 1- Firefox
-	std::string msg = mkNotificationJson(registrationid, subject, body, icon, link);
+	std::string msg = jsClientNotification(registrationid, subject, body, icon, link);
 
 	if (verbosity > 0) {
 		std::cerr

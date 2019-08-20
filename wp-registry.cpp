@@ -1,7 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <curl/curl.h>
-#include "nlohmann/json.hpp"
+#include "utiljson.h"
 #include "platform.h"
 
 #include "endpoint.h"
@@ -10,8 +10,6 @@
 #include "wp-storage-file.h"
 #include "wp-registry.h"
 #include "wp-subscribe.h"
-
-using json = nlohmann::json;
 
 #define ENDPOINT "https://surephone.commandus.com/wpn-registry/"
 #define HEADER_AUTH	"Authorization: U "
@@ -293,13 +291,10 @@ bool RegistryClient::addSubscription(
 		return false;
 	bool c = false;
 	std::string v;
-	json js = {
-		{ "publicKey", config->wpnKeys->getPublicKey() },
-		{ "authSecret", config->wpnKeys->getAuthSecret() },
-		{ "token", s->getSentToken() }
-	};
+
+	std::string json = jsAddSubscription(config->wpnKeys->getPublicKey(), config->wpnKeys->getAuthSecret(), s->getSentToken());
 	bool verbosity = (config && config->clientOptions->getVerbosity() > 0);
-	if (rpc(&v, METHOD_POST, PATH_SUBSCRIPTION, id2, js.dump())) {
+	if (rpc(&v, METHOD_POST, PATH_SUBSCRIPTION, id2, json)) {
 		c = true;
 	}
 	return c;
@@ -318,33 +313,11 @@ int RegistryClient::getSubscription(
 	if (!rpc(&v, METHOD_GET, PATH_SUBSCRIPTION, id2, "")) {
 		return false;
 	}
-	json j;
-	try {
-		std::stringstream(v) >> j;
-	}
-	catch (json::exception e) {
-		return false;
-	}
-	catch (...) {
-		return false;
-	}
 	std::string publicKey;
 	std::string token;
 	std::string authSecret;
-	try {
-		json::const_iterator f = j.find("publicKey");
-		if (f != j.end())
-			publicKey = f.value();
-		f = j.find("token");
-		if (f != j.end()) 
-			token = f.value();
-		f = j.find("authSecret");
-		if (f != j.end())
-			authSecret = f.value();
-	} catch(...) {
+	if (!jsGetSubscription(v, publicKey, token, authSecret))
 		return false;
-	}
-
 	if (publicKey.empty() || token.empty() || authSecret.empty())
 		return false;
 	s->setToken(token);

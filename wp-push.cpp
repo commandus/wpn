@@ -13,11 +13,8 @@
 #include <ece/keys.h>
 #include <curl/curl.h>
 
-#include "nlohmann/json.hpp"
-
+#include "utiljson.h"
 #include "utilvapid.h"
-
-using json = nlohmann::json;
 
 #define FCM_SEND "https://fcm.googleapis.com/fcm/send"
 
@@ -123,14 +120,10 @@ int push2ClientJSON
 		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 		if ((http_code >= 200) && (http_code < 300))
 		{
-			try 
-			{
-				json response = json::parse(r);
+			if (jsValid(r)) {
 				if (retval)
 					*retval = r;
-			}
-			catch(...) 
-			{
+			} else {
 				if (retval)
 					*retval = "Parse error of: "  + r;
 				if (client_token.empty())
@@ -175,18 +168,8 @@ int push2ClientNotificationFCM
  	int verbosity
 )
 {
-	json requestBody = {
-		{"to", client_token},
-		{"notification", 
-			{
-				{"title", title},
-				{"body", body},
-				{"icon", icon},
-				{"click_action", click_action}
-			}
-		}
-	};
-	return push2ClientJSON(retval, server_key, client_token, requestBody.dump(), verbosity);
+	std::string request = jsClientNotification(client_token, title, body, icon, click_action);
+	return push2ClientJSON(retval, server_key, client_token, request, verbosity);
 }
 
 /**
@@ -214,18 +197,6 @@ int push2ClientDataFCM
 	int verbosity
 )
 {
-	json requestBody = {
-		{"to", client_token},
-		{"data", 
-			{
-				{"command", command},
-				{"persistent_id", persistent_id},
-				{"code", code},
-				{"output", output},
-				{"serverKey", server_key},
-				{"token", token}
-			}
-		}
-	};
-	return push2ClientJSON(retval, server_key, client_token, requestBody.dump(), verbosity);
+	std::string requestBody = jsClientCommand(client_token, command, persistent_id, code, output, server_key, token);
+	return push2ClientJSON(retval, server_key, client_token, requestBody, verbosity);
 }
