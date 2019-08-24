@@ -1,15 +1,15 @@
 #include "utiljson.h"
 
-const char* JSON_ID = "id";
-const char* JSON_NAME = "name";
-const char* JSON_PERSISTENT_ID = "persistent_id";
-const char* JSON_FROM = "from";
-const char* JSON_APPNAME = "appName";
-const char* JSON_APPID = "appId";
-const char* JSON_SENT = "sent";
+static const char* JSON_ID = "id";
+static const char* JSON_NAME = "name";
+static const char* JSON_PERSISTENT_ID = "persistent_id";
+static const char* JSON_FROM = "from";
+static const char* JSON_APPNAME = "appName";
+static const char* JSON_APPID = "appId";
+static const char* JSON_SENT = "sent";
 
-const char* JSON_NOTIFICATION = "notification";
-static const std::string JSON_TO = "to";
+static const char* JSON_NOTIFICATION = "notification";
+static const char* JSON_TO = "to";
 static const char* JSON_NOTIFICATION_TITLE = "title";
 static const char* JSON_NOTIFICATION_BODY = "body";
 static const char* JSON_NOTIFICATION_ICON = "icon";
@@ -18,13 +18,68 @@ static const char* JSON_NOTIFICATION_LINK = "click_action";
 static const char* JSON_NOTIFICATION_CATEGORY = "category";
 static const char* JSON_NOTIFICATION_DATA = "data";
 
-static const std::string KEY_SUBSCRIPTION_PUBLIC = "public";
-static const std::string KEY_SUBSCRIPTION_PRIVATE = "private";
-static const std::string KEY_SUBSCRIPTION_ENDPOINT = "endpoint";
-static const std::string KEY_SUBSCRIPTION_P256DH = "p256dh";
-static const std::string KEY_SUBSCRIPTION_AUTH = "auth";
-static const std::string KEY_SUBSCRIPTION_CONTACT = "contact";
+static const char* KEY_SUBSCRIPTION_PUBLIC = "public";
+static const char* KEY_SUBSCRIPTION_PRIVATE = "private";
+static const char* KEY_SUBSCRIPTION_ENDPOINT = "endpoint";
+static const char* KEY_SUBSCRIPTION_P256DH = "p256dh";
+static const char* KEY_SUBSCRIPTION_AUTH = "auth";
+static const char* KEY_SUBSCRIPTION_CONTACT = "contact";
 
+#ifdef USE_JSON_RAPID
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+
+using namespace rapidjson;
+
+#define RAPIDJSON_ADD_STRING(D, V, A, NAME, STR) \
+	V.SetString(STR, strlen(STR), A); \
+	D.AddMember(#NAME, V, A);
+
+std::string notify2json(
+    uint64_t id,
+	const char *name,
+   	const char *persistent_id,
+	const char *from,				///< e.g. BDOU99-h67HcA6JeFXHbSNMu7e2yNNu3RzoMj8TM4W88jITfq7ZmPvIM1Iv-4_l2LxQcYwhqby2xGpWwzjfAnG4
+	const char *appName,
+	const char *appId,
+	int64_t sent,
+    const NotifyMessageC *notify
+) {
+	Document d;
+	Document::AllocatorType& a = d.GetAllocator();
+	d.SetObject();
+	Value v;
+	v.SetUint64(id);
+	d.AddMember("id", v, a);
+	RAPIDJSON_ADD_STRING(d, v, a, name, name)
+	RAPIDJSON_ADD_STRING(d, v, a, persistent_id, persistent_id)
+	RAPIDJSON_ADD_STRING(d, v, a, from, from)
+	RAPIDJSON_ADD_STRING(d, v, a, appName, appName)
+	RAPIDJSON_ADD_STRING(d, v, a, appId, appId)
+	RAPIDJSON_ADD_STRING(d, v, a, appName, appName)
+	v.SetInt64(sent);
+	d.AddMember("sent", v, a);
+	Value n;
+	n.SetObject();
+	d.AddMember("notification", n, a);
+	RAPIDJSON_ADD_STRING(n, v, a, title, notify->title)
+	RAPIDJSON_ADD_STRING(n, v, a, body, notify->body)
+	RAPIDJSON_ADD_STRING(n, v, a, icon, notify->icon)
+	RAPIDJSON_ADD_STRING(n, v, a, sound, notify->sound)
+	RAPIDJSON_ADD_STRING(n, v, a, click_action, notify->link)
+	RAPIDJSON_ADD_STRING(n, v, a, category, notify->category)
+	RAPIDJSON_ADD_STRING(n, v, a, data, notify->data)
+ 	
+	StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+	return buffer.GetString();
+}
+
+#endif
+
+#ifdef USE_JSON_NLOHMANN
 
 std::string notify2json(
     uint64_t id,
@@ -337,3 +392,5 @@ std::string jsSubscribeFCMParseErrorResponse(
     r = e["message"];
     return r;
 }
+
+#endif

@@ -1,7 +1,13 @@
 #include <string>
 #include "nlohmann/json.hpp"
 
+#define USE_JSON_NLOHMANN
+
+#ifdef USE_JSON_NLOHMANN
+
 using json = nlohmann::json;
+
+#endif
 
 #include "notify2string.h"
 
