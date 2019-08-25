@@ -32,9 +32,20 @@ static const char* KEY_SUBSCRIPTION_CONTACT = "contact";
 
 using namespace rapidjson;
 
+#define RAPIDJSON_ADD_PCHAR(D, V, A, NAME, STR) \
+	{ \
+		size_t len = strlen(STR); \
+		if (len) { \
+			V.SetString(STR, len, A); \
+			D.AddMember(#NAME, V, A); \
+		} \
+	}
+
 #define RAPIDJSON_ADD_STRING(D, V, A, NAME, STR) \
-	V.SetString(STR, strlen(STR), A); \
-	D.AddMember(#NAME, V, A);
+	if (!STR.empty()) { \
+		V.SetString(STR.c_str(), STR.size(), A); \
+		D.AddMember(#NAME, V, A); \
+	}
 
 std::string notify2json(
     uint64_t id,
@@ -52,29 +63,303 @@ std::string notify2json(
 	Value v;
 	v.SetUint64(id);
 	d.AddMember("id", v, a);
-	RAPIDJSON_ADD_STRING(d, v, a, name, name)
-	RAPIDJSON_ADD_STRING(d, v, a, persistent_id, persistent_id)
-	RAPIDJSON_ADD_STRING(d, v, a, from, from)
-	RAPIDJSON_ADD_STRING(d, v, a, appName, appName)
-	RAPIDJSON_ADD_STRING(d, v, a, appId, appId)
-	RAPIDJSON_ADD_STRING(d, v, a, appName, appName)
+	RAPIDJSON_ADD_PCHAR(d, v, a, name, name)
+	RAPIDJSON_ADD_PCHAR(d, v, a, persistent_id, persistent_id)
+	RAPIDJSON_ADD_PCHAR(d, v, a, from, from)
+	RAPIDJSON_ADD_PCHAR(d, v, a, appName, appName)
+	RAPIDJSON_ADD_PCHAR(d, v, a, appId, appId)
+	RAPIDJSON_ADD_PCHAR(d, v, a, appName, appName)
 	v.SetInt64(sent);
 	d.AddMember("sent", v, a);
 	Value n;
 	n.SetObject();
 	d.AddMember("notification", n, a);
-	RAPIDJSON_ADD_STRING(n, v, a, title, notify->title)
-	RAPIDJSON_ADD_STRING(n, v, a, body, notify->body)
-	RAPIDJSON_ADD_STRING(n, v, a, icon, notify->icon)
-	RAPIDJSON_ADD_STRING(n, v, a, sound, notify->sound)
-	RAPIDJSON_ADD_STRING(n, v, a, click_action, notify->link)
-	RAPIDJSON_ADD_STRING(n, v, a, category, notify->category)
-	RAPIDJSON_ADD_STRING(n, v, a, data, notify->data)
+	RAPIDJSON_ADD_PCHAR(n, v, a, title, notify->title)
+	RAPIDJSON_ADD_PCHAR(n, v, a, body, notify->body)
+	RAPIDJSON_ADD_PCHAR(n, v, a, icon, notify->icon)
+	RAPIDJSON_ADD_PCHAR(n, v, a, sound, notify->sound)
+	RAPIDJSON_ADD_PCHAR(n, v, a, click_action, notify->link)
+	RAPIDJSON_ADD_PCHAR(n, v, a, category, notify->category)
+	RAPIDJSON_ADD_PCHAR(n, v, a, data, notify->data)
  	
 	StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
     d.Accept(writer);
 	return buffer.GetString();
+}
+
+std::string jsAddSubscription(
+    const std::string &publicKey,
+    const std::string &authSecret,
+    const std::string &token)
+{
+	Document d;
+	Document::AllocatorType& a = d.GetAllocator();
+	d.SetObject();
+	Value v;
+	RAPIDJSON_ADD_STRING(d, v, a, publicKey, publicKey)
+	RAPIDJSON_ADD_STRING(d, v, a, authSecret, authSecret)
+	RAPIDJSON_ADD_STRING(d, v, a, token, token)
+
+	StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+	return buffer.GetString();
+}
+
+bool jsGetSubscription(
+    const std::string &js,
+    std::string &retPublicKey,
+    std::string &retToken,
+    std::string &retAuthSecret
+)
+{	
+	Document d;
+	d.Parse(js.c_str());
+	if (d.HasParseError()) {
+		return false;
+	}
+	if (d.HasMember("publicKey")) {
+		retPublicKey = d["publicKey"].GetString();
+	}
+	if (d.HasMember("token")) {
+		retToken = d["token"].GetString();
+	}
+	if (d.HasMember("authSecret")) {
+		retAuthSecret = d["authSecret"].GetString();
+	}
+	return true;
+}
+
+bool jsValid (
+    const std::string &js
+) 
+{
+	Document d;
+	d.Parse(js.c_str());
+	return !d.HasParseError();
+}
+
+std::string jsClientNotification
+(
+    const std::string &to,
+    const std::string &subject, 
+    const std::string &body,
+    const std::string &icon,
+    const std::string &link
+)
+{
+	Document d;
+	Document::AllocatorType& a = d.GetAllocator();
+	d.SetObject();
+	Value n;
+	n.SetObject();
+	d.AddMember("notification", n, a);
+	Value v;
+	RAPIDJSON_ADD_STRING(d, v, a, to, to)
+	
+	RAPIDJSON_ADD_STRING(n, v, a, body, body)
+	RAPIDJSON_ADD_STRING(n, v, a, title, subject)
+	RAPIDJSON_ADD_STRING(n, v, a, icon, icon)
+	RAPIDJSON_ADD_STRING(n, v, a, click_action, link)
+
+	StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+	return buffer.GetString();
+}
+
+std::string jsClientCommand
+(
+    const std::string &client_token,
+    const std::string &command,
+    const std::string &persistent_id, 
+    int code,
+    const std::string &output,
+    const std::string &server_key,
+    const std::string &token
+)
+{
+	Document d;
+	Document::AllocatorType& a = d.GetAllocator();
+	d.SetObject();
+	Value n;
+	n.SetObject();
+	d.AddMember("data", n, a);
+	Value v;
+	RAPIDJSON_ADD_STRING(d, v, a, to, client_token)
+	
+	RAPIDJSON_ADD_STRING(n, v, a, command, command)
+	RAPIDJSON_ADD_STRING(n, v, a, persistent_id, persistent_id)
+	v.SetUint64(code);
+	n.AddMember("code", v, a);
+	RAPIDJSON_ADD_STRING(n, v, a, output, output)
+	RAPIDJSON_ADD_STRING(n, v, a, server_key, server_key)
+	RAPIDJSON_ADD_STRING(n, v, a, token, token)
+	StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+	return buffer.GetString();
+}
+
+/**
+ * Parse notification file
+ * @return 0- success, -1: Invalid JSON, -2: Important information missed
+ */
+int parseNotificationJson
+(
+	const std::string &value,
+	std::string &to,
+	std::string &title,
+	std::string &body,
+	std::string &icon, 
+	std::string &click_action
+)
+{
+	Document d;
+	d.Parse(value.c_str());
+	if (d.HasParseError()) {
+		return -1;
+	}
+	to = "";
+	title = "";
+	body = "";
+	icon = "";
+	click_action = "";
+
+	if (d.HasMember("to")) {
+		to = d["to"].GetString();
+	}
+	if (!d.HasMember("notification")) {
+		return 0;
+	}
+	Value n = d["notification"].GetObject();
+	if (d.HasMember("title")) {
+		title = d["title"].GetString();
+	}
+	if (d.HasMember("body")) {
+		body = d["body"].GetString();
+	}
+	if (d.HasMember("icon")) {
+		icon = d["icon"].GetString();
+	}
+	if (d.HasMember("click_action")) {
+		click_action = d["click_action"].GetString();
+	}
+	return 0;
+}
+
+/**
+ * Parse subscription file
+ * @return 0- success, -1: Invalid JSON, -2: Important information missed
+ */
+int parseSubscriptionJson
+(
+	const std::string &value,
+	std::string &publicKey,
+	std::string &privateKey,
+	std::string &endpoint,
+	std::string &p256dh,
+	std::string &auth,
+	std::string &contact
+)
+{
+	Document d;
+	d.Parse(value.c_str());
+	if (d.HasParseError()) {
+		return -1;
+	}
+	publicKey = "";
+	privateKey = "";
+	endpoint = "";
+	p256dh = "";
+	auth = "";
+	contact = "";
+
+	if (d.HasMember("public")) {
+		publicKey = d["public"].GetString();
+	}
+	if (d.HasMember("private")) {
+		privateKey = d["private"].GetString();
+	}
+	if (d.HasMember("endpoint")) {
+		endpoint = d["endpoint"].GetString();
+	}
+	if (d.HasMember("p256dh")) {
+		p256dh = d["p256dh"].GetString();
+	}
+	if (d.HasMember("auth")) {
+		auth = d["auth"].GetString();
+	}
+	if (d.HasMember("contact")) {
+		contact = d["contact"].GetString();
+	}
+	return 0;
+}
+
+std::string jsSubscribeFCM(
+    const std::string &authorizedEntity,
+	const std::string &endPoint,
+	const std::string &receiverAndroidId,
+	const std::string &receiverSecurityToken
+)
+{
+	Document d;
+	Document::AllocatorType& a = d.GetAllocator();
+	d.SetObject();
+	Value v;
+	RAPIDJSON_ADD_STRING(d, v, a, authorized_entity, authorizedEntity)
+	RAPIDJSON_ADD_STRING(d, v, a, endpoint, endPoint)
+	RAPIDJSON_ADD_STRING(d, v, a, encryption_key, receiverAndroidId)
+	RAPIDJSON_ADD_STRING(d, v, a, encryption_auth, receiverSecurityToken)
+
+	StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+	return buffer.GetString();
+}
+
+bool jsSubscribeFCMParseResponse(
+    const std::string &value,
+    std::string &retToken,
+    std::string &retPushSet
+)
+{
+	Document d;
+	d.Parse(value.c_str());
+	if (d.HasParseError()) {
+		return -1;
+	}
+    retToken = "";
+    retPushSet = "";
+
+	if (d.HasMember("token")) {
+		retToken = d["token"].GetString();
+	}
+	if (d.HasMember("pushSet")) {
+		retPushSet = d["pushSet"].GetString();
+	}
+	return 0;
+}
+
+std::string jsSubscribeFCMParseErrorResponse(
+    const std::string &value
+)
+{
+	Document d;
+	d.Parse(value.c_str());
+	if (d.HasParseError()) {
+		return "";
+	}
+    std::string r = "";
+
+	if (d.HasMember("error")) {
+		Value e = d["error"].GetObject();
+		if (d.HasMember("message")) {
+			r = e["message"].GetString();
+		}
+	}
+	return r;
 }
 
 #endif
