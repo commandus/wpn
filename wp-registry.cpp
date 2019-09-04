@@ -197,6 +197,17 @@ bool RegistryClient::add(
 {
 	bool c = false;
 	std::string r;
+
+	srand(time(NULL));
+
+	uint8_t bytes[8];
+	*(int*) &bytes[0] = rand();
+	*(int*) &bytes[4] = rand();
+	bytes[0] &= 0x0f;
+	bytes[0] |= 0x70;
+
+	config->wpnKeys->secret = *(uint64_t*) &bytes;
+
 	if (rpc(&r, METHOD_POST, PATH_KEY, 0, config->wpnKeys->getPublicKey())) {
 		c = true;
 		uint64_t id = string2id(r);	// contains trailing "\n"
@@ -306,25 +317,25 @@ int RegistryClient::getSubscription(
 {
 	Subscription *s = config->subscriptions->getById(id2);
 	if (!s)
-		return false;
+		return -40; // No subscription found
 	bool c = false;
 
 	std::string v;
 	if (!rpc(&v, METHOD_GET, PATH_SUBSCRIPTION, id2, "")) {
-		return false;
+		return -41; // Service transport error (no Internet connection)
 	}
 	std::string publicKey;
 	std::string token;
 	std::string authSecret;
 	if (!jsGetSubscription(v, publicKey, token, authSecret))
-		return false;
+		return -42;	// Invalid subscription
 	if (publicKey.empty() || token.empty() || authSecret.empty())
-		return false;
+		return -43;	// Empty subscription;
 	s->setToken(token);
 	// s->setEndpoint(endpoint(publicKey));
 	s->getWpnKeysPtr()->setPublicKey(publicKey);
 	s->getWpnKeysPtr()->setAuthSecret(authSecret);
-	return true;
+	return 0;
 }
 
 int RegistryClient::rmSubscription(
@@ -338,7 +349,7 @@ int RegistryClient::rmSubscription(
 		return false;
 	bool c = false;
 	bool verbosity = (config && config->clientOptions->getVerbosity() > 0);
-	if (rpc(&retval, METHOD_DELETE, PATH_SUBSCRIPTION, id2, s->toJson())) {
+	if (rpc(&retval, METHOD_DELETE, PATH_SUBSCRIPTION, id2, s->toJsonString())) {
 		c = true;
 	}
 	return c;

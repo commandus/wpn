@@ -413,17 +413,8 @@ int main(int argc, char** argv)
 					}
 					break;
 			}
-			json requestBody = {
-			{"notification", 
-				{
-					{ "title", config.subject },
-					{ "body", config.body },
-					{ "icon", config.icon },
-					{ "click_action", config.link }
-				}
-			}
-			};
-			std::string body = requestBody.dump();
+
+			std::string body = jsClientNotification("", config.subject, config.body, config.icon, config.link);
 
 			// for VAPID only one endpoint not many
 			for (std::vector<std::string>::const_iterator it(config.recipientTokens.begin()); it != config.recipientTokens.end(); ++it)
@@ -508,7 +499,7 @@ int main(int argc, char** argv)
 				subscription.write(std::cout, "\t", config.outputFormat);
 			}
 			*/
-			std::cout << config.config->wpnKeys->toJson().dump() << std::endl;
+			std::cout << config.config->wpnKeys->toJsonString() << std::endl;
 		}
 			break;
 		default:

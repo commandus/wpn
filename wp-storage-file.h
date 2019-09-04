@@ -41,15 +41,22 @@ private:
 	);
 public:
 	ClientOptions();
+	
 	ClientOptions(
 		const std::string &name
    	);
+	
 	ClientOptions(
 		std::istream &strm,
 		const std::string &delimiter = DEF_DELIMITER		 
 	);
+	
+	ClientOptions(
+		const JsonValue &value
+	);
 
-	json toJson() const;
+	JsonValue toJson() const;
+	std::string toJsonString() const;
 
 	std::string name;
 
@@ -92,26 +99,32 @@ private:
 	std::string genAppId();
 public:
 	AndroidCredentials();
+
 	AndroidCredentials(
 		const std::string &appId,
 		uint64_t androidId,
 		uint64_t securityToken,
 		const std::string &fcmToken
    	);
+
 	AndroidCredentials(
 		const std::string &keys,
 		const std::string &delimiter
 	);
+
 	AndroidCredentials(
 		std::istream &strm,
 		const std::string &delimiter = DEF_DELIMITER		 
 	);
+
 	AndroidCredentials(
 		const std::string &fileName
 	);
+
 	AndroidCredentials(
-		const json &value
+		const JsonValue &value
 	);
+
 	const std::string getAppId() const;
 	uint64_t getAndroidId() const;
 	uint64_t getSecurityToken() const;
@@ -128,8 +141,8 @@ public:
 	std::ostream::pos_type write(
 		const std::string &fileName
 	) const;
-	json toJson(
-	) const;
+	JsonValue toJson() const;
+	std::string toJsonString() const;
 };
 
 class WpnKeys
@@ -146,7 +159,7 @@ private:
 	uint8_t publicKey[ECE_WEBPUSH_PUBLIC_KEY_LENGTH];
 
 	// The shared auth secret. This secret should be persisted with the
-	// subscription information, and sent to the app server. The DOM API exposes
+	// subscription information, and sent to the app JsonDocumentserver. The DOM API exposes
 	// the auth secret via `pushSubscription.getKey("auth")`.
 	uint8_t authSecret[ECE_WEBPUSH_AUTH_SECRET_LENGTH];
 
@@ -196,7 +209,7 @@ public:
 		const std::string &fileName
 	);
 	WpnKeys(
-		const json &value
+		const JsonValue &value
 	);
 	std::string getPrivateKey() const;
 	const uint8_t *getPrivateKeyArray() const;
@@ -217,8 +230,8 @@ public:
 		const std::string &fileName
 	) const;
 
-	json toJson(
-	) const;
+	JsonValue toJson() const;
+	std::string toJsonString() const;
 
 	int generate();
 };
@@ -248,6 +261,7 @@ private:
 		const std::string &pushSet,
 		const std::string &persistentId
 	);
+
 	/// Initialize VAPID
 	void initVAPID(
 		const std::string &name,
@@ -259,6 +273,7 @@ private:
 		const std::string &privateKey,
 		const std::string &authSecret
 	);
+
 	/// Initialize VAPID 1
 	void initVAPID1(
 		const std::string &name,
@@ -270,6 +285,7 @@ private:
 		const std::string &keys,
 		const std::string &delimiter
 	);
+	
 	void read(
 		std::istream &strm,
 		const std::string &delimiter
@@ -280,7 +296,7 @@ public:
 		uint64_t id,
 		std::istream &strm
 	);
-	void fromJson(const json &value);
+	void fromJson(const JsonValue &value);
 	Subscription();
 	// FCM
 	Subscription(
@@ -316,15 +332,18 @@ public:
 		std::istream &strm,
 		const std::string &delimiter = DEF_DELIMITER
 	);
+
 	Subscription(
 		uint64_t id,
 		std::istream &strm
 	);
+
 	Subscription(
 		const std::string &fileName
 	);
+
 	Subscription(
-		const json &value
+		const JsonValue &value
 	);
 
 	/// constructor for find only
@@ -369,8 +388,8 @@ public:
 		const std::string &fileName
 	) const;
 
-	json toJson(
-	) const;
+	JsonValue toJson() const;
+	std::string toJsonString() const;
 
 	bool valid() const;
 	bool operator==(const Subscription &val) const;
@@ -394,7 +413,7 @@ public:
 		const std::string &fileName
 	);
 	Subscriptions(
-		const json &value
+		const JsonValue &value
 	);
 	const std::string & getReceivedPersistentId() const;
 	void setReceivedPersistentId(const std::string &value);
@@ -408,8 +427,8 @@ public:
 	std::ostream::pos_type write(
 		const std::string &fileName
 	) const;
-	json toJson(
-	) const;
+	JsonValue toJson() const;
+	std::string toJsonString() const;
 	Subscription *getById(uint64_t id) const;
 	Subscription *findByNameOrId(const std::string &name) const;
 	Subscription *findByPublicKey(const std::string &value) const;
@@ -430,7 +449,7 @@ private:
 		std::istream &strm,
 		const std::string &delimiter = DEF_DELIMITER
 	);
-	bool fromJson(const json &value);
+	bool fromJson(const JsonValue &value);
 	void invalidate();
 public:
 	int outputFormatCode;

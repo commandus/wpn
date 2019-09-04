@@ -5,7 +5,14 @@
 
 #ifdef USE_JSON_NLOHMANN
 #include "nlohmann/json.hpp"
-using json = nlohmann::json;
+using JsonDocument = nlohmann::json;
+using JsonValue = nlohmann::json;
+#endif
+
+#ifdef USE_JSON_RAPID
+#include "rapidjson/document.h"
+using JsonDocument = rapidjson::Document;
+using JsonValue = rapidjson::Value;
 #endif
 
 #include "notify2string.h"
@@ -102,4 +109,77 @@ bool jsSubscribeFCMParseResponse(
 
 std::string jsSubscribeFCMParseErrorResponse(
     const std::string &value
+);
+
+int parseJsonRecipientTokens
+(
+	std::vector<std::string> &retval,
+	const std::string &value
+);
+
+std::string jsDump(
+    const JsonValue &value
+);
+
+JsonValue jsClientOptions(
+	const std::string &name,
+	int verbosity
+);
+
+bool jsGetString(
+	const JsonValue &value,
+	const std::string &name,
+	std::string &retVal
+);
+
+bool jsGetInt(
+	const JsonValue &value,
+	const std::string &name,
+	int &retVal
+);
+
+bool jsGetUint64(
+	const JsonValue &value,
+	const std::string &name,
+	uint64_t &retVal
+);
+
+size_t jsArrayCount(
+	const JsonValue &value
+);
+
+const JsonValue &jsArrayGet(
+	const JsonValue &value,
+	size_t index
+);
+
+JsonValue jsAndroidCredentials(
+	const std:: string &appId,
+	uint64_t androidId,
+	uint64_t securityToken, 
+	const std:: string &GCMToken
+);
+
+JsonValue jsWpnKeys(
+	uint64_t id,
+	uint64_t secret,	
+	const std::string &privateKey,
+	const std::string &publicKey,
+	const std::string &authSecret
+);
+
+JsonValue jsSubscription(
+	int subscribeMode, 
+	const std::string &name,
+	const std::string &token,
+	const std::string &persistentId,
+	const std::string &subscribeUrl,
+	const std::string &endpoint,
+	const std::string &authorizedEntity,
+	const std::string &pushSet,
+	const std::string &serverKey,
+	const std::string &sentToken,
+	uint64_t id,
+	const std::string &publicKey,
+	const std::string &authSecret
 );

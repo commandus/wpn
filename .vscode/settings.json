@@ -54,7 +54,14 @@
 		"condition_variable": "cpp",
 		"list": "cpp",
 		"mutex": "cpp",
-		"algorithm": "cpp"
+		"algorithm": "cpp",
+		"atomic": "cpp",
+		"iterator": "cpp",
+		"map": "cpp",
+		"memory_resource": "cpp",
+		"random": "cpp",
+		"regex": "cpp",
+		"set": "cpp"
 	},
 	"git.ignoreLimitWarning": true
 }

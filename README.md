@@ -10,12 +10,12 @@ notifications from stdout using pipes ('|') to other programs.
 
 wpnw and wpnr uses configuration files.
 
-Each configuration file corresponds to one client. 
+Each configuration file corresponds to one client.
 Client has unique public and private keys.
 Client can be registered in the "yellow pages" service with a number.
 This number can be used instead of keys for simplicity.
 
-wpn-grant creates configuration file and register client's public key in the registry. 
+wpn-grant creates configuration file and register client's public key in the registry.
 
 Your client need get access to write messages to specified client.
 To do this, wpn-grant give ability to subscribe client to receive messages from other client in 3 steps.
@@ -35,7 +35,7 @@ Initiator of subscription must repeat subscription one time because client 2 on 
 Information how to send message can be used only by other client, nobody other can not use this information to send mesages.
 Service delete this information after 1 day, so you need finish subscription in one day.
 
-To avoid passing public key to the registry and use service for exchange keys you can use configuration files itself. 
+To avoid passing public key to the registry and use service for exchange keys you can use configuration files itself.
 In this case you must somehow distribute configuration files. You don't need register configuration files with service.
 
 To do this there are other tools:
@@ -275,7 +275,6 @@ Using configuration file 22.js
 ```
 
 To stop, enter q or press Ctrl+C.
-
 
 ##### Options
 
@@ -998,7 +997,7 @@ brew install protobuf
 - -8 Error zero plain text
 - -9 Too short block
 - -10 Too short header
-- -11 Zero cipker text
+- -11 Zero cipher text
 - -12 Error HKDF
 - -13 Invalid encryption header
 - -14 Invalid Crypto-key header
@@ -1012,6 +1011,10 @@ brew install protobuf
 - -22 Error decrypt truncated
 - -30 Error read configuration file
 - -31 Error parse configuration file
+- -40 No subscription found
+- -41 Service transport error (no Internet connection)
+- -42 Invalid subscription
+- -43 Empty subscription
 
 ## Errors
 

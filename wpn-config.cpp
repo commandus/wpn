@@ -36,30 +36,6 @@ static const char* SUBSCRIBE_URLS[SUBSCRIBE_URL_COUNT] = {
 	SUBSCRIBE_URL_1
 };
 
-static int parseJsonRecipientTokens
-(
-	std::vector<std::string> &retval,
-	const std::string &value
-)
-{
-	int c = 0;
-	try
-	{
-		json list = json::parse(value);
-		// iterate the array
-		for (json::iterator it(list.begin()); it != list.end(); ++it) 
-		{
-			json a = *it;
-			retval.push_back(a[1]);
-			c++;
-		}
-	}
-	catch(...)
-	{
-	}
-	return c;
-}
-
 std::string WpnConfig::getDefaultFCMEndPoint()
 {
 	std::string r(DEF_FCM_ENDPOINT_PREFIX);

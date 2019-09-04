@@ -238,8 +238,9 @@ int main(int argc, char **argv)
 			// try get subscription from the service
 			if (verbosity > 2)
 				std::cerr << "Getting subscription from the service " << id << std::endl;
-			if (!rclient.getSubscription(id)) {
-				std::cerr << "Error: can not get subscription " << id << "." << std::endl;
+			int r = rclient.getSubscription(id);
+			if (r) {
+				std::cerr << "Error " << r << ": can not get subscription " << id << "." << std::endl;
 				return ERR_REGISTER_SUBSCRIPTION;
 			}
 			wpnConfig.save();

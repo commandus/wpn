@@ -1,5 +1,8 @@
 #include "utiljson.h"
 
+#define SUBSCRIBE_FORCE_FIREBASE	1
+#define SUBSCRIBE_FORCE_VAPID		2
+
 static const char* JSON_ID = "id";
 static const char* JSON_NAME = "name";
 static const char* JSON_PERSISTENT_ID = "persistent_id";
@@ -26,7 +29,6 @@ static const char* KEY_SUBSCRIPTION_AUTH = "auth";
 static const char* KEY_SUBSCRIPTION_CONTACT = "contact";
 
 #ifdef USE_JSON_RAPID
-#include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
@@ -39,7 +41,7 @@ using namespace rapidjson;
 			V.SetString(STR, len, A); \
 			D.AddMember(#NAME, V, A); \
 		} \
-	}
+	}return true
 
 #define RAPIDJSON_ADD_STRING(D, V, A, NAME, STR) \
 	if (!STR.empty()) { \
@@ -332,6 +334,10 @@ bool jsSubscribeFCMParseResponse(
 	}
     retToken = "";
     retPushSet = "";
+	StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+	return buffer.GetString();
 
 	if (d.HasMember("token")) {
 		retToken = d["token"].GetString();
@@ -362,6 +368,201 @@ std::string jsSubscribeFCMParseErrorResponse(
 	return r;
 }
 
+int parseJsonRecipientTokens
+(
+	std::vector<std::string> &retval,
+	const std::string &value
+)
+{
+	int c = 0;
+	try
+	{
+		JsonDocument list;
+		list.Parse(value.c_str());
+		if (list.HasParseError()) {
+			return -1;
+		}
+		if (!list.IsArray()) {
+			return -2;
+		}
+		// iterate the array
+		for (size_t it = 0; it < list.Size(); it++) 
+		{
+			if (!list[it].IsArray()) {
+				continue;
+			}
+			if (!list[it].Size() < 2) {
+				continue;
+			}
+			retval.push_back(list[it][1].GetString());
+			c++;
+		}
+	}
+	catch(...)
+	{
+	}
+	return c;
+}
+
+std::string jsDump(
+    const JsonValue &value
+) {
+	StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    value.Accept(writer);
+	return buffer.GetString();
+}
+
+JsonValue jsClientOptions(
+	const std::string &name,
+	int verbosity
+) {
+	Document d;
+	Document::AllocatorType& a = d.GetAllocator();
+	d.SetObject();
+	Value v;
+	RAPIDJSON_ADD_STRING(d, v, a, name, name)
+	v.SetInt(verbosity);
+	d.AddMember("verbosity", v, a);
+	return d.GetObject();
+}
+
+bool jsGetString(
+	const JsonValue &value,
+	const std::string &name,
+	std::string &retVal
+)
+{
+	if (value.HasMember(name.c_str())) {
+		retVal = value[name.c_str()].GetString();
+	}
+}
+
+bool jsGetInt(
+	const JsonValue &value,
+	const std::string &name,
+	int &retVal
+)
+{
+	if (value.HasMember(name.c_str())) {
+		retVal = value[name.c_str()].GetInt();
+	}
+}
+
+bool jsGetUint64(
+	const JsonValue &value,
+	const std::string &name,
+	uint64_t &retVal
+)
+{
+	if (value.HasMember(name.c_str())) {
+		retVal = value[name.c_str()].GetUint64();
+	}
+}
+
+size_t jsArrayCount(
+	const JsonValue &value
+) {
+	if (!value.IsArray()) {
+		return 0;
+	}
+	return value.MemberCount();
+}
+
+const JsonValue &jsArrayGet(
+	const JsonValue &value,
+	size_t index
+) {
+	return value[index];
+}
+
+JsonValue jsAndroidCredentials(
+	const std:: string &appId,
+	uint64_t androidId,
+	uint64_t securityToken, 
+	const std:: string &GCMToken
+) {
+	Document d;
+	Document::AllocatorType &a = d.GetAllocator();
+	d.SetObject();
+	Value v;
+	RAPIDJSON_ADD_STRING(d, v, a, appId, appId)
+	v.SetUint64(androidId);
+	d.AddMember("androidId", v, a);
+	v.SetUint64(androidId);
+	d.AddMember("securityToken", v, a);
+	RAPIDJSON_ADD_STRING(d, v, a, GCMToken, GCMToken)
+	return d.GetObject();
+}
+
+JsonValue jsWpnKeys(
+	uint64_t id,
+	uint64_t secret,	
+	const std::string &privateKey,
+	const std::string &publicKey,
+	const std::string &authSecret
+) {
+	Document d;
+	Document::AllocatorType& a = d.GetAllocator();
+	d.SetObject();
+	Value v;
+	v.SetUint64(id);
+	d.AddMember("id", v, a);
+	v.SetUint64(secret);
+	d.AddMember("secret", v, a);
+	RAPIDJSON_ADD_STRING(d, v, a, privateKey, privateKey)
+	RAPIDJSON_ADD_STRING(d, v, a, publicKey, publicKey)
+	RAPIDJSON_ADD_STRING(d, v, a, authSecret, authSecret)
+	return d.GetObject();
+}
+
+JsonValue jsSubscription(
+	int subscribeMode, 
+	const std::string &name,
+	const std::string &token,
+	const std::string &persistentId,
+	const std::string &subscribeUrl,
+	const std::string &endpoint,
+	const std::string &authorizedEntity,
+	const std::string &pushSet,
+	const std::string &serverKey,
+	const std::string &sentToken,
+	uint64_t id,
+	const std::string &publicKey,
+	const std::string &authSecret
+)
+{ 
+	Document d;
+	Document::AllocatorType& a = d.GetAllocator();
+	d.SetObject();
+	Value v;
+	v.SetInt(subscribeMode);
+	d.AddMember("subscribeMode", v, a);
+	RAPIDJSON_ADD_STRING(d, v, a, name, name)
+	RAPIDJSON_ADD_STRING(d, v, a, token, token)
+	RAPIDJSON_ADD_STRING(d, v, a, persistentId, persistentId)
+
+	switch (subscribeMode) {
+	case SUBSCRIBE_FORCE_FIREBASE:
+		RAPIDJSON_ADD_STRING(d, v, a, subscribeUrl, subscribeUrl)
+		RAPIDJSON_ADD_STRING(d, v, a, endpoint, endpoint)
+		RAPIDJSON_ADD_STRING(d, v, a, authorizedEntity, authorizedEntity)
+		RAPIDJSON_ADD_STRING(d, v, a, pushSet, pushSet)
+		RAPIDJSON_ADD_STRING(d, v, a, serverKey, serverKey)
+		break;
+	case SUBSCRIBE_FORCE_VAPID:
+		RAPIDJSON_ADD_STRING(d, v, a, sentToken, sentToken)
+		v.SetUint64(id);
+		d.AddMember("id", v, a);
+		RAPIDJSON_ADD_STRING(d, v, a, publicKey, publicKey)
+		RAPIDJSON_ADD_STRING(d, v, a, authSecret, authSecret)
+		break;
+	default:
+		break;
+	}
+	return d.GetObject();
+}
+
 #endif
 
 #ifdef USE_JSON_NLOHMANN
@@ -376,7 +577,7 @@ std::string notify2json(
 	int64_t sent,
     const NotifyMessageC *notify
 ) {
-    json r = {
+    JsonValue r = {
         { JSON_ID, id },
         { JSON_NAME, name },
         { JSON_PERSISTENT_ID, persistent_id },
@@ -404,7 +605,7 @@ std::string jsAddSubscription(
     const std::string &authSecret,
     const std::string &token)
 {
-	json js = {
+	JsonValue js = {
 		{ "publicKey", publicKey },
 		{ "authSecret", authSecret },
 		{ "token", token }
@@ -419,18 +620,18 @@ bool jsGetSubscription(
     std::string &retAuthSecret
 )
 {	
-	json j;
+	JsonValue j;
 	try {
 		std::stringstream(js) >> j;
 	}
-	catch (json::exception e) {
+	catch (JsonValue::exception e) {
 		return false;
 	}
 	catch (...) {
 		return false;
 	}
 	try {
-		json::const_iterator f = j.find("publicKey");
+		JsonValue::const_iterator f = j.find("publicKey");
 		if (f != j.end())
 			retPublicKey = f.value();
 		f = j.find("token");
@@ -442,6 +643,7 @@ bool jsGetSubscription(
 	} catch(...) {
 		return false;
 	}
+	return true;
 }
 
 bool jsValid (
@@ -451,7 +653,7 @@ bool jsValid (
     bool r = false;
     try 
     {
-        json response = json::parse(js);
+        JsonValue response = JsonValue::parse(js);
         r = true;
     }
     catch(...) 
@@ -469,7 +671,7 @@ std::string jsClientNotification
     const std::string &link
 )
 {
-	json requestBody = {
+	JsonValue requestBody = {
 		{ JSON_NOTIFICATION, 
 			{
 				{ JSON_NOTIFICATION_BODY, body },
@@ -478,7 +680,7 @@ std::string jsClientNotification
 	};
 	if (!to.empty())
 		requestBody[JSON_TO] = to;
-	json n = requestBody[JSON_NOTIFICATION];
+	JsonValue n = requestBody[JSON_NOTIFICATION];
 	if (subject.empty())
 		n[JSON_NOTIFICATION_TITLE] = subject;
 	if (subject.empty())
@@ -499,7 +701,7 @@ std::string jsClientCommand
     const std::string &token
 )
 {
-    json requestBody = {
+    JsonValue requestBody = {
 		{"to", client_token},
 		{"data", 
 			{
@@ -529,10 +731,10 @@ int parseNotificationJson
 	std::string &click_action
 )
 {
-	json j;
+	JsonValue j;
 	int r = 0;
 	try {
-		j = json::parse(value);
+		j = JsonValue::parse(value);
 	}
 	catch (...) {
 		r = -1;
@@ -545,7 +747,7 @@ int parseNotificationJson
 				to = j.at(JSON_TO);
 			else
 				to = "";
-			json n = j.at(JSON_NOTIFICATION);
+			JsonValue n = j.at(JSON_NOTIFICATION);
 			if (n.count(JSON_NOTIFICATION_TITLE))
 				title = n.at(JSON_NOTIFICATION_TITLE);
 			else
@@ -584,10 +786,10 @@ int parseSubscriptionJson
 	std::string &contact
 )
 {
-	json j;
+	JsonValue j;
 	int r = 0;
 	try {
-		j = json::parse(value);
+		j = JsonValue::parse(value);
 	}
 	catch (...) {
 		r = -1;
@@ -634,7 +836,7 @@ std::string jsSubscribeFCM(
 	const std::string &receiverSecurityToken
 )
 {
-   	json j = {
+   	JsonValue j = {
 		{ "authorized_entity", authorizedEntity },
 		{ "endpoint", endPoint },
 		{ "encryption_key", receiverAndroidId },
@@ -649,9 +851,9 @@ bool jsSubscribeFCMParseResponse(
     std::string &retPushSet
 )
 {
-    json js;
+    JsonValue js;
 	try {
-		js = json::parse(value);
+		js = JsonValue::parse(value);
 	}
 	catch (...) {
         return false;
@@ -666,16 +868,198 @@ std::string jsSubscribeFCMParseErrorResponse(
 )
 {
     std::string r = "";
-    json js;
+    JsonValue js;
 	try {
-		js = json::parse(value);
+		js = JsonValue::parse(value);
 	}
 	catch (...) {
         return r;
 	}
-    json e = js["error"];
+    JsonValue e = js["error"];
     r = e["message"];
     return r;
+}
+
+int parseJsonRecipientTokens
+(
+	std::vector<std::string> &retval,
+	const std::string &value
+)
+{
+	int c = 0;
+	try
+	{
+		JsonValue list = JsonValue::parse(value);
+		// iterate the array
+		for (JsonValue::iterator it(list.begin()); it != list.end(); ++it) 
+		{
+			JsonValue a = *it;
+			if (a.size() > 1) {
+				retval.push_back(a[1]);
+			}
+			c++;
+		}
+	}
+	catch(...)
+	{
+	}
+	return c;
+}
+
+std::string jsDump(
+    const JsonValue &value
+) {
+	return value.dump(4);
+}
+
+JsonValue jsClientOptions(
+	const std::string &name,
+	int verbosity
+) {
+	JsonValue r = {
+		{ "name", name },
+		{ "verbosity", verbosity }
+	};
+	return r;
+}
+
+bool jsGetString(
+	const JsonValue &value,
+	const std::string &name,
+	std::string &retVal
+) {
+	JsonValue::const_iterator f = value.find(name);
+	if (f != value.end()) {
+		retVal = f.value();
+		return true;
+	}
+	return false;
+}
+
+bool jsGetInt(
+	const JsonValue &value,
+	const std::string &name,
+	int &retVal
+)
+{
+	JsonValue::const_iterator f = value.find(name);
+	if (f != value.end()) {
+		retVal = f.value();
+		return true;
+	}
+	return false;
+}
+
+bool jsGetUint64(
+	const JsonValue &value,
+	const std::string &name,
+	uint64_t &retVal
+) {
+	JsonValue::const_iterator f = value.find(name);
+	if (f != value.end()) {
+		retVal = f.value();
+		return true;
+	}
+	return false;
+}
+
+size_t jsArrayCount(
+	const JsonValue &value
+) {
+	if (!value.is_array()) {
+		return 0;
+	}
+	return value.size();
+}
+
+const JsonValue &jsArrayGet(
+	const JsonValue &value,
+	size_t index
+) {
+	return value[index];
+}
+
+JsonValue jsAndroidCredentials(
+	const std:: string &appId,
+	uint64_t androidId,
+	uint64_t securityToken, 
+	const std:: string &GCMToken
+) {
+	JsonValue r = {
+		{ "appId", appId },
+		{ "androidId", androidId },
+		{ "securityToken", securityToken },
+		{ "GCMToken", GCMToken }
+	};
+	return r;
+}
+
+JsonValue jsWpnKeys(
+	uint64_t id,
+	uint64_t secret,	
+	const std::string &privateKey,
+	const std::string &publicKey,
+	const std::string &authSecret
+) {
+	JsonValue r = {
+		{ "id", id },
+		{ "secret", secret },
+		{ "privateKey", privateKey },
+		{ "publicKey", publicKey },
+		{ "authSecret", authSecret }
+	};
+	return r;
+}
+
+JsonValue jsSubscription(
+	int subscribeMode, 
+	const std::string &name,
+	const std::string &token,
+	const std::string &persistentId,
+	const std::string &subscribeUrl,
+	const std::string &endpoint,
+	const std::string &authorizedEntity,
+	const std::string &pushSet,
+	const std::string &serverKey,
+	const std::string &sentToken,
+	uint64_t id,
+	const std::string &publicKey,
+	const std::string &authSecret
+)
+{ 
+	switch (subscribeMode) {
+		case SUBSCRIBE_FORCE_FIREBASE:
+		{
+			JsonValue r = {
+				{ "subscribeMode", subscribeMode },
+				{ "name", name },
+				{ "token", token },
+				{ "persistentId", persistentId },
+				{ "subscribeUrl", subscribeUrl },
+				{ "endpoint", endpoint },
+				{ "authorizedEntity", authorizedEntity },
+				{ "pushSet", pushSet },
+				{ "serverKey", serverKey }
+			};
+			return r;
+		}
+		case SUBSCRIBE_FORCE_VAPID:
+		{
+			JsonValue r = {
+				{ "subscribeMode", subscribeMode },
+				{ "name", name },
+				{ "token", token },
+				{ "persistentId", persistentId },
+				{ "sentToken", sentToken },
+				{ "id", id },
+				{ "publicKey", publicKey },
+				{ "authSecret", authSecret }
+			};
+			return r;
+		}
+	}
+	JsonValue r = {};
+	return r;
 }
 
 #endif

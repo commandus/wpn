@@ -1,6 +1,7 @@
+#include <algorithm>
+#include <fstream>
 #include <inttypes.h>
 
-#include <fstream>
 #include "utilinstance.h"
 #include "wp-storage-file.h"
 
@@ -74,13 +75,21 @@ ClientOptions::ClientOptions(
 	read(strm, delimiter);
 }
 
-json ClientOptions::toJson() const
+ClientOptions::ClientOptions(
+	const JsonValue &value
+) {
+	jsGetString(value, "name", name);
+	jsGetInt(value, "verbosity", verbosity);
+}
+
+JsonValue ClientOptions::toJson() const
 {
-	json r = {
-		{ "name", name },
-		{ "verbosity", verbosity }
-	};
-	return r;
+	return jsClientOptions(name, verbosity);
+}
+
+std::string ClientOptions::toJsonString() const
+{
+	return jsDump(toJson());
 }
 
 std::ostream::pos_type ClientOptions::write(
@@ -93,7 +102,7 @@ std::ostream::pos_type ClientOptions::write(
 	switch (writeFormat)
 	{
 		case 1:
-			strm << toJson().dump();
+			strm << toJsonString();
 			break;
 		default:
 			strm << name << delimiter << verbosity << std::endl;
@@ -169,33 +178,18 @@ AndroidCredentials::AndroidCredentials(
 }
 
 AndroidCredentials::AndroidCredentials(
-	const json &value
+	const JsonValue &value
 )
 {
-	std::string appId;
-	uint64_t androidId;
-	uint64_t securityToken;
-	std::string GCMToken;
-	json::const_iterator f = value.find("appId");
-	if (f != value.end())
-		appId = f.value();
-	else
-		appId = "";
-	f = value.find("androidId");
-	if (f != value.end())
-		androidId = f.value();
-	else
-		androidId = 0;
-	f = value.find("securityToken");
-	if (f != value.end())
-		securityToken = f.value();
-	else
-		securityToken = 0;
-	f = value.find("GCMToken");
-	if (f != value.end())
-		GCMToken = f.value();
-	else
-		GCMToken = "";
+	std::string appId = "";
+	uint64_t androidId = 0;
+	uint64_t securityToken = 0;
+	std::string GCMToken = "";
+
+	jsGetString(value, "appId", appId);
+	jsGetUint64(value, "androidId", androidId);
+	jsGetUint64(value, "securityToken", securityToken);
+	jsGetString(value, "GCMToken", GCMToken);
 	init(appId, androidId, securityToken, GCMToken);
 }
 
@@ -315,7 +309,7 @@ std::ostream::pos_type AndroidCredentials::write
 	switch (writeFormat)
 	{
 		case 1:
-			strm << toJson().dump();
+			strm << toJsonString();
 			break;
 		default:
 			strm << mAppId << delimiter << mAndroidId << delimiter << mSecurityToken 
@@ -336,16 +330,14 @@ std::ostream::pos_type AndroidCredentials::write
 	return r;
 }
 
-json AndroidCredentials::toJson(
-) const
+JsonValue AndroidCredentials::toJson() const
 {
-	json r = {
-		{ "appId", mAppId },
-		{ "androidId", mAndroidId },
-		{ "securityToken", mSecurityToken },
-		{ "GCMToken", mGCMToken }
-	};
-	return r;
+	return jsAndroidCredentials(mAppId, mAndroidId, mSecurityToken, mGCMToken);
+}
+
+std::string AndroidCredentials::toJsonString() const
+{
+	return jsDump(toJson());
 }
 
 // --------------- WpnKeys ---------------
@@ -405,30 +397,21 @@ WpnKeys::WpnKeys(
 }
 
 WpnKeys::WpnKeys(
-	const json &value
+	const JsonValue &value
 )
 {
-	uint64_t id;
-	uint64_t secret;
-	std::string privateKey;
-	std::string publicKey;
-	std::string authSecret;
+	uint64_t id = 0;
+	uint64_t secret = 0;
+	std::string privateKey = "";
+	std::string publicKey = "";
+	std::string authSecret = "";
 
-	json::const_iterator f = value.find("id");
-	if (f != value.end())
-		id = f.value();
-	f = value.find("secret");
-	if (f != value.end())
-		secret = f.value();
-	f = value.find("privateKey");
-	if (f != value.end())
-		privateKey = f.value();
-	f = value.find("publicKey");
-	if (f != value.end())
-		publicKey = f.value();
-	f = value.find("authSecret");
-	if (f != value.end())
-		authSecret = f.value();
+	jsGetUint64(value, "id", id);
+	jsGetUint64(value, "secret", secret);
+	jsGetString(value, "privateKey", privateKey);
+	jsGetString(value, "publicKey", publicKey);
+	jsGetString(value, "authSecret", authSecret);
+
 	init(id, secret, privateKey, publicKey, authSecret);
 }
 
@@ -563,7 +546,7 @@ std::ostream::pos_type WpnKeys::write
 	switch (writeFormat)
 	{
 		case FORMAT_JSON:
-			strm << toJson().dump();
+			strm << toJsonString();
 			break;
 		default:
 			strm << id << delimiter << secret << delimiter << getPrivateKey() << delimiter << getPublicKey() << delimiter << getAuthSecret() << std::endl;
@@ -581,17 +564,14 @@ std::ostream::pos_type WpnKeys::write(
 	return r;
 }
 
-json WpnKeys::toJson(
-) const
+JsonValue WpnKeys::toJson() const
 {
-	json r = {
-		{ "id", id },
-		{ "secret", secret },
-		{ "privateKey", getPrivateKey() },
-		{ "publicKey", getPublicKey() },
-		{ "authSecret", getAuthSecret() }
-	};
-	return r;
+	return jsWpnKeys(id, secret, getPrivateKey(), getPublicKey(), getAuthSecret());
+}
+
+std::string WpnKeys::toJsonString() const
+{
+	return jsDump(toJson());
 }
 
 // --------------- Subscription ---------------
@@ -658,12 +638,13 @@ Subscription::Subscription(
 	read(strm, delimiter);
 }
 
+/*
 void Subscription::fromStream(
 	uint64_t id,
 	std::istream &strm
 )
 {
-	json j;
+	JsonValue j;
 	try {
 		strm >> j;
 		fromJson(j);
@@ -679,6 +660,7 @@ Subscription::Subscription(
 {
 	fromStream(id, strm);
 }
+*/
 
 Subscription::Subscription(
 	const std::string &fileName
@@ -689,93 +671,44 @@ Subscription::Subscription(
 	strm.close();
 }
 
-void Subscription::fromJson(const json &value)
+void Subscription::fromJson(const JsonValue &value)
 {
-	json::const_iterator f = value.find("subscribeMode");
-	if (f != value.end())
-		subscribeMode = f.value();
+	jsGetInt(value, "subscribeMode", subscribeMode);
 	switch (this->subscribeMode) {
-	case SUBSCRIBE_FORCE_FIREBASE:
-		f = value.find("name");
-		if (f != value.end())
-			name = f.value();
-		f = value.find("subscribeUrl");
-		if (f != value.end())
-			subscribeUrl = f.value();
-		f = value.find("endpoint");
-		if (f != value.end())
-			endpoint = f.value();
-		f = value.find("authorizedEntity");
-		if (f != value.end())
-			authorizedEntity = f.value();
-		f = value.find("token");
-		if (f != value.end())
-			token = f.value();
-		f = value.find("pushSet");
-		if (f != value.end())
-			pushSet = f.value();
-		f = value.find("persistentId");
-		if (f != value.end())
-			persistentId = f.value();
-		f = value.find("serverKey");
-		if (f != value.end())
-			serverKey = f.value();
-		break;
-	case SUBSCRIBE_FORCE_VAPID:
-	{
-		/*
-		f = value.find("secret");
-		if (f != value.end()) {
-			secret = f.value();
-			getWpnKeysPtr()->secret = secret;
+		case SUBSCRIBE_FORCE_FIREBASE:
+			jsGetString(value, "name", name);
+			jsGetString(value, "subscribeUrl", subscribeUrl);
+			jsGetString(value, "endpoint", endpoint);
+			jsGetString(value, "authorizedEntity", authorizedEntity);
+			jsGetString(value, "token", token);
+			jsGetString(value, "pushSet", pushSet);
+			jsGetString(value, "persistentId", persistentId);
+			jsGetString(value, "serverKey", serverKey);
+			break;
+
+		case SUBSCRIBE_FORCE_VAPID:
+		{
+			jsGetString(value, "persistentId", persistentId);
+			uint64_t id = 0;
+			std::string publicKey = "";
+			std::string authSecret = "";
+			jsGetUint64(value, "id", id);
+			jsGetString(value, "publicKey", publicKey);
+			jsGetString(value, "authSecret", authSecret);
+			this->wpnKeys.init(id, 0, "", publicKey, authSecret);
+			jsGetString(value, "name", name);
+			jsGetString(value, "endpoint", endpoint);
+			jsGetString(value, "token", token);
+			jsGetString(value, "sentToken", sentToken);
+			break;
 		}
-		f = value.find("privateKey");
-		if (f != value.end())
-			privateKey = f.value();
-		f = value.find("pushSet");
-		if (f != value.end())
-			pushSet = f.value();
-		*/
-		f = value.find("persistentId");
-		if (f != value.end())
-			persistentId = f.value();
-		uint64_t id;
-		std::string publicKey;
-		std::string privateKey;
-		std::string authSecret;
-		f = value.find("id");
-		if (f != value.end())
-			id = f.value();
-		else
-			id = 0;
-		f = value.find("publicKey");
-		if (f != value.end())
-			publicKey = f.value();
-		f = value.find("authSecret");
-		if (f != value.end())
-			authSecret = f.value();
-		this->wpnKeys.init(id, 0, privateKey, publicKey, authSecret);
-		f = value.find("name");
-		if (f != value.end())
-			name = f.value();
-		f = value.find("endpoint");
-		if (f != value.end())
-			endpoint = f.value();
-		f = value.find("token");
-		if (f != value.end())
-			token = f.value();
-		f = value.find("sentToken");
-		if (f != value.end())
-			sentToken = f.value();
-		break;
-	}
-	default:
-		break;
+		default:
+			break;
 	}
 }
 
 Subscription::Subscription(
-	const json &value
+	const JsonValue &value
 )
 {
 	fromJson(value);
@@ -929,7 +862,7 @@ std::ostream::pos_type Subscription::write
 	{
 		case FORMAT_JSON:
 			{
-				strm << toJson().dump();
+				strm << toJsonString();
 			}
 			break;
 		default:
@@ -965,51 +898,19 @@ std::ostream::pos_type Subscription::write
 	return r;
 }
 
-json Subscription::toJson(
-) const
+JsonValue Subscription::toJson() const
 {
-	json r;
-	switch (getSubscribeMode()) {
-	case SUBSCRIBE_FORCE_FIREBASE:
-		r = {
-			{ "subscribeMode", getSubscribeMode() },
-			{ "name", getName() },
-			{ "subscribeUrl", getSubscribeUrl() },
-			{ "endpoint", getEndpoint() },
-			{ "authorizedEntity", getAuthorizedEntity() },
-			{ "token", getToken() },
-			{ "pushSet", getPushSet() },
-			{ "persistentId", getPersistentId() },
-			{ "serverKey", getServerKey() }
-		};
-		break;
-	case SUBSCRIBE_FORCE_VAPID:
-	{
-		const WpnKeys& wpnKeys = getWpnKeys();
-		r = {
-			{ "id", wpnKeys.id },
-
-			{ "subscribeMode", getSubscribeMode() },
-			{ "name", getName() },
-			{ "token", getToken() },
-			{ "sentToken", getSentToken() },
-
-			/*
-			{ "endpoint", getEndpoint() },
-			{ "pushSet", getPushSet() },
-			{ "secret", wpnKeys.secret },
-			{ "privateKey", wpnKeys.getPrivateKey() },
-			*/
-			{ "persistentId", getPersistentId() },
-			{ "publicKey", wpnKeys.getPublicKey() },
-			{ "authSecret", wpnKeys.getAuthSecret() }
-		};
-	}
-	break;
-	default:
-		break;
-	}
+	const WpnKeys& wpnKeys = getWpnKeys();
+	JsonValue r = jsSubscription(
+		getSubscribeMode(), getName(), getToken(), getPersistentId(),
+		getSubscribeUrl(), getEndpoint(), getAuthorizedEntity(), getPushSet(), getServerKey(),
+		getSentToken(), wpnKeys.id, wpnKeys.getPublicKey(), wpnKeys.getAuthSecret());
 	return r;
+}
+
+std::string Subscription::toJsonString() const
+{
+	return jsDump(toJson());
 }
 
 /// Initialize VAPID
@@ -1152,12 +1053,12 @@ Subscriptions::Subscriptions
 }
 
 Subscriptions::Subscriptions(
-	const json &value
+	const JsonValue &value
 )
 {
-	for (json::const_iterator it = value.begin(); it != value.end(); ++it) {
-		Subscription s(*it);
-		list.push_back(s);
+	size_t sz = jsArrayCount(value);
+	for (size_t i = 0; i < sz; i++) {
+		list.push_back(Subscription(jsArrayGet(value, i)));
 	}
 }
 
@@ -1228,15 +1129,31 @@ void Subscriptions::read(
 	}
 }
 
-json Subscriptions::toJson(
-) const
+JsonValue Subscriptions::toJson() const
 {
-	json subscriptions = json::array();
+#ifdef USE_JSON_RAPID
+    JsonDocument subscriptions;
+	JsonValue::AllocatorType& a = subscriptions.GetAllocator();
+	subscriptions.SetArray();
+	for (std::vector<Subscription>::const_iterator it(list.begin()); it != list.end(); ++it)
+	{
+		JsonValue v;
+		subscriptions.PushBack(it->toJson(), a);
+	}
+	return subscriptions.GetObject();
+#else
+	JsonValue subscriptions = JsonValue::array();
 	for (std::vector<Subscription>::const_iterator it(list.begin()); it != list.end(); ++it)
 	{
 		subscriptions.push_back(it->toJson());
 	}
 	return subscriptions;
+#endif	
+}
+
+std::string Subscriptions::toJsonString() const
+{
+	return jsDump(toJson());
 }
 
 Subscription *Subscriptions::getById(
@@ -1349,14 +1266,29 @@ void generateVAPIDKeys
 
 // ConfigFile
 
-bool ConfigFile::fromJson(const json &value)
+bool ConfigFile::fromJson(const JsonValue &value)
 {
+#ifdef USE_JSON_RAPID
+	if (value.HasMember("options")) {
+		clientOptions = new ClientOptions(value["options"]);
+	}
+	if (value.HasMember("credentials")) {
+		androidCredentials = new AndroidCredentials(value["credentials"]);
+	}
+	if (value.HasMember("keys")) {
+		wpnKeys = new WpnKeys(value["keys"]);
+	}
+	if (value.HasMember("subscriptions")) {
+		subscriptions = new Subscriptions(value["subscriptions"]);
+	}
+#endif
+#ifdef USE_JSON_NLOHMANN
 	bool r = (value.find("options") != value.end())
 		&& (value.find("credentials") != value.end())
 		&& (value.find("keys") != value.end())
 		&& (value.find("subscriptions") != value.end());
 	try {
-		json::const_iterator f = value.find("options");
+		JsonValue::const_iterator f = value.find("options");
 		if (f != value.end())
 			clientOptions = new ClientOptions(f.value());
 		f = value.find("credentials");
@@ -1373,6 +1305,7 @@ bool ConfigFile::fromJson(const json &value)
 		r = false;
 	}
 	return r;
+#endif	
 }
 
 void ConfigFile::invalidate() {
@@ -1408,11 +1341,12 @@ ConfigFile::ConfigFile(
 		errorDescription = "Error read " + filename;
 	} else {
 		if (filename.find(".js") != std::string::npos) {
-			json j;
+#ifdef USE_JSON_NLOHMANN
+			JsonValue j;
 			try {
 				configRead >> j;
 			}
-			catch (json::exception e) {
+			catch (JsonValue::exception e) {
 				errorCode = ERR_CONFIG_FILE_PARSE_JSON;
 				errorDescription = filename + " error " + e.what();
 			}
@@ -1422,9 +1356,17 @@ ConfigFile::ConfigFile(
 
 			}
 			fromJson(j);
+#endif
+#ifdef USE_JSON_RAPID
+			std::string js((std::istreambuf_iterator<char>(configRead)), std::istreambuf_iterator<char>());
+			JsonDocument d;
+			d.Parse(js.c_str(), js.size());
+			fromJson(d.GetObject());
+#endif
 		} else {
 			read(configRead);
 		}
+
 	}
 	configRead.close();
 	invalidate();
@@ -1472,15 +1414,26 @@ std::ostream::pos_type ConfigFile::save
 std::string ConfigFile::toJsonString(
 ) const
 {
-	json o = clientOptions->toJson();
-	json c = androidCredentials->toJson();
-	json k = wpnKeys->toJson();
-	json s = subscriptions->toJson();
-	json r = {
+	JsonValue o = clientOptions->toJson();
+	JsonValue c = androidCredentials->toJson();
+	JsonValue k = wpnKeys->toJson();
+	JsonValue s = subscriptions->toJson();
+#ifdef USE_JSON_NLOHMANN
+	JsonValue r = {
 		{ "options", o},
 		{ "credentials", c},
 		{ "keys", k },
 		{ "subscriptions", s }
 	};
-	return r.dump(4);
+
+#endif
+#ifdef USE_JSON_RAPID
+	JsonDocument r;
+	r.SetObject();
+	r.AddMember("options", o, r.GetAllocator());
+	r.AddMember("credentials", c, r.GetAllocator());
+	r.AddMember("keys", k, r.GetAllocator());
+	r.AddMember("subscriptions", s, r.GetAllocator());
+#endif
+	return jsDump(r);
 }
