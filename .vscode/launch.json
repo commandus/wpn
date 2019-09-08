@@ -5,11 +5,11 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "wpn",
+			"name": "wpnr",
 			"type": "cppdbg",
 			"request": "launch",
-			"program": "${workspaceFolder}/wpn-grant",
-			"args": ["-c", "59.js", "58"],
+			"program": "${workspaceFolder}/wpnr",
+			"args": ["-c", "58.js"],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",
 			"environment": [],

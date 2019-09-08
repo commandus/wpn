@@ -1263,7 +1263,7 @@ int MCSClient::connect()
 	int r = logIn();
 	if (r == 0) {
 		listenerThread = new std::thread(readLoop, this);
-		listenerThread->detach();
+		// listenerThread->detach();
 	}
 	heartbeatManager = new HeartbeatManager(std::bind(&MCSClient::sendHeartBeat, this), std::bind(&MCSClient::reconnect, this));
 	return r;
@@ -1274,16 +1274,18 @@ void MCSClient::disconnect()
 	delete heartbeatManager;
 	heartbeatManager = NULL;
 	mStop = true;
-	if (mSocket && mSsl)
-		mSSLFactory.disconnect(mSocket, mSsl);
-	mSocket = INVALID_SOCKET;
-	mSsl = NULL;
 
 	if (listenerThread) {
 		if (listenerThread->joinable()) {
 			listenerThread->join();
 		}
 	}
+
+	if (mSocket && mSsl) {
+		mSSLFactory.disconnect(mSocket, mSsl);
+	}
+	mSocket = INVALID_SOCKET;
+	mSsl = NULL;
 
 	state = STATE_VERSION;
 }
@@ -1630,6 +1632,8 @@ int MCSClient::read()
 		{
 			log << severity(3) << "Total: " << c << " message(s)" << "\n\n";
 		}
+	} else {
+		r = 0;
 	}
 	return r;
 }

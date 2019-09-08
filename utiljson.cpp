@@ -30,6 +30,7 @@ static const char* KEY_SUBSCRIPTION_CONTACT = "contact";
 
 #ifdef USE_JSON_RAPID
 #include "rapidjson/writer.h"
+#include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 
 using namespace rapidjson;
@@ -41,7 +42,7 @@ using namespace rapidjson;
 			V.SetString(STR, len, A); \
 			D.AddMember(#NAME, V, A); \
 		} \
-	}return true
+	}
 
 #define RAPIDJSON_ADD_STRING(D, V, A, NAME, STR) \
 	if (!STR.empty()) { \
@@ -407,10 +408,23 @@ int parseJsonRecipientTokens
 std::string jsDump(
     const JsonValue &value
 ) {
+	Document d;
+	Document::AllocatorType& a = d.GetAllocator();
+	d.CopyFrom(value, a);
 	StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+	return std::string(buffer.GetString());
+}
+
+std::string jsDumpDocument(
+    JsonDocument &value
+) {
+	Document::AllocatorType& a = value.GetAllocator();
+	StringBuffer buffer;
+    PrettyWriter<StringBuffer> writer(buffer);
     value.Accept(writer);
-	return buffer.GetString();
+	return std::string(buffer.GetString());
 }
 
 JsonValue jsClientOptions(
@@ -466,7 +480,7 @@ size_t jsArrayCount(
 	if (!value.IsArray()) {
 		return 0;
 	}
-	return value.MemberCount();
+	return value.Size();
 }
 
 const JsonValue &jsArrayGet(

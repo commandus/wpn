@@ -122,6 +122,11 @@ int main(int argc, char **argv)
 	OpenSSL_add_all_algorithms();
 
 	ConfigFile wpnConfig(configFileName);
+	if (wpnConfig.errorCode) {
+		std::cerr << "Error " << wpnConfig.errorCode << ": " << wpnConfig.errorDescription << std::endl;
+		exit(wpnConfig.errorCode);
+	}
+
 	wpnConfig.clientOptions->setVerbosity(verbosity);
 	
 	if (!wpnConfig.wpnKeys->id && !reRegister) {

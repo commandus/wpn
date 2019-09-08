@@ -1,7 +1,7 @@
 #include <string>
 
-#define USE_JSON_NLOHMANN
-//#define USE_JSON_RAPID
+// #define USE_JSON_NLOHMANN
+#define USE_JSON_RAPID
 
 #ifdef USE_JSON_NLOHMANN
 #include "nlohmann/json.hpp"
@@ -119,6 +119,10 @@ int parseJsonRecipientTokens
 
 std::string jsDump(
     const JsonValue &value
+);
+
+std::string jsDumpDocument(
+    JsonDocument &value
 );
 
 JsonValue jsClientOptions(

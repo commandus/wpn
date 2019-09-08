@@ -115,6 +115,11 @@ int main(int argc, char **argv)
 	else
 		config = getDefaultConfigFileName(DEF_CONFIG_FILE_NAME);
 	ConfigFile wpnConfig(config);
+	if (wpnConfig.errorCode) {
+		std::cerr << "Error " << wpnConfig.errorCode << ": " << wpnConfig.errorDescription << std::endl;
+		exit(wpnConfig.errorCode);
+	}
+
 	RegistryClient rclient(&wpnConfig);
 	if (!rclient.validate()) {
 		std::cerr << "Error register client" << std::endl;

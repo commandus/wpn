@@ -169,6 +169,11 @@ int WpnConfig::parseCmd
 
 	// read config
 	config = new ConfigFile(file_name);
+	if (config->errorCode) {
+		std::cerr << "Error " << config->errorCode << ": " << config->errorDescription << std::endl;
+		return config->errorCode;
+	}
+
 	config->clientOptions->setVerbosity(a_verbosity->count);
 
 	if (a_subscribe_url->count)

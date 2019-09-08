@@ -158,10 +158,15 @@ SSL *SSLFactory::connect
 	int r = createTCPsocket(socket, host.c_str(), port);
 	if (r)
 		return NULL;
+	struct timeval tv;
+	memset(&tv, 0, sizeof(struct timeval));
+	tv.tv_sec = 2;  // 2s
+	setsockopt(*socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(struct timeval));
 	SSL *ret;
 	r = createSSLsocket(&ret, mContext, *socket);
 	if (r)
 		return NULL;
+	// SSL_CTX_set_timeout(mContext, 1);	// default 300s
 	return ret;
 }
 

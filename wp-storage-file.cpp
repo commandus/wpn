@@ -9,6 +9,10 @@
 #include "utilvapid.h"
 #include "endpoint.h"
 
+#ifdef USE_JSON_RAPID
+#include "rapidjson/error/en.h"
+#endif
+
 // --------------- ClientOptions ---------------
 
 #define DEF_NAME ""
@@ -1140,7 +1144,7 @@ JsonValue Subscriptions::toJson() const
 		JsonValue v;
 		subscriptions.PushBack(it->toJson(), a);
 	}
-	return subscriptions.GetObject();
+	return subscriptions.GetArray();
 #else
 	JsonValue subscriptions = JsonValue::array();
 	for (std::vector<Subscription>::const_iterator it(list.begin()); it != list.end(); ++it)
@@ -1361,7 +1365,12 @@ ConfigFile::ConfigFile(
 			std::string js((std::istreambuf_iterator<char>(configRead)), std::istreambuf_iterator<char>());
 			JsonDocument d;
 			d.Parse(js.c_str(), js.size());
-			fromJson(d.GetObject());
+			if (d.HasParseError()) {
+				errorCode = ERR_CONFIG_FILE_PARSE_JSON;
+				errorDescription = "Error parse " + filename + ": " + rapidjson::GetParseError_En(d.GetParseError());
+			} else {
+				fromJson(d.GetObject());
+			}
 #endif
 		} else {
 			read(configRead);
@@ -1414,10 +1423,10 @@ std::ostream::pos_type ConfigFile::save
 std::string ConfigFile::toJsonString(
 ) const
 {
-	JsonValue o = clientOptions->toJson();
-	JsonValue c = androidCredentials->toJson();
-	JsonValue k = wpnKeys->toJson();
-	JsonValue s = subscriptions->toJson();
+	std::string o = clientOptions->toJsonString();
+	std::string c = androidCredentials->toJsonString();
+	std::string k = wpnKeys->toJsonString();
+	std::string s = subscriptions->toJsonString();
 #ifdef USE_JSON_NLOHMANN
 	JsonValue r = {
 		{ "options", o},
@@ -1425,15 +1434,28 @@ std::string ConfigFile::toJsonString(
 		{ "keys", k },
 		{ "subscriptions", s }
 	};
-
+	return jsDump(r);
 #endif
 #ifdef USE_JSON_RAPID
 	JsonDocument r;
 	r.SetObject();
-	r.AddMember("options", o, r.GetAllocator());
-	r.AddMember("credentials", c, r.GetAllocator());
-	r.AddMember("keys", k, r.GetAllocator());
-	r.AddMember("subscriptions", s, r.GetAllocator());
+	JsonDocument p;
+	p.Parse(o.c_str(), o.size());
+	if (!p.HasParseError()) {
+		r.AddMember("options", p.GetObject(), r.GetAllocator());
+	}
+	p.Parse(c.c_str(), c.size());
+	if (!p.HasParseError()) {
+		r.AddMember("credentials", p.GetObject(), r.GetAllocator());
+	}
+	p.Parse(k.c_str(), k.size());
+	if (!p.HasParseError()) {
+		r.AddMember("keys", p.GetObject(), r.GetAllocator());
+	}
+	p.Parse(s.c_str(), s.size());
+	if (!p.HasParseError()) {
+		r.AddMember("subscriptions", p.GetArray(), r.GetAllocator());
+	}
+	return jsDumpDocument(r);
 #endif
-	return jsDump(r);
 }
