@@ -246,6 +246,11 @@ int main(int argc, char **argv)
 		quitFlag = 0;
 		// load config file
 		ConfigFile wpnConfig(filename);
+		if (wpnConfig.errorCode) {
+			std::cerr << "Error " << wpnConfig.errorCode << ": " << wpnConfig.errorDescription << std::endl;
+			exit(wpnConfig.errorCode);
+		}
+
 		wpnConfig.clientOptions->setVerbosity(verbosity);
 		wpnConfig.outputFormatCode = outputFormatCode;
 
