@@ -10,7 +10,7 @@ AC_LANG([C])
 AC_LANG([C++])
 
 m4_include([m4/ax_cxx_compile_stdcxx.m4])
-AX_CXX_COMPILE_STDCXX(11, noext, mandatory)
+# AX_CXX_COMPILE_STDCXX(11, noext, mandatory)
 
 # Checks for programs.
 AC_PROG_CXX
@@ -30,7 +30,7 @@ AM_CONDITIONAL([DEBUG], [test x$debug = xtrue])
 # MacOS: 
 #   brew install openssl@1.1
 # install openssl into /usr/local/lib/opt/openssl@1.1
-LDFLAGS="$LDFLAGS -L/usr/local/lib -L/usr/local/opt/openssl@1.1/lib"
+LDFLAGS="$LDFLAGS -L/usr/local/lib -L/usr/local/opt/openssl@1.1/lib -L/usr/local/lib64"
 
 # Checks for header files. Add /usr/local/include for IS X.
 CFLAGS="$CFLAGS -I/usr/local/include"

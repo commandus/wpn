@@ -24,7 +24,7 @@
 #include <ece.h>
 
 #include "platform.h"
-#include "nlohmann/json.hpp"
+#include "utiljson.h"
 
 #include <google/protobuf/message.h>
 #include <google/protobuf/text_format.h>
@@ -47,8 +47,6 @@
 #ifdef _MSC_VER
 #else
 #endif
-
-using json = nlohmann::json;
 
 // MCS Message tags.
 enum MCSProtoTag
@@ -1390,67 +1388,7 @@ bool MCSClient::parseJSONCommandOutput
 	const std::string &value
 )
 {
-	bool r = true;
-	try
-	{
-		json m = json::parse(value);
-		try
-		{
-			command = m.at("command");
-		}
-		catch(...)
-		{
-			r = false;
-		}
-		try
-		{
-			serverKey = m.at("serverKey");
-		}
-		catch(...)
-		{
-			serverKey = "";
-		}
-		try
-		{
-			token = m.at("token");
-		}
-		catch(...)
-		{
-			token = "";
-		}
-		try
-		{
-			persistent_id = m.at("persistent_id");
-		}
-		catch(...)
-		{
-			persistent_id = "";
-		}
-		try
-		{
-			output = m.at("output");
-		}
-		catch(...)
-		{
-			output = "";
-		}
-		if (code)
-		{
-			try
-			{
-				*code = m.at("code");
-			}
-			catch(...)
-			{
-				*code = 0;
-			}
-		}
-	}
-	catch(...)
-	{
-		r = false;
-	}
-	return r;
+	bool r = jsParseClientCommand(value, command, persistent_id, code, output, serverKey, token);
 }
 
 /**
@@ -1465,71 +1403,16 @@ int MCSClient::parseJSONNotifyMessage
 	const std::string &value
 )
 {
-	int r = -1;
-	try
-	{
-		json m = json::parse(value);
-		try
-		{
-			retval.authorizedEntity = m.at("from");
-		}
-		catch(...)
-		{
-		}
-		try
-		{
-			json notification  = m.at("notification");
-			r = 0;
-			try
-			{
-				retval.title = notification.at("title");
-			}
-			catch(...)
-			{
-				retval.title = "";
-			}
-			try
-			{
-				retval.body = notification.at("body");
-			}
-			catch(...)
-			{
-				retval.body = "";
-			}
-			try
-			{
-				retval.icon = notification.at("icon");
-			}
-			catch(...)
-			{
-				retval.icon = "";
-			}
-			try
-			{
-				retval.link = notification.at("click_action");
-			}
-			catch(...)
-			{
-				retval.link = "";
-			}
-		}
-		catch(...)
-		{
-		}
+	retval.authorizedEntity = "";
+	retval.title = "";
+	retval.body = "";
+	retval.icon = "";
+	retval.link = "";
+	retval.data = "";
+	std::string toEntity;
 
-		try
-		{
-			json d = m.at("data");
-			r = 1;
-			retval.data = d.dump();
-		}
-		catch(...)
-		{
-		}
-	}
-	catch(...)
-	{
-	}
+	int r = parseNotificationJson(value, retval.authorizedEntity, toEntity, 
+		retval.title, retval.body, retval.icon, retval.link, retval.data);
 	return r;
 }
 

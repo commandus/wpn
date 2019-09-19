@@ -16,7 +16,7 @@ bin_PROGRAMS = \
 
 # commoncppflags = -O2 -I/usr/local/include -Imcs/gen -Ithird_party
 # commoncppflags = -O2 -I/usr/include -Imcs/gen -Ithird_party
-commoncppflags = -O2 -I/usr/include -Imcs/gen -Ithird_party
+commoncppflags = -O2 -I/usr/include -Imcs/gen -Ithird_party -Ithird_party/ecec
 commoncppflags += -I/usr/local/opt/openssl@1.1/include
 
 # curllibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl
@@ -71,7 +71,7 @@ wpn_lib_source = \
 	vapid.cpp utilvapid.cpp utilrecv.cpp utilinstance.cpp wp-registry.cpp utiljson.cpp \
 	config-filename.cpp
 
-AM_CXXFLAGS = -std=c++11 
+# AM_CXXFLAGS = -std=c++11 
 
 #
 #	libece.a

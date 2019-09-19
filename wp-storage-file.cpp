@@ -86,14 +86,18 @@ ClientOptions::ClientOptions(
 	jsGetInt(value, "verbosity", verbosity);
 }
 
-JsonValue ClientOptions::toJson() const
+void ClientOptions::addJson(
+	JsonDocument &document
+) const
 {
-	return jsClientOptions(name, verbosity);
+	jsClientOptions(document, name, verbosity);
 }
 
 std::string ClientOptions::toJsonString() const
 {
-	return jsDump(toJson());
+	JsonDocument document;
+	addJson(document);
+	return jsDump(document);
 }
 
 std::ostream::pos_type ClientOptions::write(
@@ -119,7 +123,7 @@ std::ostream::pos_type ClientOptions::write(
 	const std::string &fileName
 ) const
 {
-	std::ofstream strm(fileName);
+	std::ofstream strm(fileName.c_str());
 	std::ostream::pos_type r = write(strm, DEF_DELIMITER);
 	strm.close();
 	return r;
@@ -176,7 +180,7 @@ AndroidCredentials::AndroidCredentials(
 	const std::string &fileName
 )
 {
-	std::ifstream strm(fileName);
+	std::ifstream strm(fileName.c_str());
 	read(strm, DEF_DELIMITER);
 	strm.close();
 }
@@ -328,20 +332,24 @@ std::ostream::pos_type AndroidCredentials::write
 	const std::string &fileName
 ) const
 {
-	std::ofstream strm(fileName);
+	std::ofstream strm(fileName.c_str());
 	std::ostream::pos_type r = write(strm, DEF_DELIMITER);
 	strm.close();
 	return r;
 }
 
-JsonValue AndroidCredentials::toJson() const
+void AndroidCredentials::addJson(
+	JsonDocument &document
+) const
 {
-	return jsAndroidCredentials(mAppId, mAndroidId, mSecurityToken, mGCMToken);
+	jsAndroidCredentials(document, mAppId, mAndroidId, mSecurityToken, mGCMToken);
 }
 
 std::string AndroidCredentials::toJsonString() const
 {
-	return jsDump(toJson());
+	JsonDocument d;
+	addJson(d);
+	return jsDump(d);
 }
 
 // --------------- WpnKeys ---------------
@@ -395,7 +403,7 @@ WpnKeys::WpnKeys(
 	const std::string &fileName
 )
 {
-	std::ifstream strm(fileName);
+	std::ifstream strm(fileName.c_str());
 	read(strm, DEF_DELIMITER);
 	strm.close();
 }
@@ -415,7 +423,6 @@ WpnKeys::WpnKeys(
 	jsGetString(value, "privateKey", privateKey);
 	jsGetString(value, "publicKey", publicKey);
 	jsGetString(value, "authSecret", authSecret);
-
 	init(id, secret, privateKey, publicKey, authSecret);
 }
 
@@ -461,7 +468,7 @@ void WpnKeys::parse(
 	if (k[3].empty())
 		generate();
 	else
-		init(std::stoi(k[0]), std::stoi(k[1]), k[2], k[3], k[4]); 
+		init(atoi(k[0].c_str()), atoi(k[1].c_str()), k[2], k[3], k[4]); 
 }
 
 void WpnKeys::read(
@@ -562,20 +569,22 @@ std::ostream::pos_type WpnKeys::write(
 	const std::string &fileName
 ) const
 {
-	std::ofstream strm(fileName);
+	std::ofstream strm(fileName.c_str());
 	std::ostream::pos_type r = write(strm, DEF_DELIMITER);
 	strm.close();
 	return r;
 }
 
-JsonValue WpnKeys::toJson() const
+void WpnKeys::addJson(JsonDocument &docunent) const
 {
-	return jsWpnKeys(id, secret, getPrivateKey(), getPublicKey(), getAuthSecret());
+	jsWpnKeys(docunent, id, secret, getPrivateKey(), getPublicKey(), getAuthSecret());
 }
 
 std::string WpnKeys::toJsonString() const
 {
-	return jsDump(toJson());
+	JsonDocument d;
+	addJson(d);
+	return jsDump(d);
 }
 
 // --------------- Subscription ---------------
@@ -670,7 +679,7 @@ Subscription::Subscription(
 	const std::string &fileName
 )
 {
-	std::ifstream strm(fileName);
+	std::ifstream strm(fileName.c_str());
 	read(strm, DEF_DELIMITER);
 	strm.close();
 }
@@ -896,25 +905,27 @@ std::ostream::pos_type Subscription::write
 	const std::string &fileName
 ) const
 {
-	std::ofstream strm(fileName);
+	std::ofstream strm(fileName.c_str());
 	std::ostream::pos_type r = write(strm, DEF_DELIMITER, FORMAT_TEXT);
 	strm.close();
 	return r;
 }
 
-JsonValue Subscription::toJson() const
+void Subscription::addJson(JsonDocument &document) const
 {
 	const WpnKeys& wpnKeys = getWpnKeys();
-	JsonValue r = jsSubscription(
+	jsSubscription(
+		document,
 		getSubscribeMode(), getName(), getToken(), getPersistentId(),
 		getSubscribeUrl(), getEndpoint(), getAuthorizedEntity(), getPushSet(), getServerKey(),
 		getSentToken(), wpnKeys.id, wpnKeys.getPublicKey(), wpnKeys.getAuthSecret());
-	return r;
 }
 
 std::string Subscription::toJsonString() const
 {
-	return jsDump(toJson());
+	JsonDocument d;
+	addJson(d);
+	return jsDump(d);
 }
 
 /// Initialize VAPID
@@ -997,7 +1008,7 @@ void Subscription::parse
 				break;
 			case SUBSCRIBE_FORCE_VAPID:
 				// 0- SubscribeMode 1- Name 2- Endpoint 3- PersistentId 4, 5, 6, 7, 8- WpnKeys
-				initVAPID(k[1], k[2], k[3], std::stoi(k[4]), std::stoi(k[5]), k[6], k[7], k[8]); 
+				initVAPID(k[1], k[2], k[3], atoi(k[4].c_str()), atoi(k[5].c_str()), k[6], k[7], k[8]); 
 				break;
 			default:
 				break;
@@ -1051,7 +1062,7 @@ Subscriptions::Subscriptions
 	const std::string &fileName
 )
 {
-	std::ifstream strm(fileName);
+	std::ifstream strm(fileName.c_str());
 	read(strm, DEF_DELIMITER);
 	strm.close();
 }
@@ -1109,7 +1120,7 @@ std::ostream::pos_type Subscriptions::write
 	const std::string &fileName
 ) const
 {
-	std::ofstream strm(fileName);
+	std::ofstream strm(fileName.c_str());
 	std::ostream::pos_type r = write(strm, DEF_DELIMITER);
 	strm.close();
 	return r;
@@ -1133,44 +1144,59 @@ void Subscriptions::read(
 	}
 }
 
-JsonValue Subscriptions::toJson() const
+void Subscriptions::addJson(JsonDocument &document) const
 {
 #ifdef USE_JSON_RAPID
-    JsonDocument subscriptions;
-	JsonValue::AllocatorType& a = subscriptions.GetAllocator();
-	subscriptions.SetArray();
+	JsonValue::AllocatorType& a = document.GetAllocator();
+	document.SetArray();
 	for (std::vector<Subscription>::const_iterator it(list.begin()); it != list.end(); ++it)
 	{
-		JsonValue v;
-		subscriptions.PushBack(it->toJson(), a);
+		JsonDocument d;
+		it->addJson(d);
+		JsonValue v(d, a);
+		document.PushBack(v, a);
 	}
-	return subscriptions.GetArray();
 #else
-	JsonValue subscriptions = JsonValue::array();
 	for (std::vector<Subscription>::const_iterator it(list.begin()); it != list.end(); ++it)
 	{
-		subscriptions.push_back(it->toJson());
+		JsonDocument d;
+		it->addJson(d);
+		document.push_back(d);
 	}
-	return subscriptions;
 #endif	
 }
 
 std::string Subscriptions::toJsonString() const
 {
-	return jsDump(toJson());
+	JsonDocument d;
+	addJson(d);
+	return jsDump(d);
 }
+
+struct searchSubscriptionId
+{
+	uint64_t id;
+    searchSubscriptionId(uint64_t v) : id(v) {}
+    bool operator()(const Subscription &m) { return m.getWpnKeys().id == id; }
+};
 
 Subscription *Subscriptions::getById(
 	uint64_t id
 ) const
 {
-	std::vector<Subscription>::const_iterator it = std::find_if(list.begin(), list.end(),
-        [id](const Subscription &m) -> bool { return m.getWpnKeys().id == id; });
+	std::vector<Subscription>::const_iterator it = std::find_if(list.begin(), list.end(), searchSubscriptionId(id));
 	if (it == list.end())
 		return NULL;
 	else
 		return (Subscription *) &(*it);
 }
+
+struct searchSubscriptionName
+{
+	std::string name;
+    searchSubscriptionName(const std::string &v) : name(v) {}
+    bool operator()(const Subscription &m) { return m.getName() == name; }
+};
 
 Subscription *Subscriptions::findByNameOrId(
 	const std::string &name
@@ -1178,14 +1204,17 @@ Subscription *Subscriptions::findByNameOrId(
 {
 	if (name.empty())
 		return NULL;
-	if (std::all_of(name.begin(), name.end(), ::isdigit)) {
+	std::string::const_iterator it = name.begin();
+    while (it != name.end() && std::isdigit(*it)) {
+		++it;
+	}
+	if (it == name.end()) {
 		// decimal number
 		uint64_t id = strtoull(name.c_str(), NULL, 10);
 		return getById(id);
 	} else {
 		// name
-		std::vector<Subscription>::const_iterator it = std::find_if(list.begin(), list.end(),
-			[name](const Subscription &m) -> bool { return m.getName() == name; });
+		std::vector<Subscription>::const_iterator it = std::find_if(list.begin(), list.end(), searchSubscriptionName(name));
 		if (it == list.end())
 			return NULL;
 		else
@@ -1193,14 +1222,20 @@ Subscription *Subscriptions::findByNameOrId(
 	}
 }
 
+struct searchSubscriptionPublicKey
+{
+	std::string value;
+    searchSubscriptionPublicKey(const std::string &v) : value(v) {}
+    bool operator()(const Subscription &m) { return m.getWpnKeys().getPublicKey() == value; }
+};
+
 Subscription *Subscriptions::findByPublicKey(
 	const std::string &value
 ) const
 {
 	if (value.empty())
 		return NULL;
-	std::vector<Subscription>::const_iterator it = std::find_if(list.begin(), list.end(),
-		[value](const Subscription &m) -> bool { return m.getWpnKeys().getPublicKey() == value; });
+	std::vector<Subscription>::const_iterator it = std::find_if(list.begin(), list.end(), searchSubscriptionPublicKey(value));
 	if (it == list.end())
 		return NULL;
 	else
@@ -1231,8 +1266,7 @@ bool Subscriptions::rmById(
 	uint64_t id
 )
 {
-	std::vector<Subscription>::const_iterator it = std::find_if(list.begin(), list.end(),
-        [id](const Subscription &m) -> bool { return m.getWpnKeys().id == id; });
+	std::vector<Subscription>::iterator it = std::find_if(list.begin(), list.end(), searchSubscriptionId(id));
 	if (it == list.end())
 		return false;
 	list.erase(it);
@@ -1369,7 +1403,7 @@ ConfigFile::ConfigFile(
 				errorCode = ERR_CONFIG_FILE_PARSE_JSON;
 				errorDescription = "Error parse " + filename + ": " + rapidjson::GetParseError_En(d.GetParseError());
 			} else {
-				fromJson(d.GetObject());
+				fromJson(d);
 			}
 #endif
 		} else {
@@ -1409,7 +1443,7 @@ std::ostream::pos_type ConfigFile::write(
 std::ostream::pos_type ConfigFile::save
 () const
 {
-	std::ofstream configWrite(fileName);
+	std::ofstream configWrite(fileName.c_str());
 	std::ostream::pos_type r;
 	if (fileName.find(".js") != std::string::npos) {
 		configWrite << toJsonString() << std::endl;
@@ -1423,10 +1457,14 @@ std::ostream::pos_type ConfigFile::save
 std::string ConfigFile::toJsonString(
 ) const
 {
-	std::string o = clientOptions->toJsonString();
-	std::string c = androidCredentials->toJsonString();
-	std::string k = wpnKeys->toJsonString();
-	std::string s = subscriptions->toJsonString();
+	JsonDocument o;
+	clientOptions->addJson(o);
+	JsonDocument c;
+	androidCredentials->addJson(c);
+	JsonDocument k;
+	wpnKeys->addJson(k);
+	JsonDocument s;
+	subscriptions->addJson(s);
 #ifdef USE_JSON_NLOHMANN
 	JsonValue r = {
 		{ "options", o},
@@ -1439,23 +1477,10 @@ std::string ConfigFile::toJsonString(
 #ifdef USE_JSON_RAPID
 	JsonDocument r;
 	r.SetObject();
-	JsonDocument p;
-	p.Parse(o.c_str(), o.size());
-	if (!p.HasParseError()) {
-		r.AddMember("options", p.GetObject(), r.GetAllocator());
-	}
-	p.Parse(c.c_str(), c.size());
-	if (!p.HasParseError()) {
-		r.AddMember("credentials", p.GetObject(), r.GetAllocator());
-	}
-	p.Parse(k.c_str(), k.size());
-	if (!p.HasParseError()) {
-		r.AddMember("keys", p.GetObject(), r.GetAllocator());
-	}
-	p.Parse(s.c_str(), s.size());
-	if (!p.HasParseError()) {
-		r.AddMember("subscriptions", p.GetArray(), r.GetAllocator());
-	}
+	r.AddMember("options", o, r.GetAllocator());
+	r.AddMember("credentials", c, r.GetAllocator());
+	r.AddMember("keys", k, r.GetAllocator());
+	r.AddMember("subscriptions", s, r.GetAllocator());
 	return jsDumpDocument(r);
 #endif
 }

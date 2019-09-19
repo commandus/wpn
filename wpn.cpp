@@ -294,7 +294,7 @@ int main(int argc, char** argv)
 		case CMD_CREDENTIALS:
 			{
 				if ((config.outputFormat == 0) && (config.config->clientOptions->getVerbosity() > 0))
-					std::cout << "application identifer\tandroid identifer\tsecurity token\tGCM token" << std::endl;
+					std::cout << "application\tandroid\ttoken\tGCM" << std::endl;
 				config.config->androidCredentials->write(std::cout, "\t", config.outputFormat);
 				std::cout << std::endl;
 			}
@@ -302,7 +302,7 @@ int main(int argc, char** argv)
 		case CMD_KEYS:
 			{
 				if ((config.outputFormat == 0) && (config.config->clientOptions->getVerbosity() > 0))
-					std::cout << "private key\tpublic key\tauthentication secret" << std::endl;
+					std::cout << "private\tpublic\tsecret" << std::endl;
 				config.config->wpnKeys->write(std::cout, "\t", config.outputFormat);
 				std::cout << std::endl;
 			}

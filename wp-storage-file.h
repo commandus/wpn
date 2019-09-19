@@ -55,7 +55,7 @@ public:
 		const JsonValue &value
 	);
 
-	JsonValue toJson() const;
+	void addJson(JsonDocument &document) const;
 	std::string toJsonString() const;
 
 	std::string name;
@@ -141,7 +141,7 @@ public:
 	std::ostream::pos_type write(
 		const std::string &fileName
 	) const;
-	JsonValue toJson() const;
+	void addJson(JsonDocument &document) const;
 	std::string toJsonString() const;
 };
 
@@ -230,7 +230,7 @@ public:
 		const std::string &fileName
 	) const;
 
-	JsonValue toJson() const;
+	void addJson(JsonDocument &docunent) const;
 	std::string toJsonString() const;
 
 	int generate();
@@ -388,7 +388,7 @@ public:
 		const std::string &fileName
 	) const;
 
-	JsonValue toJson() const;
+	void addJson(JsonDocument &document) const;
 	std::string toJsonString() const;
 
 	bool valid() const;
@@ -427,7 +427,7 @@ public:
 	std::ostream::pos_type write(
 		const std::string &fileName
 	) const;
-	JsonValue toJson() const;
+	void addJson(JsonDocument &document) const;
 	std::string toJsonString() const;
 	Subscription *getById(uint64_t id) const;
 	Subscription *findByNameOrId(const std::string &name) const;

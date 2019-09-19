@@ -122,6 +122,9 @@ bool jsGetSubscription(
 	if (d.HasParseError()) {
 		return false;
 	}
+	if (d.IsNull()) {
+		return false;
+	}
 	if (d.HasMember("publicKey")) {
 		retPublicKey = d["publicKey"].GetString();
 	}
@@ -157,14 +160,16 @@ std::string jsClientNotification
 	d.SetObject();
 	Value n;
 	n.SetObject();
-	d.AddMember("notification", n, a);
+
 	Value v;
 	RAPIDJSON_ADD_STRING(d, v, a, to, to)
-	
+
 	RAPIDJSON_ADD_STRING(n, v, a, body, body)
 	RAPIDJSON_ADD_STRING(n, v, a, title, subject)
 	RAPIDJSON_ADD_STRING(n, v, a, icon, icon)
 	RAPIDJSON_ADD_STRING(n, v, a, click_action, link)
+
+	d.AddMember("notification", n, a);
 
 	StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
@@ -205,6 +210,56 @@ std::string jsClientCommand
 	return buffer.GetString();
 }
 
+bool jsParseClientCommand
+(
+	const std::string &value,
+    std::string &command,
+    std::string &persistent_id, 
+    int *code,
+    std::string &output,
+    std::string &serverKey,
+    std::string &token
+)
+{
+	Document d;
+	d.Parse(value.c_str());
+	if (d.HasParseError()) {
+		return false;
+	}
+    command = "";
+    persistent_id = ""; 
+    if (code)
+		*code = 0;
+    output = "";
+    serverKey = "";
+    token = "";
+
+	if (d.HasMember("command")) {
+		command = d["command"].GetString();
+	}
+	if (d.HasMember("serverKey")) {
+		serverKey = d["serverKey"].GetString();
+	}
+	if (d.HasMember("token")) {
+		token = d["token"].GetString();
+	}
+	if (d.HasMember("persistent_id")) {
+		persistent_id = d["persistent_id"].GetString();
+	}
+	if (d.HasMember("output")) {
+		output = d["output"].GetString();
+	}
+	if (code) {
+		if (d.HasMember("code")) {
+			*code = d["code"].GetInt();
+		}
+	}
+	if (d.HasMember("command")) {
+		command = d["command"].GetString();
+	}
+	return true;
+}
+
 /**
  * Parse notification file
  * @return 0- success, -1: Invalid JSON, -2: Important information missed
@@ -212,11 +267,13 @@ std::string jsClientCommand
 int parseNotificationJson
 (
 	const std::string &value,
+	std::string &from,
 	std::string &to,
 	std::string &title,
 	std::string &body,
 	std::string &icon, 
-	std::string &click_action
+	std::string &click_action,
+	std::string &data
 )
 {
 	Document d;
@@ -230,25 +287,34 @@ int parseNotificationJson
 	icon = "";
 	click_action = "";
 
+	if (d.HasMember("from")) {
+		from = d["from"].GetString();
+	}
 	if (d.HasMember("to")) {
 		to = d["to"].GetString();
 	}
 	if (!d.HasMember("notification")) {
 		return 0;
 	}
-	Value n = d["notification"].GetObject();
-	if (d.HasMember("title")) {
-		title = d["title"].GetString();
+	Value &n = d["notification"];
+	if (n.IsObject()) {
+		if (n.HasMember("title")) {
+			title = n["title"].GetString();
+		}
+		if (n.HasMember("body")) {
+			body = n["body"].GetString();
+		}
+		if (n.HasMember("icon")) {
+			icon = n["icon"].GetString();
+		}
+		if (n.HasMember("click_action")) {
+			click_action = n["click_action"].GetString();
+		}
+		if (n.HasMember("data")) {
+			data = n["data"].GetString();
+		}
 	}
-	if (d.HasMember("body")) {
-		body = d["body"].GetString();
-	}
-	if (d.HasMember("icon")) {
-		icon = d["icon"].GetString();
-	}
-	if (d.HasMember("click_action")) {
-		click_action = d["click_action"].GetString();
-	}
+
 	return 0;
 }
 
@@ -420,25 +486,24 @@ std::string jsDump(
 std::string jsDumpDocument(
     JsonDocument &value
 ) {
-	Document::AllocatorType& a = value.GetAllocator();
+	Document::AllocatorType & a = value.GetAllocator();
 	StringBuffer buffer;
     PrettyWriter<StringBuffer> writer(buffer);
     value.Accept(writer);
 	return std::string(buffer.GetString());
 }
 
-JsonValue jsClientOptions(
+void jsClientOptions(
+	JsonDocument &document,
 	const std::string &name,
 	int verbosity
 ) {
-	Document d;
-	Document::AllocatorType& a = d.GetAllocator();
-	d.SetObject();
+	Document::AllocatorType& a = document.GetAllocator();
+	document.SetObject();
 	Value v;
-	RAPIDJSON_ADD_STRING(d, v, a, name, name)
+	RAPIDJSON_ADD_STRING(document, v, a, name, name)
 	v.SetInt(verbosity);
-	d.AddMember("verbosity", v, a);
-	return d.GetObject();
+	document.AddMember("verbosity", v, a);
 }
 
 bool jsGetString(
@@ -447,8 +512,11 @@ bool jsGetString(
 	std::string &retVal
 )
 {
-	if (value.HasMember(name.c_str())) {
-		retVal = value[name.c_str()].GetString();
+	if (value.IsObject() && value.HasMember(name.c_str())) {
+		const Value &v = value[name.c_str()];
+		if (v.IsString()) {
+			retVal = v.GetString();
+		}
 	}
 }
 
@@ -458,8 +526,11 @@ bool jsGetInt(
 	int &retVal
 )
 {
-	if (value.HasMember(name.c_str())) {
-		retVal = value[name.c_str()].GetInt();
+	if (value.IsObject() && value.HasMember(name.c_str())) {
+		const Value &v = value[name.c_str()];
+		if (v.IsInt()) {
+			retVal = v.GetInt();
+		}
 	}
 }
 
@@ -469,8 +540,11 @@ bool jsGetUint64(
 	uint64_t &retVal
 )
 {
-	if (value.HasMember(name.c_str())) {
-		retVal = value[name.c_str()].GetUint64();
+	if (value.IsObject() && value.HasMember(name.c_str())) {
+				const Value &v = value[name.c_str()];
+		if (v.IsUint64()) {
+			retVal = v.GetUint64();
+		}
 	}
 }
 
@@ -490,47 +564,46 @@ const JsonValue &jsArrayGet(
 	return value[index];
 }
 
-JsonValue jsAndroidCredentials(
+void jsAndroidCredentials(
+	JsonDocument &document,
 	const std:: string &appId,
 	uint64_t androidId,
 	uint64_t securityToken, 
 	const std:: string &GCMToken
 ) {
-	Document d;
-	Document::AllocatorType &a = d.GetAllocator();
-	d.SetObject();
+	Document::AllocatorType &a = document.GetAllocator();
+	document.SetObject();
 	Value v;
-	RAPIDJSON_ADD_STRING(d, v, a, appId, appId)
+	RAPIDJSON_ADD_STRING(document, v, a, appId, appId)
 	v.SetUint64(androidId);
-	d.AddMember("androidId", v, a);
-	v.SetUint64(androidId);
-	d.AddMember("securityToken", v, a);
-	RAPIDJSON_ADD_STRING(d, v, a, GCMToken, GCMToken)
-	return d.GetObject();
+	document.AddMember("androidId", v, a);
+	v.SetUint64(securityToken);
+	document.AddMember("securityToken", v, a);
+	RAPIDJSON_ADD_STRING(document, v, a, GCMToken, GCMToken)
 }
 
-JsonValue jsWpnKeys(
+void jsWpnKeys(
+	JsonDocument &document,
 	uint64_t id,
 	uint64_t secret,	
 	const std::string &privateKey,
 	const std::string &publicKey,
 	const std::string &authSecret
 ) {
-	Document d;
-	Document::AllocatorType& a = d.GetAllocator();
-	d.SetObject();
+	Document::AllocatorType& a = document.GetAllocator();
+	document.SetObject();
 	Value v;
 	v.SetUint64(id);
-	d.AddMember("id", v, a);
+	document.AddMember("id", v, a);
 	v.SetUint64(secret);
-	d.AddMember("secret", v, a);
-	RAPIDJSON_ADD_STRING(d, v, a, privateKey, privateKey)
-	RAPIDJSON_ADD_STRING(d, v, a, publicKey, publicKey)
-	RAPIDJSON_ADD_STRING(d, v, a, authSecret, authSecret)
-	return d.GetObject();
+	document.AddMember("secret", v, a);
+	RAPIDJSON_ADD_STRING(document, v, a, privateKey, privateKey)
+	RAPIDJSON_ADD_STRING(document, v, a, publicKey, publicKey)
+	RAPIDJSON_ADD_STRING(document, v, a, authSecret, authSecret)
 }
 
-JsonValue jsSubscription(
+void jsSubscription(
+	JsonDocument &document,
 	int subscribeMode, 
 	const std::string &name,
 	const std::string &token,
@@ -546,35 +619,33 @@ JsonValue jsSubscription(
 	const std::string &authSecret
 )
 { 
-	Document d;
-	Document::AllocatorType& a = d.GetAllocator();
-	d.SetObject();
+	Document::AllocatorType& a = document.GetAllocator();
+	document.SetObject();
 	Value v;
 	v.SetInt(subscribeMode);
-	d.AddMember("subscribeMode", v, a);
-	RAPIDJSON_ADD_STRING(d, v, a, name, name)
-	RAPIDJSON_ADD_STRING(d, v, a, token, token)
-	RAPIDJSON_ADD_STRING(d, v, a, persistentId, persistentId)
+	document.AddMember("subscribeMode", v, a);
+	RAPIDJSON_ADD_STRING(document, v, a, name, name)
+	RAPIDJSON_ADD_STRING(document, v, a, token, token)
+	RAPIDJSON_ADD_STRING(document, v, a, persistentId, persistentId)
 
 	switch (subscribeMode) {
 	case SUBSCRIBE_FORCE_FIREBASE:
-		RAPIDJSON_ADD_STRING(d, v, a, subscribeUrl, subscribeUrl)
-		RAPIDJSON_ADD_STRING(d, v, a, endpoint, endpoint)
-		RAPIDJSON_ADD_STRING(d, v, a, authorizedEntity, authorizedEntity)
-		RAPIDJSON_ADD_STRING(d, v, a, pushSet, pushSet)
-		RAPIDJSON_ADD_STRING(d, v, a, serverKey, serverKey)
+		RAPIDJSON_ADD_STRING(document, v, a, subscribeUrl, subscribeUrl)
+		RAPIDJSON_ADD_STRING(document, v, a, endpoint, endpoint)
+		RAPIDJSON_ADD_STRING(document, v, a, authorizedEntity, authorizedEntity)
+		RAPIDJSON_ADD_STRING(document, v, a, pushSet, pushSet)
+		RAPIDJSON_ADD_STRING(document, v, a, serverKey, serverKey)
 		break;
 	case SUBSCRIBE_FORCE_VAPID:
-		RAPIDJSON_ADD_STRING(d, v, a, sentToken, sentToken)
+		RAPIDJSON_ADD_STRING(document, v, a, sentToken, sentToken)
 		v.SetUint64(id);
-		d.AddMember("id", v, a);
-		RAPIDJSON_ADD_STRING(d, v, a, publicKey, publicKey)
-		RAPIDJSON_ADD_STRING(d, v, a, authSecret, authSecret)
+		document.AddMember("id", v, a);
+		RAPIDJSON_ADD_STRING(document, v, a, publicKey, publicKey)
+		RAPIDJSON_ADD_STRING(document, v, a, authSecret, authSecret)
 		break;
 	default:
 		break;
 	}
-	return d.GetObject();
 }
 
 #endif
@@ -731,6 +802,80 @@ std::string jsClientCommand
     return requestBody.dump();
 }
 
+bool jsParseClientCommand
+(
+	const std::string &value,
+    std::string &command,
+    std::string &persistent_id, 
+    int *code,
+    std::string &output,
+    std::string &serverKey,
+    std::string &token
+)
+{
+	bool r = false;
+	try
+	{
+		JsonValue m = JsonValue::parse(value);
+		try
+		{
+			command = m.at("command");
+		}
+		catch(...)
+		{
+			r = false;
+		}
+		try
+		{
+			serverKey = m.at("serverKey");
+		}
+		catch(...)
+		{
+			serverKey = "";
+		}
+		try
+		{
+			token = m.at("token");
+		}
+		catch(...)
+		{
+			token = "";
+		}
+		try
+		{
+			persistent_id = m.at("persistent_id");
+		}
+		catch(...)
+		{
+			persistent_id = "";
+		}
+		try
+		{
+			output = m.at("output");
+		}
+		catch(...)
+		{
+			output = "";
+		}
+		if (code)
+		{
+			try
+			{
+				*code = m.at("code");
+			}
+			catch(...)
+			{
+				*code = 0;
+			}
+		}
+	}
+	catch(...)
+	{
+		r = false;
+	}
+	return r;
+}
+
 /**
  * Parse notification file
  * @return 0- success, -1: Invalid JSON, -2: Important information missed
@@ -738,11 +883,13 @@ std::string jsClientCommand
 int parseNotificationJson
 (
 	const std::string &value,
+	std::string &from,
 	std::string &to,
 	std::string &title,
 	std::string &body,
 	std::string &icon, 
-	std::string &click_action
+	std::string &click_action,
+	std::string &data
 )
 {
 	JsonValue j;
@@ -756,6 +903,15 @@ int parseNotificationJson
 
 	if (r == 0)
 	{
+		try
+		{
+			if (j.count(JSON_FROM))
+				from = j.at(JSON_FROM);
+		}
+		catch(...)
+		{
+		}
+
 		try {
 			if (j.count(JSON_TO))
 				to = j.at(JSON_TO);
@@ -778,6 +934,10 @@ int parseNotificationJson
 				click_action = n.at(JSON_NOTIFICATION_LINK);
 			else
 				click_action = "";
+			if (n.count(JSON_NOTIFICATION_DATA))
+				data = j.at(JSON_NOTIFICATION_DATA);
+			else
+				data = "";
 		} catch(...) {
 			r = -2;
 		}
@@ -926,15 +1086,15 @@ std::string jsDump(
 	return value.dump(4);
 }
 
-JsonValue jsClientOptions(
+void jsClientOptions(
+	JsonDocument &document,
 	const std::string &name,
 	int verbosity
 ) {
-	JsonValue r = {
+	document = {
 		{ "name", name },
 		{ "verbosity", verbosity }
 	};
-	return r;
 }
 
 bool jsGetString(
@@ -993,39 +1153,40 @@ const JsonValue &jsArrayGet(
 	return value[index];
 }
 
-JsonValue jsAndroidCredentials(
+void jsAndroidCredentials(
+	JsonDocument &document,
 	const std:: string &appId,
 	uint64_t androidId,
 	uint64_t securityToken, 
 	const std:: string &GCMToken
 ) {
-	JsonValue r = {
+	document = {
 		{ "appId", appId },
 		{ "androidId", androidId },
 		{ "securityToken", securityToken },
 		{ "GCMToken", GCMToken }
 	};
-	return r;
 }
 
-JsonValue jsWpnKeys(
+void jsWpnKeys(
+	JsonDocument &document,
 	uint64_t id,
 	uint64_t secret,	
 	const std::string &privateKey,
 	const std::string &publicKey,
 	const std::string &authSecret
 ) {
-	JsonValue r = {
+	document = {
 		{ "id", id },
 		{ "secret", secret },
 		{ "privateKey", privateKey },
 		{ "publicKey", publicKey },
 		{ "authSecret", authSecret }
 	};
-	return r;
 }
 
-JsonValue jsSubscription(
+void jsSubscription(
+	JsonDocument &document,
 	int subscribeMode, 
 	const std::string &name,
 	const std::string &token,
@@ -1043,8 +1204,7 @@ JsonValue jsSubscription(
 { 
 	switch (subscribeMode) {
 		case SUBSCRIBE_FORCE_FIREBASE:
-		{
-			JsonValue r = {
+			document = {
 				{ "subscribeMode", subscribeMode },
 				{ "name", name },
 				{ "token", token },
@@ -1055,11 +1215,9 @@ JsonValue jsSubscription(
 				{ "pushSet", pushSet },
 				{ "serverKey", serverKey }
 			};
-			return r;
-		}
+			break;
 		case SUBSCRIBE_FORCE_VAPID:
-		{
-			JsonValue r = {
+			document = {
 				{ "subscribeMode", subscribeMode },
 				{ "name", name },
 				{ "token", token },
@@ -1069,11 +1227,9 @@ JsonValue jsSubscription(
 				{ "publicKey", publicKey },
 				{ "authSecret", authSecret }
 			};
-			return r;
-		}
+			break;
+		default:
+			document = {};
 	}
-	JsonValue r = {};
-	return r;
 }
-
 #endif

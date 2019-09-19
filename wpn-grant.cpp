@@ -124,14 +124,18 @@ int main(int argc, char **argv)
 	ConfigFile wpnConfig(configFileName);
 	if (wpnConfig.errorCode) {
 		std::cerr << "Error " << wpnConfig.errorCode << ": " << wpnConfig.errorDescription << std::endl;
-		exit(wpnConfig.errorCode);
+		if (!reRegister) {
+			exit(wpnConfig.errorCode);
+		}
 	}
 
 	wpnConfig.clientOptions->setVerbosity(verbosity);
 	
 	if (!wpnConfig.wpnKeys->id && !reRegister) {
-		std::cerr << "No registration identifier supplied, register with -R." << std::endl;
-		exit(1);
+		if (!reRegister) {
+			std::cerr << "No registration identifier supplied, register with -R." << std::endl;
+			exit(1);
+		}
 	}
 
 	RegistryClient rclient(&wpnConfig);

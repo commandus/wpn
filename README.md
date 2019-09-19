@@ -152,10 +152,10 @@ It is hard way, use it if you have a lot of mobile clients.
 
 First install mail program. Please refer to Appendix A how to install mailutils and set postfix.
 
-Option -e (--mailto) outputs e-mail body in HTML with link to connect mobile phone to the wpn:
+Option -M (--mailto) outputs e-mail body in HTML with link to connect mobile phone to the wpn:
 notificationData
 ```
-./wpn -e "name"
+./wpn -M "name"
 ```
 
 This link contains information how to establish connection to wpn.
@@ -164,12 +164,12 @@ If Surephone mobile application, this link open this application and connect it 
 
 Then pipe output
 ```
-./wpn -e "Alice" | mail -s "$(echo -e "Click link in your phone\nContent-Type: text/html;charset=utf-8")" bob@acme.com
+./wpn -M "Alice" | mail -s "$(echo -e "Click link in your phone\nContent-Type: text/html;charset=utf-8")" bob@acme.com
 ```
 
 Use custom emale template with --template-file option:
 ```
-./wpn -e "Alice" --template-file email-template.html | mail -s "$(echo -e "Connect device to wpn\nContent-Type: text/html;charset=utf-8")" bob@acme.com
+./wpn -M "Alice" --template-file email-template.html | mail -s "$(echo -e "Connect device to wpn\nContent-Type: text/html;charset=utf-8")" bob@acme.com
 ```
 
 In the email-template.html file use placeholders:
@@ -238,22 +238,12 @@ Value of authorized-entity is decimal number identifies subscription if FCM.
 
 ["authorized_entity":"103953800507"](https://firebase.google.com/docs/cloud-messaging/js/client)
 
-#### wpnadd
-
-Add a new client and store client properties in JSON file.
-
-Option -c overrides default file name.
-
-```
-./wpnadd -c client11.js
-```
-
 #### wplink
 
 Subscribe client to recieve messages from another client without config files:
 
 ```
-./wpnlink -s eBj1u43iA9Q:APA91bHz7hxB0ImaMZM_4G1K9Lv8MPgIu_Ta0r5Gt9LtI_Gm34B9nkTEOZVZxiZu2YjAIpWo5aZ1SaoBy3n8t_F_lqTsGhwzjdVVhf9kGT6E8KH7CGZBggrKxDxBgj21gb6MlyzTxrbr -k BM97-HP_Pw_RIrkp1mwVaYTEgR21Pl4PD1QYzDGYi5o7mp-YB6Cr9Pbz7_D7l3r5Zb4Ji-pLKubCza_lE4SsZIA -a 0L9jlM_NNYaurD3SSp_ZDg -vvv
+./wpnlink -s <subscriptiion VAPID> -i <Android id> -t <sucuritry token> -a <application id>
 ```
 
 #### wpnr
@@ -326,8 +316,6 @@ You can not send message using reciever's VAPID public key of the receiver, you 
 
 Example how to create two new clients and subscribe one of then:
 ```
-./wpnadd -c client11.js
-./wpnadd -c client12.js
 ./wpnlinkj client11.js client12.js 
 cbcGO31NFjY:APA91bEqATE-_V...
 ```
@@ -869,6 +857,12 @@ sudo apt install libcurl4-openssl-dev
 ecec library requires OpenSSL version > 1.1.0, Ubuntu's repository has too old version.
 
 Install library from the tarball.
+
+```
+tools/install-openssl-1.1.1.sh
+```
+
+or
 
 ```
 cd lib

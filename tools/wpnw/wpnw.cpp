@@ -179,7 +179,20 @@ int main(int argc, char **argv)
 	std::string cmdFileName = "curl.out";
 	bool aesgcm = a_aesgcm->count > 0;
 
-	if (subscriptionid.empty()) {
+	// special case: '--help' takes precedence over error reporting
+	if ((a_help->count) || nerrors)
+	{
+		if (nerrors)
+			arg_print_errors(stderr, a_end, progname);
+		std::cerr << "Usage: " << progname << std::endl;
+		arg_print_syntax(stderr, argtable, "\n");
+		std::cerr << "Send web push message from stdin" << std::endl;
+		arg_print_glossary(stderr, argtable, "  %-27s %s\n");
+		arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+		return 1;
+	}
+
+		if (subscriptionid.empty()) {
 		if (registrationid.empty()) {
 			nerrors++;
 			std::cerr << "Recipient registration id missed." << std::endl;
@@ -204,18 +217,7 @@ int main(int argc, char **argv)
 		body = *a_body->sval;
 	else
 		body = "";
-	// special case: '--help' takes precedence over error reporting
-	if ((a_help->count) || nerrors)
-	{
-		if (nerrors)
-			arg_print_errors(stderr, a_end, progname);
-		std::cerr << "Usage: " << progname << std::endl;
-		arg_print_syntax(stderr, argtable, "\n");
-		std::cerr << "Send web push message from stdin" << std::endl;
-		arg_print_glossary(stderr, argtable, "  %-27s %s\n");
-		arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
-		return 1;
-	}
+
 	arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
 
 	// In windows, this will init the winsock stuff

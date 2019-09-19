@@ -1,7 +1,7 @@
 #include <string>
 
-#define USE_JSON_NLOHMANN
-//#define USE_JSON_RAPID
+//#define USE_JSON_NLOHMANN
+#define USE_JSON_RAPID
 
 #ifdef USE_JSON_NLOHMANN
 #include "nlohmann/json.hpp"
@@ -11,8 +11,8 @@ using JsonValue = nlohmann::json;
 
 #ifdef USE_JSON_RAPID
 #include "rapidjson/document.h"
-using JsonDocument = rapidjson::Document;
-using JsonValue = rapidjson::Value;
+typedef rapidjson::Document JsonDocument;
+typedef rapidjson::Value JsonValue;
 #endif
 
 #include "notify2string.h"
@@ -65,6 +65,17 @@ std::string jsClientCommand
     const std::string &token
 );
 
+bool jsParseClientCommand
+(
+	const std::string &value,
+    std::string &command,
+    std::string &persistent_id, 
+    int *code,
+    std::string &output,
+    std::string &server_key,
+    std::string &token
+);
+
 /**
  * Parse notification file
  * @return 0- success, -1: Invalid JSON, -2: Important information missed
@@ -72,11 +83,13 @@ std::string jsClientCommand
 int parseNotificationJson
 (
 	const std::string &value,
+	std::string &from,
 	std::string &to,
 	std::string &title,
 	std::string &body,
 	std::string &icon, 
-	std::string &click_action
+	std::string &click_action,
+	std::string &data
 );
 
 /**
@@ -125,7 +138,8 @@ std::string jsDumpDocument(
     JsonDocument &value
 );
 
-JsonValue jsClientOptions(
+void jsClientOptions(
+	JsonDocument &document,
 	const std::string &name,
 	int verbosity
 );
@@ -157,14 +171,16 @@ const JsonValue &jsArrayGet(
 	size_t index
 );
 
-JsonValue jsAndroidCredentials(
+void jsAndroidCredentials(
+	JsonDocument &document,
 	const std:: string &appId,
 	uint64_t androidId,
 	uint64_t securityToken, 
 	const std:: string &GCMToken
 );
 
-JsonValue jsWpnKeys(
+void jsWpnKeys(
+	JsonDocument &document,
 	uint64_t id,
 	uint64_t secret,	
 	const std::string &privateKey,
@@ -172,7 +188,8 @@ JsonValue jsWpnKeys(
 	const std::string &authSecret
 );
 
-JsonValue jsSubscription(
+void jsSubscription(
+	JsonDocument &document,
 	int subscribeMode, 
 	const std::string &name,
 	const std::string &token,
