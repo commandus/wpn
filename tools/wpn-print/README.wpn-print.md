@@ -10,6 +10,5 @@ Test shared library
 
 Build using automake or:
 ```
-gcc -c -I ../../third_party ../../third_party/argtable3/argtable3.c
-g++ -std=c++11 -o wpnadd -I ../.. -I ../../third_party wpnadd.cpp ../../config-filename.cpp ../../utilfile.cpp argtable3.o -lcurl -L/usr/local/lib -L../../.libs -lwpnapi -lprotobuf -lssl -lcrypto
+g++ -std=c++11 -o wpn-print -I ../.. -I ../../third_party wpn-print.cpp ../../config-filename.cpp ../../utilfile.cpp argtable3.o -L/usr/local/lib -L../../ -lwpnpp -lprotobuf-lite -lece -lcrypto -lcurl
 ```
