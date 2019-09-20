@@ -158,7 +158,7 @@ wpnw_CPPFLAGS = $(commoncppflags)
 wpn_print_SOURCES= \
 	tools/wpn-print/wpn-print.cpp \
 	$(common_src)
-wpn_print_LDADD = $(commonlibs) -L. -lwpnpp -lece $(curllibs) $(protolibs)
+wpn_print_LDADD = $(commonlibs) -L. -lwpnpp -lece $(protolibs)
 wpn_print_LDFLAGS = -static
 wpn_print_CPPFLAGS = $(commoncppflags)
 
