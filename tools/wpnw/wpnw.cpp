@@ -192,7 +192,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-		if (subscriptionid.empty()) {
+	if (subscriptionid.empty()) {
 		if (registrationid.empty()) {
 			nerrors++;
 			std::cerr << "Recipient registration id missed." << std::endl;
