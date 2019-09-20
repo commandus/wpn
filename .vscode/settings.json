@@ -61,7 +61,21 @@
 		"memory_resource": "cpp",
 		"random": "cpp",
 		"regex": "cpp",
-		"set": "cpp"
+		"set": "cpp",
+		"typeindex": "cpp",
+		"__config": "cpp",
+		"__debug": "cpp",
+		"__functional_base": "cpp",
+		"__tuple": "cpp",
+		"ios": "cpp",
+		"strstream": "cpp",
+		"hash_map": "cpp",
+		"hash_set": "cpp",
+		"__bit_reference": "cpp",
+		"__hash_table": "cpp",
+		"__string": "cpp",
+		"__tree": "cpp",
+		"unordered_set": "cpp"
 	},
 	"git.ignoreLimitWarning": true
 }

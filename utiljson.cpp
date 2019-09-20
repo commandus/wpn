@@ -458,7 +458,7 @@ int parseJsonRecipientTokens
 			if (!list[it].IsArray()) {
 				continue;
 			}
-			if (!list[it].Size() < 2) {
+			if (list[it].Size() >= 2) {
 				continue;
 			}
 			retval.push_back(list[it][1].GetString());
@@ -512,12 +512,17 @@ bool jsGetString(
 	std::string &retVal
 )
 {
-	if (value.IsObject() && value.HasMember(name.c_str())) {
-		const Value &v = value[name.c_str()];
-		if (v.IsString()) {
-			retVal = v.GetString();
+	const char *n = name.c_str();
+	if (value.IsObject()) {
+		if (value.HasMember(n)) {
+			const Value &v = value[n];
+			if (v.IsString()) {
+				retVal = v.GetString();
+				return true;
+			}
 		}
 	}
+	return false;
 }
 
 bool jsGetInt(
@@ -526,12 +531,17 @@ bool jsGetInt(
 	int &retVal
 )
 {
-	if (value.IsObject() && value.HasMember(name.c_str())) {
-		const Value &v = value[name.c_str()];
-		if (v.IsInt()) {
-			retVal = v.GetInt();
+	const char *n = name.c_str();
+	if (value.IsObject()) {
+		if (value.HasMember(n)) {
+			const Value &v = value[n];
+			if (v.IsInt()) {
+				retVal = v.GetInt();
+				return true;
+			}
 		}
 	}
+	return false;
 }
 
 bool jsGetUint64(
@@ -540,12 +550,17 @@ bool jsGetUint64(
 	uint64_t &retVal
 )
 {
-	if (value.IsObject() && value.HasMember(name.c_str())) {
-				const Value &v = value[name.c_str()];
-		if (v.IsUint64()) {
-			retVal = v.GetUint64();
+	const char *n = name.c_str();
+	if (value.IsObject()) {
+		if (value.HasMember(n)) {
+			const Value &v = value[n];
+			if (v.IsUint64()) {
+				retVal = v.GetUint64();
+				return true;
+			}
 		}
 	}
+	return false;
 }
 
 size_t jsArrayCount(

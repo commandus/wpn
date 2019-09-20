@@ -10,7 +10,7 @@ AC_LANG([C])
 AC_LANG([C++])
 
 m4_include([m4/ax_cxx_compile_stdcxx.m4])
-# AX_CXX_COMPILE_STDCXX(11, noext, mandatory)
+AX_CXX_COMPILE_STDCXX(11, noext, mandatory)
 
 # Checks for programs.
 AC_PROG_CXX

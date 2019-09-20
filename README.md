@@ -742,12 +742,16 @@ ec private_key < file_to_decrypt
 
 C++11 compliant compiler required.
 
+Tested with gcc 4.9, clang 3.8
+
 - gcc, g++ 4.8+
 - clang, clang++ 3.4+
 
-./configure CC=clang CXX=clang++
+### Using clang
 
-Tested with gcc 4.9, clang 3.8
+```
+./configure CC=clang CXX=clang++
+```
 
 Check list:
 

@@ -1319,6 +1319,7 @@ bool ConfigFile::fromJson(const JsonValue &value)
 	if (value.HasMember("subscriptions")) {
 		subscriptions = new Subscriptions(value["subscriptions"]);
 	}
+	return true;
 #endif
 #ifdef USE_JSON_NLOHMANN
 	bool r = (value.find("options") != value.end())

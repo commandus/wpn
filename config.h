@@ -4,6 +4,9 @@
 /* Define to 1 if you have the <curl/curl.h> header file. */
 #define HAVE_CURL_CURL_H 1
 
+/* define if the compiler supports basic C++11 syntax */
+#define HAVE_CXX11 1
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #define HAVE_DLFCN_H 1
 
@@ -88,6 +91,9 @@
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "wpn"
+
+/* Define to the home page for this package. */
+#define PACKAGE_URL ""
 
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "0.4"

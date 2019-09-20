@@ -1,6 +1,7 @@
 #! /bin/bash
 # sudo apt-get update
-# sudo apt-get install build-essential
+# apt-get install build-essential wget sudo
+# yum install build-essential wget sudo
 
 VERSION=1.1.1a
 if [ ! -d protobuf-${VERSION} ]; then

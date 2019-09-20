@@ -1388,7 +1388,7 @@ bool MCSClient::parseJSONCommandOutput
 	const std::string &value
 )
 {
-	bool r = jsParseClientCommand(value, command, persistent_id, code, output, serverKey, token);
+	return jsParseClientCommand(value, command, persistent_id, code, output, serverKey, token);
 }
 
 /**
@@ -1560,6 +1560,7 @@ int MCSClient::write(
     app_data->set_value("wp:https://localhost/#" + receiverId);
 
 	send(kDataMessageStanzaTag, &stanza);
+	return 0;
 }
 
 uint32_t MCSClient::getLastStreamIdRecieved()
