@@ -104,6 +104,18 @@ public:
 		out.onLog(out.onLogEnv, out.verbosity, std::to_string(v).c_str());
 		return out;
 	}
+	friend CallbackLogger& operator<<(CallbackLogger &out, int64_t v) {
+		out.onLog(out.onLogEnv, out.verbosity, std::to_string(v).c_str());
+		return out;
+	}
+	friend CallbackLogger& operator<<(CallbackLogger &out, uint32_t v) {
+		out.onLog(out.onLogEnv, out.verbosity, std::to_string(v).c_str());
+		return out;
+	}
+	friend CallbackLogger& operator<<(CallbackLogger &out, uint64_t v) {
+		out.onLog(out.onLogEnv, out.verbosity, std::to_string(v).c_str());
+		return out;
+	}
 };
 
 class MCSClient

@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <fstream>
 #include <inttypes.h>
+#include <cctype>
 
 #include "utilinstance.h"
 #include "wp-storage-file.h"

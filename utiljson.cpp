@@ -397,7 +397,7 @@ bool jsSubscribeFCMParseResponse(
 	Document d;
 	d.Parse(value.c_str());
 	if (d.HasParseError()) {
-		return -1;
+		return false;
 	}
     retToken = "";
     retPushSet = "";
@@ -412,7 +412,7 @@ bool jsSubscribeFCMParseResponse(
 	if (d.HasMember("pushSet")) {
 		retPushSet = d["pushSet"].GetString();
 	}
-	return 0;
+	return true;
 }
 
 std::string jsSubscribeFCMParseErrorResponse(

@@ -180,6 +180,7 @@
     <ClCompile Include="..\mcs\gen\android_checkin.pb.cc" />
     <ClCompile Include="..\mcs\gen\checkin.pb.cc" />
     <ClCompile Include="..\mcs\gen\mcs.pb.cc" />
+    <ClCompile Include="..\mcs\heartbeat.cpp" />
     <ClCompile Include="..\mcs\mcsclient.cpp" />
     <ClCompile Include="..\params.cpp" />
     <ClCompile Include="..\sslfactory.cpp" />
@@ -188,10 +189,12 @@
     <ClCompile Include="..\third_party\nayuki\QR-Code-generator\QrSegment.cpp" />
     <ClCompile Include="..\utilfile.cpp" />
     <ClCompile Include="..\utilinstance.cpp" />
+    <ClCompile Include="..\utiljson.cpp" />
     <ClCompile Include="..\utilqr.cpp" />
     <ClCompile Include="..\utilrecv.cpp" />
     <ClCompile Include="..\utilstring.cpp" />
     <ClCompile Include="..\utilvapid.cpp" />
+    <ClCompile Include="..\vapid.cpp" />
     <ClCompile Include="..\wp-connection.cpp" />
     <ClCompile Include="..\wp-push.cpp" />
     <ClCompile Include="..\wp-storage-file.cpp" />
@@ -205,6 +208,7 @@
     <ClInclude Include="..\mcs\gen\android_checkin.pb.h" />
     <ClInclude Include="..\mcs\gen\checkin.pb.h" />
     <ClInclude Include="..\mcs\gen\mcs.pb.h" />
+    <ClInclude Include="..\mcs\heartbeat.h" />
     <ClInclude Include="..\mcs\mcsclient.h" />
     <ClInclude Include="..\onullstream.hpp" />
     <ClInclude Include="..\platform.h" />
@@ -213,10 +217,12 @@
     <ClInclude Include="..\third_party\sole\sole.hpp" />
     <ClInclude Include="..\utilfile.h" />
     <ClInclude Include="..\utilinstance.h" />
+    <ClInclude Include="..\utiljson.h" />
     <ClInclude Include="..\utilqr.h" />
     <ClInclude Include="..\utilrecv.h" />
     <ClInclude Include="..\utilstring.h" />
     <ClInclude Include="..\utilvapid.h" />
+    <ClInclude Include="..\vapid.h" />
     <ClInclude Include="..\wp-connection.h" />
     <ClInclude Include="..\wp-push.h" />
     <ClInclude Include="..\wp-storage-file.h" />

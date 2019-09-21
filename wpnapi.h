@@ -132,6 +132,7 @@ EXPORTDLL int webpushVapidDataC
 (
 	char* retval,
 	size_t retvalsize,
+	void *reuseCurl,
 	const char*publicKey,
 	const char*privateKey,
 	const char*endpoint,
@@ -243,7 +244,7 @@ EXPORTDLL size_t qr2pcharC
 EXPORTDLL void *startClientC
 (
 	int *retcode,
-	const char *lastPersistentId,
+	void *subscriptions,	///< NULL
 	const char *privateKey,
 	const char *authSecret,
 	uint64_t androidId,

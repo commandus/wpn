@@ -18,6 +18,7 @@
 
 #include <functional>
 #include <chrono>
+#include <ctime>
 #include <stdint.h>
 #include <fstream>
 #include <sstream>

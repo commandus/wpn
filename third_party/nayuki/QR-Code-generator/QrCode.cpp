@@ -311,7 +311,7 @@ vector<uint8_t> QrCode::appendErrorCorrection(const vector<uint8_t> &data) const
 	// Split data into blocks and append ECC to each block
 	vector<vector<uint8_t> > blocks;
 	const ReedSolomonGenerator rs(blockEccLen);
-	for (int i = 0, k = 0; i < numBlocks; i++) {
+	for (size_t i = 0, k = 0; i < numBlocks; i++) {
 		vector<uint8_t> dat(data.cbegin() + k, data.cbegin() + (k + shortBlockLen - blockEccLen + (i < numShortBlocks ? 0 : 1)));
 		k += dat.size();
 		const vector<uint8_t> ecc = rs.getRemainder(dat);

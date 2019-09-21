@@ -7,6 +7,8 @@
 #define sleep(seconds) \
 Sleep(seconds *1000);
 
+#define SIGHUP	1
+
 #define str_realpath(retval, path) \
 { \
 	TCHAR full_path[MAX_PATH]; \

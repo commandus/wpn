@@ -161,7 +161,7 @@ SSL *SSLFactory::connect
 	struct timeval tv;
 	memset(&tv, 0, sizeof(struct timeval));
 	tv.tv_sec = 2;  // 2s
-	setsockopt(*socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(struct timeval));
+	setsockopt(*socket, SOL_SOCKET, SO_RCVTIMEO, (const char *) &tv, sizeof(struct timeval));
 	SSL *ret;
 	r = createSSLsocket(&ret, mContext, *socket);
 	if (r)
