@@ -352,6 +352,7 @@ static bool BuildPersistentIdListFromProto(const google::protobuf::string& bytes
 	return true;
 }
 
+#pragma warning(disable : 4996)
 static void logMessage
 (
 	enum MCSProtoTag tag,

@@ -47,6 +47,7 @@ static const char *getErrorDescription(int error)
 /**
  * creates the socket & TCP-connect to serve
  **/
+#pragma warning( disable : 4996)
 int createTCPsocket
 (
 	int *sock,

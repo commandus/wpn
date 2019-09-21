@@ -5,6 +5,8 @@
 
 #include "ece.h"
 
+#pragma warning(disable : 4996)
+
 // This file implements a parser for the `Crypto-Key` and `Encryption` HTTP
 // headers, used by the older "aesgcm" encoding. The newer "aes128gcm" encoding
 // includes the relevant information in a binary header, directly in the

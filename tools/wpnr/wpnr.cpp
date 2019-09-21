@@ -35,9 +35,11 @@
 #include <argtable3/argtable3.h>
 #include <fstream>
 #include <cstring>
+#include <ctime>
 
 #include <signal.h>
 
+#include "platform.h"
 #include "sslfactory.h"
 
 #include "config-filename.h"
@@ -122,6 +124,7 @@ void readCommand(
 	} while (*quitFlag == 0);
 }
 
+#pragma warning(disable : 4996)
 void onNotify
 (
 	void *env,
@@ -138,10 +141,11 @@ void onNotify
 
 	time_t t = sent / 1000;
 	struct tm *tm = localtime(&t);
+	std::string st = std::asctime(tm);
 	if (config->clientOptions->getVerbosity() > 0) {
 		std::cerr<< "Notify persistent_id: " << persistent_id << std::endl
 			<< "from: " << from << std::endl
-			<< "sent: " << std::asctime(tm) << std::endl
+			<< "sent: " << st << std::endl
 			<< std::endl << std::endl;
 	}
 	if (msg) {
