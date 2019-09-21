@@ -138,7 +138,12 @@ bool string2file(const char *filename, const std::string &value)
 {
 	if (!filename)
 		return "";
+#ifdef _WIN32
+	FILE* f;
+	fopen_s(&f, filename, "w");
+#else
 	FILE* f = fopen(filename, "w");
+#endif
 	if (!f)
 		return false;
 	fwrite(value.c_str(), value.size(), 1, f);
@@ -203,7 +208,12 @@ std::string timeToString(time_t value)
 {
 	if (!value)
 		value = std::time(NULL);
+#ifdef _WIN32
+	std::tm *ptm;
+	localtime_s(ptm, &value);
+#else
 	std::tm *ptm = std::localtime(&value);
+#endif
 	char buffer[80];
 	std::strftime(buffer, sizeof(buffer), "%c", ptm);
 	return std::string(buffer);
