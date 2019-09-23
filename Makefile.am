@@ -81,7 +81,7 @@ wpnw_source = \
 	vapid.cpp utilvapid.cpp utilrecv.cpp utilinstance.cpp wp-registry.cpp utiljson.cpp \
 	config-filename.cpp
 
-# AM_CXXFLAGS = -std=c++11 
+AM_CXXFLAGS = -std=c++11 
 
 #
 #	libece.a
