@@ -2,9 +2,6 @@
  * Issue https://github.com/web-push-libs/ecec/issues/37
  * Line 182  added: || c == '=';
  */
-
-#include "ece.h"
-
 #pragma warning(disable : 4996)
 
 // This file implements a parser for the `Crypto-Key` and `Encryption` HTTP
@@ -12,17 +9,20 @@
 // includes the relevant information in a binary header, directly in the
 // payload.
 
+#include "params.h"
+
+#include <cstdlib>
+#include <cstring>
 #include <assert.h>
-#include <inttypes.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stdint.h>
 
 #include "ece.h"
 #include "ece/keys.h"
 #include "ece/trailer.h"
 #include <openssl/evp.h>
 #include <openssl/rand.h>
+
+#include "platform.h"
 
 #define ECE_HEADER_STATE_BEGIN_PARAM 1
 #define ECE_HEADER_STATE_BEGIN_NAME 2

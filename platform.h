@@ -22,6 +22,23 @@ Sleep(seconds *1000);
 #include <unistd.h>
 
 #define INVALID_SOCKET		-1
+#define	SOCKET	int
+
+#ifndef SCNu32
+#define	SCNu32	"u"
+#endif
+
+#ifndef PRIu32
+#define	PRIu32	"u"
+#endif
+
+#ifndef SIZE_MAX
+# if __WORDSIZE == 64
+#  define SIZE_MAX              (18446744073709551615UL)
+# else
+#  define SIZE_MAX              (4294967295U)
+# endif
+#endif
 
 #define str_realpath(retval, path) \
 { \

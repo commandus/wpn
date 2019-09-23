@@ -50,7 +50,7 @@ static const char *getErrorDescription(int error)
 #pragma warning( disable : 4996)
 int createTCPsocket
 (
-	int *sock,
+	SOCKET *sock,
 	const char *hostname,
 	int port
 )
@@ -120,7 +120,7 @@ int createSSLsocket
 (
 	SSL **retval,
 	SSL_CTX *ctx,
-	int socket
+	SOCKET &socket
 ) 
 {
 	// Create new SSL connection state object
@@ -151,7 +151,7 @@ SSLFactory::~SSLFactory()
 
 SSL *SSLFactory::connect
 (
-	int *socket,
+	SOCKET *socket,
 	const std::string &host, 
 	int port
 )
@@ -173,7 +173,7 @@ SSL *SSLFactory::connect
 
 void SSLFactory::disconnect
 (
-	int socket,
+	SOCKET &socket,
 	SSL *ssl
 )
 {

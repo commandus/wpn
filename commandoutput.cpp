@@ -9,6 +9,9 @@
 #endif
 #include "commandoutput.h"
 
+#include <cstdlib>
+#include <cstdio>
+
 bool add2Env
 (
 	const std::string &n,

@@ -374,7 +374,7 @@ std::string webpushVapidCmd(
 	if (code)
 		return "";
 
-	std::ofstream cipherFile(filename, std::ios::out | std::ios::binary);
+	std::ofstream cipherFile(filename.c_str(), std::ios::out | std::ios::binary);
 	cipherFile.write(cipherString.c_str(), cipherString.size());
 	cipherFile.close();
 

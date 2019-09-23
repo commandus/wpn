@@ -71,7 +71,17 @@ wpn_lib_source = \
 	vapid.cpp utilvapid.cpp utilrecv.cpp utilinstance.cpp wp-registry.cpp utiljson.cpp \
 	config-filename.cpp
 
-AM_CXXFLAGS = -std=c++11 
+wpnw_source = \
+	tools/wpnw/wpnw.cpp \
+	wp-storage-file.cpp notify2string.cpp \
+	wp-push.cpp wp-subscribe.cpp wp-connection.cpp \
+	sslfactory.cpp \
+	$(gengrpcs_c) \
+	utilfile.cpp utilstring.cpp params.cpp commandoutput.cpp endpoint.cpp \
+	vapid.cpp utilvapid.cpp utilrecv.cpp utilinstance.cpp wp-registry.cpp utiljson.cpp \
+	config-filename.cpp
+
+# AM_CXXFLAGS = -std=c++11 
 
 #
 #	libece.a
@@ -146,9 +156,9 @@ wpnr_CPPFLAGS = $(commoncppflags)
 #	wpnw
 #
 wpnw_SOURCES= \
-	tools/wpnw/wpnw.cpp \
+	$(wpnw_source) \
 	$(common_src)
-wpnw_LDADD = -L. -lwpnpp -lece $(curllibs) $(protolibs)
+wpnw_LDADD = -L. -lece $(curllibs) $(protolibs)
 wpnw_LDFLAGS = -static
 wpnw_CPPFLAGS = $(commoncppflags)
 
@@ -158,7 +168,7 @@ wpnw_CPPFLAGS = $(commoncppflags)
 wpn_print_SOURCES= \
 	tools/wpn-print/wpn-print.cpp \
 	$(common_src)
-wpn_print_LDADD = $(commonlibs) -L. -lwpnpp -lece $(protolibs)
+wpn_print_LDADD = $(commonlibs) -L. -lwpnpp -lece $(curllibs) $(protolibs)
 wpn_print_LDFLAGS = -static
 wpn_print_CPPFLAGS = $(commoncppflags)
 
@@ -218,7 +228,8 @@ libwpnapi.la : libwpnpp.a
 wpn.cpp : libwpnpp.a
 wpn-grant.cpp : libwpnpp.a
 tools/wpnr/wpnr.cpp : libwpnpp.a
-tools/wpnw/wpnw.cpp : libwpnpp.a
+# tools/wpnw/wpnw.cpp : libwpnpp.a
+tools/wpnw/wpnw.cpp : libece.a
 tools/wpn-print/wpn-print.cpp : libwpnpp.a
 tools/wpnlink/wpnlink.cpp : libwpnpp.a
 tools/wpnlink/wpnlinkj.cpp : libwpnpp.a
@@ -227,7 +238,7 @@ tools/wpnlink/wpnlinkj.cpp : libwpnpp.a
 # ----- With shared libraries, shared library first -----
 #
 tools/wpnr/wpnr.cpp : libwpnapi.la
-tools/wpnw/wpnw.cpp : libwpnapi.la
+# tools/wpnw/wpnw.cpp : libwpnapi.la
 tools/wpn-print/wpn-print.cpp : libwpnapi.la
 tools/wpnlink/wpnlink.cpp : libwpnapi.la
 tools/wpnlink/wpnlinkj.cpp : libwpnapi.la

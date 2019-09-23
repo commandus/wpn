@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <inttypes.h>
 #include <time.h>
 #include <algorithm>
 #include "utilinstance.h"

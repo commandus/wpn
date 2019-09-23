@@ -122,6 +122,9 @@ int curlPost
 	chunk = curl_slist_append(chunk, (HDR_CONTENT_TYPE + contentType).c_str());
 	if (!extraHeader.empty())
 		curl_slist_append(chunk, extraHeader.c_str());
+#ifndef CURLOPT_ACCEPT_ENCODING
+#define CURLOPT_ACCEPT_ENCODING CURLOPT_ENCODING
+#endif
 	curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <openssl/ssl.h>
+#include "platform.h"
 
 #define ERR_OK		0
 #define ERR_INIT	-1
@@ -22,11 +23,11 @@ public:
 	SSLFactory();
 	~SSLFactory();
 	SSL *connect(
-		int *socket,
+		SOCKET *socket,
 		const std::string &host, 
 		int port
 	);
-	void disconnect(int socket, SSL *ssl);
+	void disconnect(SOCKET &socket, SSL *ssl);
 };
 
 #endif // SSLFACTORY_H

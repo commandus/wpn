@@ -1,6 +1,7 @@
 #ifndef PARAMS_H
 #define PARAMS_H	1
 
+#include <stddef.h>
 #include <inttypes.h>
 
 int ece_webpush_aesgcm_headers_extract_params1

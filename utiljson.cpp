@@ -427,7 +427,7 @@ std::string jsSubscribeFCMParseErrorResponse(
     std::string r = "";
 
 	if (d.HasMember("error")) {
-		Value e = d["error"].GetObject();
+		const Value &e = d["error"].GetObject();
 		if (d.HasMember("message")) {
 			r = e["message"].GetString();
 		}

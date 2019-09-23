@@ -258,8 +258,8 @@ bool RegistryClient::subscribeById(
 	std::string retpushset;			///< returns pushset. Not implemented. Returns empty string
 	std::string subscriptionVAPIDKey = s->getWpnKeys().getPublicKey();
 	int r = subscribe(&retval, &retheaders, rettoken, retpushset, 
-		std::to_string(config->androidCredentials->getAndroidId()),
-		std::to_string(config->androidCredentials->getSecurityToken()),
+		toString(config->androidCredentials->getAndroidId()),
+		toString(config->androidCredentials->getSecurityToken()),
 		config->androidCredentials->getAppId(),
 		subscriptionVAPIDKey, verbosity
 	);
