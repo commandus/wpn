@@ -1178,7 +1178,10 @@ struct searchSubscriptionId
 {
 	uint64_t id;
     searchSubscriptionId(uint64_t v) : id(v) {}
-    bool operator()(const Subscription &m) { return m.getWpnKeys().id == id; }
+    bool operator()(const Subscription &m)
+	{
+		return m.getWpnKeys().id == id; 
+	}
 };
 
 Subscription *Subscriptions::getById(
@@ -1199,17 +1202,25 @@ struct searchSubscriptionName
     bool operator()(const Subscription &m) { return m.getName() == name; }
 };
 
+static bool isStringNumeric
+(
+	const std::string &value
+)
+{
+	if (value.empty())
+		return false;
+	std::string::const_iterator it = value.begin();
+    while (it != value.end() && std::isdigit(*it)) {
+		++it;
+	}
+	return (it == value.end());
+}
+
 Subscription *Subscriptions::findByNameOrId(
 	const std::string &name
 ) const
 {
-	if (name.empty())
-		return NULL;
-	std::string::const_iterator it = name.begin();
-    while (it != name.end() && std::isdigit(*it)) {
-		++it;
-	}
-	if (it == name.end()) {
+	if (isStringNumeric(name)) {
 		// decimal number
 		uint64_t id = strtoull(name.c_str(), NULL, 10);
 		return getById(id);
@@ -1221,6 +1232,17 @@ Subscription *Subscriptions::findByNameOrId(
 		else
 			return (Subscription *) &(*it);
 	}
+}
+
+std::vector<Subscription>::const_iterator Subscriptions::findId(
+	const std::string &idOrName
+) const
+{
+	if (isStringNumeric(idOrName)) {
+		uint64_t id = strtoull(idOrName.c_str(), NULL, 10);
+		return std::find_if(list.begin(), list.end(), searchSubscriptionId(id));
+	}
+	return std::find_if(list.begin(), list.end(), searchSubscriptionName(idOrName));
 }
 
 struct searchSubscriptionPublicKey

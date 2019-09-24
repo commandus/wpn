@@ -1189,3 +1189,10 @@ cd ..
 cd winbuild
 nmake /f Makefile.vc mode=static nmake /f Makefile.vc mode=static VC=15 RTLIBCFG=static WITH_SSL=static WITH_DEVEL=D:\l\deps\zlib_x64_static
 ```
+
+## Bug list
+
+-1 --aesgcm does not work.
+
+Service respond 201, but nothing is received by remote peer.
+

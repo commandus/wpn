@@ -21,7 +21,7 @@
 			"type": "cppdbg",
 			"request": "launch",
 			"program": "${workspaceFolder}/wpnw",
-			"args": ["-c", "23.js", "22", "-t", "Съешь еще", "-b", "съешь ещё этих мягких французских булок, да выпей чаю."],
+			"args": ["-v", "-c", "23.js", "22", "-t", "Съешь еще", "-b", "съешь ещё этих мягких французских булок, да выпей чаю."],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",
 			"environment": [],

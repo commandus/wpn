@@ -52,13 +52,82 @@ static const char* progname = "wpnw";
 #define ERR_SUBSCRIPTION_NOT_FOUND			-1
 #define ERR_SUBSCRIPTION_TOKEN_NOT_FOUND	-2
 
+int sendMessage(
+	void *curl,
+	std::string &retval,
+	const std::string &cmdFileName,
+	
+	const std::string &registrationid,
+	const std::string &endPoint,
+	int provider,
+
+	const std::string &publicKey,
+	const std::string &privateKey,
+	const std::string &endpoint,
+	const std::string &p256dh,
+	const std::string &auth,
+	const std::string &msg,
+	const std::string &contact,
+	bool aesgcm,
+	int verbosity
+) {
+	if (verbosity > 0) {
+		std::cerr
+			<< "registrationid: " <<  registrationid << std::endl
+			<< "endpoint: " << endPoint << std::endl
+			<< "provider: " << (provider == PROVIDER_FIREFOX ? "firefox" : "chrome") << std::endl
+			<< "privateKey: " << privateKey << std::endl
+			<< "publicKey: " << publicKey << std::endl
+			<< "p256dh: " << p256dh << std::endl 
+			<< "auth: " << auth << std::endl 
+			<< "msg: " << msg << std::endl 
+			<< "contact: " << contact << std::endl 
+			<< (aesgcm ? "AESGCM" : "AES128GCM") << std::endl;
+	}
+
+	time_t t = time(NULL) + 86400 - 60;
+
+	if (verbosity > 1) {
+		// print out curl
+		std::string r = webpushVapidCmd(
+			publicKey,
+			privateKey,
+			cmdFileName,
+			endPoint,
+			p256dh,
+			auth,
+			msg,
+			contact,
+			aesgcm ? AESGCM : AES128GCM,
+			t
+		);
+		std::cerr << r << std::endl;
+	}
+
+	int r = webpushVapid(
+		curl,			// re-use CURL connection
+		retval, 
+		publicKey,		// from
+		privateKey,		// from
+		endPoint,
+		p256dh,			// to
+		auth,			// to
+		msg,
+		contact,
+		aesgcm ? AESGCM : AES128GCM,
+		t
+	);
+
+	if (r < 200 || r > 299) 
+	{
+		std::cerr << "Send error " << r << ": " << retval << std::endl;
+	}
+	return r;
+}
+
 int main(int argc, char **argv) 
 {
-	struct arg_str *a_subscriptionid = arg_str0(NULL, NULL, "<number>", "Subscription number/name or -r, -d, -a");
-	struct arg_str *a_registrationid = arg_str0("r", "registration", "<id>", "Subscription VAPID key)");
-	struct arg_str *a_p256dh = arg_str0("d", "p256dh", "<base64>", "VAPID public key");
-	struct arg_str *a_auth = arg_str0("a", "auth", "<base64>", "VAPID auth");
-	
+	struct arg_str *a_subscriptionids = arg_strn(NULL, NULL, "<number>", 0, 32768, "Subscription number/name. If no provide  -r, -d, -a");
 	// message itself
 	struct arg_str *a_subject = arg_str0("t", "subject", "<Text>", "Subject (topic)");
 	struct arg_str *a_body = arg_str0("b", "body", "<Text>", "Default read from stdin");
@@ -73,7 +142,13 @@ int main(int argc, char **argv)
 	struct arg_str *a_force_publickey = arg_str0("K", "public-key", "<base64>", "Override VAPID public key");
 	struct arg_str *a_force_privatekey = arg_str0("k", "private-key", "<base64>", "Override VAPID private key");
 
+	// use different config files
 	struct arg_str *a_config = arg_str0("c", "config", "<file>", "Config file. Default " DEF_CONFIG_FILE_NAME);
+
+	// if no subscription id or name
+	struct arg_str *a_registrationid = arg_str0("r", "registration", "<id>", "no id/name: Subscription VAPID key)");
+	struct arg_str *a_p256dh = arg_str0("d", "p256dh", "<base64>", "no id/name: VAPID public key");
+	struct arg_str *a_auth = arg_str0("a", "auth", "<base64>", "no id/name: VAPID auth");
 
 	struct arg_lit *a_aesgcm = arg_lit0("1", "aesgcm", "Force AESGCM. Default AES128GCM");
 	struct arg_lit *a_verbosity = arg_litn("v", "verbose", 0, 4, "0- quiet (default), 1- errors, 2- warnings, 3- debug, 4- debug libs");
@@ -81,7 +156,7 @@ int main(int argc, char **argv)
 	struct arg_end *a_end = arg_end(20);
 
 	void* argtable[] = { 
-		a_subscriptionid,
+		a_subscriptionids,
 		a_registrationid, a_p256dh, a_auth, 
 		a_subject, a_body, a_icon, a_link,
 		// from
@@ -103,10 +178,10 @@ int main(int argc, char **argv)
 
 	int verbosity = a_verbosity->count;
 
-	std::string subscriptionid = *a_subscriptionid->sval;
-	std::string registrationid;
-	std::string p256dh;
-	std::string auth;
+	std::vector<std::string> subscriptionids;
+	for (size_t i = 0; i < a_subscriptionids->count; i++) {
+		subscriptionids.push_back(a_subscriptionids->sval[i]);
+	}
 	
 	// read config
 	std::string config;
@@ -125,33 +200,35 @@ int main(int argc, char **argv)
 		std::cerr << "Error register client" << std::endl;
 	}
 
-	std::string privateKey;
-	std::string publicKey;
+	std::string privateKey = wpnConfig.wpnKeys->getPrivateKey();
+	std::string publicKey = wpnConfig.wpnKeys->getPublicKey();
 
-	if (!subscriptionid.empty()) {
-		Subscription *s = wpnConfig.subscriptions->findByNameOrId(subscriptionid);
-		if (!s) {
-			std::cerr << "Error " << ERR_SUBSCRIPTION_NOT_FOUND << ": subscription "  << subscriptionid << " not found." << std::endl;
-			exit(ERR_SUBSCRIPTION_NOT_FOUND);
-		}
-		if (!s->hasToken()) {
-			std::cerr << "Error " << ERR_SUBSCRIPTION_TOKEN_NOT_FOUND << ": subscription "  << subscriptionid << " token not found." << std::endl;
-			exit(ERR_SUBSCRIPTION_TOKEN_NOT_FOUND);
-		}
-		publicKey = wpnConfig.wpnKeys->getPublicKey();
-		privateKey = wpnConfig.wpnKeys->getPrivateKey();
+	std::string registrationid;
+	std::string p256dh;
+	std::string auth;
 
-		registrationid = s->getToken();
-		p256dh = s->getWpnKeys().getPublicKey();
-		auth = s->getWpnKeys().getAuthSecret();
+	bool isNoIdOrName = a_subscriptionids->count == 0;
+	if (isNoIdOrName) {
+		if (a_registrationid->count)
+			registrationid = *a_registrationid->sval;
+		if (a_p256dh->count)
+			p256dh = *a_p256dh->sval;
+		if (a_auth->count)
+			auth = *a_auth->sval;
+
+		if (registrationid.empty()) {
+			nerrors++;
+			std::cerr << "No subscription id/name, recipient registration id missed." << std::endl;
+		}
+		if (p256dh.empty()) {
+			nerrors++;
+			std::cerr << "No subscription id/name, recipient public key missed." << std::endl;
+		}
+		if (auth.empty()) {
+			nerrors++;
+			std::cerr << "No subscription id/name, recipient auth missed." << std::endl;
+		}
 	}
-
-	if (a_registrationid->count)
-		registrationid = *a_registrationid->sval;
-	if (a_p256dh->count)
-		p256dh = *a_p256dh->sval;
-	if (a_auth->count)
-		auth = *a_auth->sval;
 
 	std::string subject; 
 	std::string icon;
@@ -192,21 +269,6 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	if (subscriptionid.empty()) {
-		if (registrationid.empty()) {
-			nerrors++;
-			std::cerr << "Recipient registration id missed." << std::endl;
-		}
-		if (p256dh.empty()) {
-			nerrors++;
-			std::cerr << "Recipient public key missed." << std::endl;
-		}
-		if (auth.empty()) {
-			nerrors++;
-			std::cerr << "Recipient auth missed." << std::endl;
-		}
-	}
-
 	enum VAPID_PROVIDER provider = PROVIDER_CHROME;
 	if ("firefox" == std::string(*a_provider->sval)) {
 		provider = PROVIDER_FIREFOX;
@@ -242,65 +304,86 @@ int main(int argc, char **argv)
 	if (!force_publickey.empty())
 		publicKey = force_publickey;
 
-	// write
-	std::string endPoint = endpoint(registrationid, true, (int) provider);	///< 0- Chrome, 1- Firefox
-	std::string msg = jsClientNotification(registrationid, subject, body, icon, link);
+	if (isNoIdOrName) {
+		// No id or name is provided, get from -r -d -a options
+		std::string endPoint = endpoint(registrationid, true, (int) provider);	///< 0- Chrome, 1- Firefox
+		std::string msg = jsClientNotification(registrationid, subject, body, icon, link);
 
-	if (verbosity > 0) {
-		std::cerr
-			<< "registrationid: " <<  registrationid << std::endl
-			<< "endpoint: " << endPoint << std::endl
-			<< "provider: " << (provider == PROVIDER_FIREFOX ? "firefox" : "chrome") << std::endl
-			<< "privateKey: " << privateKey << std::endl
-			<< "publicKey: " << publicKey << std::endl
-			<< "p256dh: " << p256dh << std::endl 
-			<< "auth: " << auth << std::endl 
-			<< "msg: " << msg << std::endl 
-			<< "contact: " << contact << std::endl 
-			<< (aesgcm ? "AESGCM" : "AES128GCM") << std::endl;
-	}
-	
-	time_t t = time(NULL) + 86400 - 60;
-
-	if (verbosity > 1) {
-		// print out curl
-		std::string retval = webpushVapidCmd(
-			publicKey,
-			privateKey,
+		std::string retval;
+		int r = sendMessage(
+			NULL,			// re-use CURL connection
+			retval,
 			cmdFileName,
+			registrationid,
 			endPoint,
-			p256dh,
-			auth,
+			provider,
+
+			publicKey,		// from
+			privateKey,		// from
+			endPoint,
+			p256dh,			// to
+			auth,			// to
 			msg,
 			contact,
-			aesgcm ? AESGCM : AES128GCM,
-			t
+			aesgcm,
+			verbosity
 		);
-		std::cerr << retval << std::endl;
+		if (r < 200 || r > 299) {
+			exit(r);
+		}
+		exit(0);
 	}
-	
-	std::string retval;
 
-	r = webpushVapid(
-		NULL,			// re-use CURL connection
-		retval, 
-		publicKey,		// from
-		privateKey,		// from
-		endPoint,
-		p256dh,			// to
-		auth,			// to
-		msg,
-		contact,
-		aesgcm ? AESGCM : AES128GCM,
-		t
-	);
+	// write from config file
+	CURL *curl = curl_easy_init();
+	size_t c = 0;	// count subscriptions
+	for (size_t i = 0; i < subscriptionids.size(); i++) {
+		std::string subscriptionid = subscriptionids[i];
+		// each entry can be number (as decimal string), name of subscription or wildcard( "*" character")
+		std::vector<Subscription>::const_iterator s = wpnConfig.subscriptions->findId(subscriptionid);
+		if (s != wpnConfig.subscriptions->list.end())
+		{
+			if (!s->hasToken()) {
+				std::cerr << "Error " << ERR_SUBSCRIPTION_TOKEN_NOT_FOUND << ": subscription "  << subscriptionid << " token not found." << std::endl;
+				continue;
+			}
+			c++;
 
-	if (r < 200 || r > 299) 
-	{
-		std::cerr << "Send error " << r 
-			<< ": " << retval
-			<< std::endl;
-		return r;
+			registrationid = s->getToken();
+			p256dh = s->getWpnKeys().getPublicKey();
+			auth = s->getWpnKeys().getAuthSecret();
+
+			std::string endPoint = endpoint(registrationid, true, (int) provider);	///< 0- Chrome, 1- Firefox
+			std::string msg = jsClientNotification(registrationid, subject, body, icon, link);
+
+			std::string retval;
+			int r = sendMessage(
+				curl,			// re-use CURL connection
+				retval,
+				cmdFileName,
+				registrationid,
+				endPoint,
+				provider,
+
+				publicKey,		// from
+				privateKey,		// from
+				endPoint,
+				p256dh,			// to
+				auth,			// to
+				msg,
+				contact,
+				aesgcm,
+				verbosity
+			);
+			if (r < 200 || r > 299) {
+				break;
+			}
+		}
+	}
+	curl_easy_cleanup(curl);
+	if (c == 0) {
+		std::cerr << "Error " << ERR_SUBSCRIPTION_NOT_FOUND << std::endl;
+		exit(ERR_SUBSCRIPTION_NOT_FOUND);
 	}
 	return r;
 }

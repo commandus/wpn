@@ -432,6 +432,7 @@ public:
 	Subscription *getById(uint64_t id) const;
 	Subscription *findByNameOrId(const std::string &name) const;
 	Subscription *findByPublicKey(const std::string &value) const;
+	std::vector<Subscription>::const_iterator findId(const std::string &idOrName) const;
 	std::vector<std::string> getPersistentIdList(const int limit = 0);
 	void putSubsciptionVapidPubKey(
 		uint64_t id,
