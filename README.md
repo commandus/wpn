@@ -72,7 +72,9 @@ Need:
 
 ### GCM token as QR code
 
-List of VAPID token.
+Use -q or -Q option to see QR code for subscription.
+
+List of subscription's VAPID tokens with -v option.
 
 First is client's VAPID key, then subscription's VAPID keys
 on black screen (white characters, black background:
