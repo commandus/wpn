@@ -52,7 +52,8 @@
 
 #define PROMPT_STARTED		"Enter q or press Ctrl+C to quit, p to ping"
 
-#define LINK_SUREPHONE_D	"https://mail.surephone.commandus.com/?d="
+#define LINK_SUREPHONE_D	"https://surephone.commandus.com/?d="
+#define LINK_SUREPHONE_QR	"https://surephone.commandus.com/qr/?id="
 #define DEF_EMAIL_TEMPLATE	"<html><body>$subject<br/>Hi, $name<br/>Click the link below on the phone, tablet or other device on which surephone is installed.\
 If the program is not already installed, \
 <a href=\"https://play.google.com/store/apps/details?id=com.commandus.surephone\">install it</a>.\
@@ -213,17 +214,19 @@ int main(int argc, char** argv)
 					<< config.config->clientOptions->name << std::endl
 					<< v << std::endl;
 				long r = 0;
-				for (std::vector<Subscription>::const_iterator it(config.config->subscriptions->list.begin()); it != config.config->subscriptions->list.end(); ++it)
-				{
-					std::string v = it->getWpnKeys().getPublicKey();
-					if (config.invert_qrcode)
-						v = qr2string(v, foreground, background);
-					else
-						v = qr2string(v, background, foreground);
-					std::cout 
-						<< it->getWpnKeys().id << "\t"
-						<< it->getName() << std::endl
-						<< v << std::endl;
+				if (config.config->clientOptions->getVerbosity() > 0) {
+					for (std::vector<Subscription>::const_iterator it(config.config->subscriptions->list.begin()); it != config.config->subscriptions->list.end(); ++it)
+					{
+						std::string v = it->getWpnKeys().getPublicKey();
+						if (config.invert_qrcode)
+							v = qr2string(v, foreground, background);
+						else
+							v = qr2string(v, background, foreground);
+						std::cout 
+							<< it->getWpnKeys().id << "\t"
+							<< it->getName() << std::endl
+							<< v << std::endl;
+					}
 				}
 			}
 			break;
