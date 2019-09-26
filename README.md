@@ -46,6 +46,14 @@ To do this there are other tools:
 
 [Project description, ru](https://docs.google.com/document/d/19pM4g-hvx2MUVV2Ggljw1MMTg9tMCEH7aHYYKpJMaWk/edit?usp=sharing)
 
+## Related projects
+
+Registry service repositories:
+
+[PHP](https://gitlab.com/commandus/wpn-registry-php.git)
+
+[HTML](https://gitlab.com/commandus/wpn-registry-html.git)
+
 ## Print device identifiers and security tokens
 
 Check:
