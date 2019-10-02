@@ -437,9 +437,19 @@ void WpnKeys::init(
 {
 	this->id = id;
 	this->secret = secret;
-	ece_base64url_decode(private_key.c_str(), private_key.size(), ECE_BASE64URL_REJECT_PADDING, privateKey, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
-	ece_base64url_decode(public_key.c_str(), public_key.size(), ECE_BASE64URL_REJECT_PADDING, publicKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH);
-	ece_base64url_decode(auth_secret.c_str(), auth_secret.size(), ECE_BASE64URL_REJECT_PADDING, authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
+	size_t sz = ece_base64url_decode(private_key.c_str(), private_key.length(), ECE_BASE64URL_REJECT_PADDING, privateKey, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
+	if (sz != ECE_WEBPUSH_PRIVATE_KEY_LENGTH) {
+		memset(&privateKey, 0, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
+	}
+	sz = ece_base64url_decode(public_key.c_str(), public_key.length(), ECE_BASE64URL_REJECT_PADDING, publicKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH);
+	std::cerr << sz << std::endl;
+	if (sz != ECE_WEBPUSH_PUBLIC_KEY_LENGTH) {
+		memset(&publicKey, 0, ECE_WEBPUSH_PUBLIC_KEY_LENGTH);
+	}
+	sz = ece_base64url_decode(auth_secret.c_str(), auth_secret.length(), ECE_BASE64URL_REJECT_PADDING, authSecret, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
+	if (sz != ECE_WEBPUSH_AUTH_SECRET_LENGTH) {
+		memset(&authSecret, 0, ECE_WEBPUSH_AUTH_SECRET_LENGTH);
+	}
 }
 
 void WpnKeys::init(

@@ -11,13 +11,17 @@ notifications from stdout using pipes ('|') to other programs.
 wpnw and wpnr uses configuration files.
 
 Each configuration file corresponds to one client.
+
 Client has unique public and private keys.
+
 Client can be registered in the "yellow pages" service with a number.
+
 This number can be used instead of keys for simplicity.
 
-wpn-grant creates configuration file and register client's public key in the registry.
+- wpn-grant creates configuration file and register client's public key in the registry.
 
 Your client need get access to write messages to specified client.
+
 To do this, wpn-grant give ability to subscribe client to receive messages from other client in 3 steps.
 
 In each step client subscribe to receive messages and creates and provide information how to send message from other client.

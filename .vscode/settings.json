@@ -77,5 +77,6 @@
 		"__tree": "cpp",
 		"unordered_set": "cpp"
 	},
-	"git.ignoreLimitWarning": true
+	"git.ignoreLimitWarning": true,
+	"editor.fontFamily": "'Roboto Mono', 'Cascadia Code'"
 }

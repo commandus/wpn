@@ -81,7 +81,7 @@
 			"type": "cppdbg",
 			"request": "launch",
 			"program": "${workspaceFolder}/wpn-grant",
-			"args": ["-c", "2.js", "21"],
+			"args": ["-c", "23.js", "73"],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",
 			"environment": [],
