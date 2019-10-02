@@ -442,7 +442,6 @@ void WpnKeys::init(
 		memset(&privateKey, 0, ECE_WEBPUSH_PRIVATE_KEY_LENGTH);
 	}
 	sz = ece_base64url_decode(public_key.c_str(), public_key.length(), ECE_BASE64URL_REJECT_PADDING, publicKey, ECE_WEBPUSH_PUBLIC_KEY_LENGTH);
-	std::cerr << sz << std::endl;
 	if (sz != ECE_WEBPUSH_PUBLIC_KEY_LENGTH) {
 		memset(&publicKey, 0, ECE_WEBPUSH_PUBLIC_KEY_LENGTH);
 	}
