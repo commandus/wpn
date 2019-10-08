@@ -268,6 +268,7 @@ int main(int argc, char **argv)
 	else
 		config = getDefaultConfigFileName(DEF_CONFIG_FILE_NAME);
 	ConfigFile wpnConfig(config);
+	wpnConfig.clientOptions->setVerbosity(verbosity);
 	if (wpnConfig.errorCode) {
 		std::cerr << "Error " << wpnConfig.errorCode << ": " << wpnConfig.errorDescription << std::endl;
 		exit(wpnConfig.errorCode);
