@@ -204,6 +204,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+	// subscribe to if identifier is provided
 	if (id) {
 		// identifier is specified
 		Subscription *s = wpnConfig.subscriptions->getById(id);
