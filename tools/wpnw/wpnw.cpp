@@ -386,7 +386,43 @@ int main(int argc, char **argv)
 				verbosity
 			);
 			if (r < 200 || r > 299) {
-				break;
+				// 410: push subscription has unsubscribed or expired.
+				if (r >= 400 && r < 500) {
+					r = rclient.reSubscribe(subscriptionid);
+					if (r < 0) {
+						std::cerr << "Error " << r << ": Can not re-subscribe to " << subscriptionid << std::endl;
+					} else {
+						// Thera are new subscriptions ready to save in the config file.
+						wpnConfig.save();
+						// try again
+						std::vector<Subscription>::const_iterator s2 = wpnConfig.subscriptions->findId(subscriptionid);
+						if (s2 != wpnConfig.subscriptions->list.end()) {
+							registrationid = s2->getToken();
+							p256dh = s2->getWpnKeys().getPublicKey();
+							auth = s2->getWpnKeys().getAuthSecret();
+							endPoint = endpoint(registrationid, true, (int) provider);	///< 0- Chrome, 1- Firefox
+							msg = jsClientNotification(registrationid, subject, body, icon, link);
+							int r = sendMessage(
+								curl,			// re-use CURL connection
+								retval,
+								cmdFileName,
+								registrationid,
+								endPoint,
+								provider,
+								publicKey,		// from
+								privateKey,		// from
+								endPoint,
+								p256dh,			// to
+								auth,			// to
+								msg,
+								contact,
+								aesgcm,
+								verbosity
+							);
+						}
+					}
+				} else
+					break;
 			}
 		}
 	}

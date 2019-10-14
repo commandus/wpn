@@ -10,6 +10,7 @@
 #include "wp-storage-file.h"
 #include "wp-registry.h"
 #include "wp-subscribe.h"
+#include "errlist.h"
 
 #define ENDPOINT "https://surephone.commandus.com/wpn-registry/"
 #define HEADER_AUTH	"Authorization: U "
@@ -353,4 +354,45 @@ int RegistryClient::rmSubscription(
 		c = true;
 	}
 	return c;
+}
+
+/**
+ * Re-subscribe (in case user ubsubscribe and subscribe again)
+ * @return count of succuessfully loaded new subscriptions from the registry
+ **/
+int RegistryClient::reSubscribe
+(
+	const std::string &subscriptionid
+)
+{
+	uint64_t id = strtoull(subscriptionid.c_str(), NULL, 10);
+	Subscription *s;
+	// get from service
+	std::string v;
+	if (get(id, &v)) {
+		s = config->subscriptions->getById(id);
+	}
+	// check token
+	if (!s)
+		return ERR_CONNECTION;
+	// Make subscription
+	if (!subscribeById(id)) {
+		// std::cerr << "Error " << errorCode << ": " << errorDescription << ". Can not subscribe to " << id << "." << std::endl;
+		return ERR_SUBSCRIPTION_TOKEN_NOT_FOUND;
+	}
+	if (s->getSentToken().empty()) {
+		return ERR_SUBSCRIPTION_TOKEN_NOT_FOUND;
+	}
+	// Send subscription (sentToken) to the service
+	if (!addSubscription(id)) {
+		// std::cerr << "Error: can not register subscription to " << id << "." << std::endl;
+		return ERR_REGISTER_SUBSCRIPTION;
+	}
+	// try get subscription from the service
+	int r = getSubscription(id);
+	if (r) {
+		// std::cerr << "Error " << r << ": can not get subscription " << id << "." << std::endl;
+		return ERR_REGISTER_SUBSCRIPTION;
+	}
+	return 0;
 }

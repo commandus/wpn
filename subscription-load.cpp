@@ -5,7 +5,7 @@
  * Load subscription if not fouind in config file
  * @return 0- success (no changes made) 1- success (changed) <0- error
  */
-static int loadMissedSubscriptionFromRegistry
+static int checkNLoadMissedSubscriptionFromRegistry
 (
 	Subscriptions *subscriptions,
 	RegistryClient *rclient,
@@ -69,9 +69,10 @@ size_t loadMissedSubscriptionsFromRegistry
 	size_t c = 0;
 	for (size_t i = 0; i < subscriptionids.size(); i++) {
 		uint64_t id = strtoull(subscriptionids[i].c_str(), NULL, 10);
-		if (loadMissedSubscriptionFromRegistry(subscriptions, rclient, id) == 1) {
+		if (checkNLoadMissedSubscriptionFromRegistry(subscriptions, rclient, id) == 1) {
 			c++;
 		}
 	}
 	return c;
 }
+

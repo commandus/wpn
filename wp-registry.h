@@ -76,6 +76,15 @@ public:
 	 */
 	bool validate(
 	);
+
+	/**
+	 * Re-subscribe (in case user ubsubscribe and subscribe again)
+	 * @return count of succuessfully loaded new subscriptions from the registry
+	 **/
+	int reSubscribe
+	(
+		const std::string &subscriptionid
+	);
 };
 
 #endif
