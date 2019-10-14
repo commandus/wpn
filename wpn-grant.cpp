@@ -48,16 +48,11 @@
 #include "utilrecv.h"
 #include "wp-storage-file.h"
 #include "wp-registry.h"
+#include "errlist.h"
 
 #define  DEF_CONFIG_FILE_NAME ".wpn.js"
 
 static const char* progname = "wpn-grant";
-
-#define ERR_NOT_FOUND							-1
-#define ERR_SUBSCRIBE							-2
-#define	ERR_REGISTER_SUBSCRIPTION				-3
-#define ERR_NO_ANDROID_ID_N_TOKEN				-4
-#define ERR_NO_FCM_TOKEN						-5
 
 int main(int argc, char **argv) 
 {
@@ -172,7 +167,7 @@ int main(int argc, char **argv)
 				std::string v;
 				if (!rclient.get(id, &v)) {
 					std::cerr << "Error: no subscription " << id << " found." << std::endl;
-					return ERR_NOT_FOUND;
+					return ERR_SUBSCRIPTION_NOT_FOUND;
 				}
 				s = wpnConfig.subscriptions->getById(id);
 			}
@@ -194,12 +189,12 @@ int main(int argc, char **argv)
 			bool r = wpnConfig.subscriptions->rmById(id);
 			if (!r) {
 				std::cerr << "Error: can not delete subscription " << id << "." << std::endl;
-				return ERR_NOT_FOUND;
+				return ERR_SUBSCRIPTION_NOT_FOUND;
 			}
 			wpnConfig.save();
 		} else {
 				std::cerr << "Error: no subscription identifier provided." << std::endl;
-				return ERR_NOT_FOUND;
+				return ERR_SUBSCRIPTION_NOT_FOUND;
 		}
 		return 0;
 	}
@@ -213,7 +208,7 @@ int main(int argc, char **argv)
 			std::string v;
 			if (!rclient.get(id, &v)) {
 				std::cerr << "Error: no subscription " << id << " found." << std::endl;
-				return ERR_NOT_FOUND;
+				return ERR_SUBSCRIPTION_NOT_FOUND;
 			}
 			// Save VAPID public key
 			wpnConfig.save();
@@ -221,7 +216,7 @@ int main(int argc, char **argv)
 		}
 
 		if (!s)
-			return ERR_NOT_FOUND;
+			return ERR_SUBSCRIPTION_NOT_FOUND;
 		if (!s->hasToken()) {
 			// Make subscription
 			if (s->getSentToken().empty()) {

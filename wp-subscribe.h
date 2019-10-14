@@ -4,12 +4,6 @@
 #ifndef WP_SUBSCRIBE_H_
 #define WP_SUBSCRIBE_H_	1
 
-#define ERR_MODE					-1
-#define ERR_PARAM_ENDPOINT			-2
-#define ERR_PARAM_AUTH_ENTITY		-3
-#define ERR_CONNECTION				-4
-#define	ERROR_SUBSCRIBE				-5
-
 #include <string>
 #include "wp-storage-file.h"
 
@@ -23,7 +17,7 @@
  * @param receiverAuth receiver auth secret
  * @param receiverAppId application identifier 
  * @param verbosity default 0- none
- * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
+ * @return 200-299 - OK (HTTP code), less than 0- fatal error
  */
 int subscribe
 (
@@ -48,7 +42,7 @@ int subscribe
  * @param receiverAuth receiver auth secret
  * @param receiverAppId application identifier 
  * @param verbosity default 0- none
- * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
+ * @return 200-299 - OK (HTTP code), less than 0- fatal error
  **/
 int unsubscribe
 (
@@ -78,7 +72,7 @@ int unsubscribe
  * @param endPoint https URL e.g. https://sure-phone.firebaseio.com
  * @param authorizedEntity usual decimal number string "103953800507"
  * @param verbosity default 0- none
- * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
+ * @return 200-299 - OK (HTTP code), less than 0- fatal error
  */
 int subscribeFCM
 (

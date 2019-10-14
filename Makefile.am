@@ -79,7 +79,7 @@ wpnw_source = \
 	$(gengrpcs_c) \
 	utilfile.cpp utilstring.cpp params.cpp commandoutput.cpp endpoint.cpp \
 	vapid.cpp utilvapid.cpp utilrecv.cpp utilinstance.cpp wp-registry.cpp utiljson.cpp \
-	config-filename.cpp
+	config-filename.cpp subscription-load.cpp errlist.cpp
 
 #
 # Comment this line for old gcc versions 
@@ -128,7 +128,7 @@ nobase_dist_include_HEADERS = \
 	utilqr.h $(QRHEADERS) $(ECECHEADERS) \
 	$(ARGT3HEADERS) \
 	$(gengrpcs_h) \
-	config-filename.h
+	config-filename.h subscription-load.h errlist.h
 
 common_src = $(ARGT3SOURCES)
 

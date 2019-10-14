@@ -5,11 +5,6 @@
 #ifndef WP_CONNECTION_H
 #define WP_CONNECTION_H	1
 
-#define ERR_MODE					-1
-#define ERR_PARAM_ENDPOINT			-2
-#define ERR_PARAM_AUTH_ENTITY		-3
-#define ERR_CONNECTION				-4
-
 #include <string>
 #include "wp-storage-file.h"
 
@@ -21,7 +16,7 @@
  * @param errorDescription return error explanation if not NULL
  * @param stop stopping flag
  * @param verbosity default 0- none
- * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
+ * @return 200-299 - OK (HTTP code), less than 0- fatal error
  */
 int connectionRun
 (

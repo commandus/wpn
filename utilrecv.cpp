@@ -14,6 +14,7 @@
 #include "android_checkin.pb.h"
 #include "checkin.pb.h"
 
+#include "errlist.h"
 #include "utilvapid.h"
 #include "utilstring.h"
 #include "wp-storage-file.h"

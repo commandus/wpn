@@ -1,9 +1,7 @@
 #ifndef COMMANDOUTPUT_H
 #define COMMANDOUTPUT_H 1
 
-#define ERR_FAILED_RUN		-1	// Failed to run command
-#define ERR_FAILED_PIPE		-2	// Failed create pipe. Windows only
-#define ERR_PIPE_SET_INFO	-3	// Failed set up info. Windows only
+#include "errlist.h"
 
 #include <string>
 #include <ostream>

@@ -36,16 +36,6 @@
 
 #include "heartbeat.h"
 
-#define ERR_NO_CONFIG				-21
-#define ERR_NO_KEYS					-22
-#define ERR_NO_CREDS				-23
-#define ERR_NO_ANDROID_ID_N_TOKEN	-24
-#define ERR_NO_FCM_TOKEN			-25
-#define ERR_CHECKIN					-26
-#define ERR_NO_CONNECT				-27
-#define ERR_MEM						-28
-#define ERR_DISCONNECTED			-29
-
 enum PROTO_STATE {
 	STATE_VERSION = 0,
 	STATE_TAG = 1

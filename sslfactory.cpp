@@ -12,8 +12,7 @@
 #include <arpa/inet.h>
 #endif
 #include <string.h>
-
-#define ERROR_COUNT	7
+#include "errlist.h"
 
 void initSSL()
 {
@@ -21,27 +20,6 @@ void initSSL()
 //	ERR_load_BIO_strings();
 //	ERR_load_crypto_strings();
 //	SSL_load_error_strings();
-}
-
-static const char *ERR_SSL[ERROR_COUNT] = {
-	"OK"
-	"Can not initialize OpenSSL",
-	"Can not create a new SSL context",
-	"Can not build a SSL session",
-	"Can not resolve host name",
-	"Can not connect to host",
-	"SSL not initialized"
-};
-
-static const char *getErrorDescription(int error)
-{
-	int idx = -error;
-	if (idx >= 0 && idx < ERROR_COUNT)
-	{
-		return ERR_SSL[idx];
-	}
-	else
-		return NULL;
 }
 
 /**
@@ -60,7 +38,7 @@ int createTCPsocket
 
 	if ((host = gethostbyname(hostname)) == NULL ) 
 	{
-		return ERR_RESOLVE;
+		return ERR_SSL_RESOLVE;
 	}
 
 	// create the basic TCP socket
@@ -77,7 +55,7 @@ int createTCPsocket
 	// Try to connect
 	if (connect(*sock, (struct sockaddr *) &dest_addr, sizeof(struct sockaddr)) == -1 ) 
 	{
-		return ERR_CONNECT;
+		return ERR_SSL_CONNECT;
 	}
 	return 0;
 }
@@ -90,7 +68,7 @@ int createContext
 	// initialize SSL library and register algorithms
 	if (SSL_library_init() < 0)
 	{
-		return ERR_INIT;
+		return ERR_SSL_INIT;
 	}
 
 	// Set SSLv2 client hello, also announce SSLv3 and TLSv1      *
@@ -99,7 +77,7 @@ int createContext
 	// Try to create a new SSL context
 	if ((*ctx = SSL_CTX_new(method)) == NULL)
 	{
-		return ERR_CONTEXT;
+		return ERR_SSL_CONTEXT;
 	}
 
 	// Disabling SSLv2 will leave v3 and TSLv1 for negotiation
@@ -132,7 +110,7 @@ int createSSLsocket
 	// Try to SSL-connect here, returns 1 for success
 	if (SSL_connect(*retval) != 1)
 	{
-		return ERR_SESSION;
+		return ERR_SSL_SESSION;
 	}
 	return 0;
 }

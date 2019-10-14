@@ -15,6 +15,7 @@
 
 #include "utiljson.h"
 #include "utilvapid.h"
+#include "errlist.h"
 
 #define FCM_SEND "https://fcm.googleapis.com/fcm/send"
 

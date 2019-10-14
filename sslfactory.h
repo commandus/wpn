@@ -5,14 +5,6 @@
 #include <openssl/ssl.h>
 #include "platform.h"
 
-#define ERR_OK		0
-#define ERR_INIT	-1
-#define ERR_CONTEXT	-2
-#define ERR_SESSION	-3
-#define ERR_RESOLVE	-4
-#define ERR_CONNECT	-5
-#define ERR_NO_SSL	-6
-
 void initSSL();
 
 class SSLFactory

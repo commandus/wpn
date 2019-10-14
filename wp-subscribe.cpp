@@ -3,11 +3,13 @@
 #include <fstream>
 #include <sstream>
 #include <curl/curl.h>
+
+#include "wp-subscribe.h"
 #include "ece.h"
 #include "utiljson.h"
 #include "utilstring.h"
 #include "utilvapid.h"
-#include "wp-subscribe.h"
+#include "errlist.h"
 
 /**
   * @brief CURL write callback
@@ -170,7 +172,7 @@ int subscribeFCM
 		if (r >= 200 && r < 300)
 		{
 			if (!jsSubscribeFCMParseResponse(*retVal, retToken, retPushSet)) {
-				r = ERROR_SUBSCRIBE;
+				r = ERR_SUBSCRIBE;
 				*retVal = "Error parse JSON: " + *retVal;
 			}
 		}
@@ -259,7 +261,7 @@ int subscribe
 				if (token_pos != std::string::npos) {
 					if (retVal)
 						*retVal = retVal->substr(token_pos + TOKEN_ERROR.length());
-					r = ERROR_SUBSCRIBE;
+					r = ERR_SUBSCRIBE;
 				}
 			}
 		}

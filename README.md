@@ -997,37 +997,6 @@ MacOS:
 brew install protobuf
 ```
 
-## Error codes
-
-- -1 Out of memory
-- -2 Invalid private key
-- -3 Invalid public key
-- -4 Error compute secret
-- -5 Error encode public key
-- -6 Error decrypt
-- -7 Error decrypt padding
-- -8 Error zero plain text
-- -9 Too short block
-- -10 Too short header
-- -11 Zero cipher text
-- -12 Error HKDF
-- -13 Invalid encryption header
-- -14 Invalid Crypto-key header
-- -15 Invalid rs
-- -16 Invalid salt
-- -17 Invalid dh
-- -18 Error encrypt
-- -19 Error encrypt padding
-- -20 Invalid auth secret
-- -21 Error generate keys
-- -22 Error decrypt truncated
-- -30 Error read configuration file
-- -31 Error parse configuration file
-- -40 No subscription found
-- -41 Service transport error (no Internet connection)
-- -42 Invalid subscription
-- -43 Empty subscription
-
 ## Errors
 
 Subscription errors

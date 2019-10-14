@@ -47,8 +47,7 @@
 #include "utilvapid.h"
 #include "utilrecv.h"
 #include "sslfactory.h"
-
-#define ERR_WSA		-1
+#include "errlist.h"
 
 #define PROMPT_STARTED		"Enter q or press Ctrl+C to quit, p to ping"
 

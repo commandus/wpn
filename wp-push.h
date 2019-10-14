@@ -3,10 +3,6 @@
 
 #include <string>
 
-#define ERR_PARAM_SERVER_KEY		-1
-#define ERR_PARAM_CLIENT_TOKEN		-2
-#define ERR_PARSE_RESPONSE			-3
-
 /**
  * FCM web push utilities
  */

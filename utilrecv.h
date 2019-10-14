@@ -9,10 +9,6 @@
 
 // MathFuncsDll.h
 
-#define ERR_WRONG_PARAM				-31
-#define ERR_REGISTER_VAL			-32	// Error registering
-#define ERR_REGISTER_FAIL			-33
-
 /**
   * POST data, return received data in retval
   * @return 200-299 success, otherwise error code. retval contains error description

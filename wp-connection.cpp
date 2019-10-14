@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include "wp-connection.h"
+#include "errlist.h"
 
 /**
  * I dont remember what is it

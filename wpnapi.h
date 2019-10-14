@@ -21,8 +21,6 @@ extern "C" {
 #define EXPORTDLL
 #endif
 
-#define ERR_INSUFFICIENT_SIZE -51
-
 enum VAPID_PROVIDER {
 	PROVIDER_CHROME = 0,
 	PROVIDER_FIREFOX = 1
@@ -279,7 +277,7 @@ EXPORTDLL void stopClientC
  * @param receiverAppId application identifier
  * @param authorizedEntity VAPID: Sender public key; GCM: project decimal number string "103953800507"
  * @param verbosity default 0- none
- * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
+ * @return 200-299 - OK (HTTP code), less than 0- fatal error
  */
 EXPORTDLL int subscribeC
 (
@@ -313,7 +311,7 @@ EXPORTDLL int subscribeC
  * @param receiverAppId application identifier
  * @param authorizedEntity VAPID: Sender public key; GCM: project decimal number string "103953800507"
  * @param verbosity default 0- none
- * @return 200-299 - OK (HTTP code), less than 0- fatal error (see ERR_*)
+ * @return 200-299 - OK (HTTP code), less than 0- fatal error
  */
 EXPORTDLL int unsubscribeC
 (

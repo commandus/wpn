@@ -24,9 +24,6 @@
 #define FORMAT_TEXT					0
 #define FORMAT_JSON					1
 
-#define ERR_CONFIG_FILE_READ		-30
-#define ERR_CONFIG_FILE_PARSE_JSON	-31
-
 class ClientOptions
 {
 private:

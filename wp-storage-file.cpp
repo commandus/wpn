@@ -9,6 +9,7 @@
 #include "utilstring.h"
 #include "utilvapid.h"
 #include "endpoint.h"
+#include "errlist.h"
 
 #ifdef USE_JSON_RAPID
 #include "rapidjson/error/en.h"

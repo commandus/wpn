@@ -45,15 +45,11 @@
 
 #include "config-filename.h"
 #include "wpnapi.h"
+#include "errlist.h"
+#include "subscription-load.h"
 
 static const char* progname = "wpnw";
 #define DEF_CONFIG_FILE_NAME			".wpn.js"
-
-#define ERR_SUBSCRIPTION_NOT_FOUND			-1
-#define ERR_SUBSCRIPTION_TOKEN_NOT_FOUND	-2
-#define	ERR_REGISTER_SUBSCRIPTION			-3
-#define ERR_NO_ANDROID_ID_N_TOKEN			-4
-#define ERR_NO_FCM_TOKEN					-5
 
 int sendMessage(
 	void *curl,
@@ -126,81 +122,6 @@ int sendMessage(
 		std::cerr << "Send error " << r << ": " << retval << std::endl;
 	}
 	return r;
-}
-
-/**
- * Load subscription if not fouind in config file
- * @return 0- success
- */
-int loadMissedSubscriptionFromRegistry
-(
-	CURL *curl,
-	ConfigFile *config,
-	RegistryClient *rclient,
-	const uint64_t id
-)
-{
-	Subscription *s = config->subscriptions->getById(id);
-
-	// get from service
-	if (!s) {
-		std::string v;
-		if (rclient->get(id, &v)) {
-			s = config->subscriptions->getById(id);
-		}
-	}
-
-	// check token
-	if (s) {
-		if (!s->hasToken()) {
-			// Make subscription
-			if (s->getSentToken().empty()) {
-				if (!rclient->subscribeById(id)) {
-					std::cerr << "Error " << rclient->errorCode << ": "
-					<< rclient->errorDescription << ". Can not subscribe to " << id << "." << std::endl;
-					return ERR_SUBSCRIPTION_TOKEN_NOT_FOUND;
-				}
-			}
-			if (s->getSentToken().empty()) {
-				return ERR_SUBSCRIPTION_TOKEN_NOT_FOUND;
-			}
-			// Send subscription (sentToken) to the service
-			if (!rclient->addSubscription(id)) {
-				std::cerr << "Error: can not register subscription to " << id << "." << std::endl;
-				return ERR_REGISTER_SUBSCRIPTION;
-			}
-			// try get subscription from the service
-			int r = rclient->getSubscription(id);
-			if (r) {
-				std::cerr << "Error " << r << ": can not get subscription " << id << "." << std::endl;
-				return ERR_REGISTER_SUBSCRIPTION;
-			}
-		}
-	}
-	return s != NULL ? 0 : ERR_CONNECT;
-}
-
-/**
- * Check does subscription identifiers is in configuration file, load it if not
- * @return count of succuessfully loaded new subscriptions from the registry
- **/
-size_t loadMissedSubscriptionsFromRegistry
-(
-	CURL *curl,
-	ConfigFile *config,
-	RegistryClient *rclient,
-	std::vector<std::string> subscriptionids
-)
-{
-	size_t c = 0;
-	for (size_t i = 0; i < subscriptionids.size(); i++) {
-		uint64_t id = strtoull(subscriptionids[i].c_str(), NULL, 10);
-		if (loadMissedSubscriptionFromRegistry(curl, config, rclient, id) == 0) {
-			c++;
-		}
-	}
-	config->save();
-	return c;
 }
 
 int main(int argc, char **argv) 
@@ -413,11 +334,17 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 
-	// write from config file
-	CURL *curl = curl_easy_init();
-
 	// check does subscription identifiers is in configuration file, load it if not
-	loadMissedSubscriptionsFromRegistry(curl, &wpnConfig, &rclient, subscriptionids);
+	r = loadMissedSubscriptionsFromRegistry(wpnConfig.subscriptions, &rclient, subscriptionids);
+	if (r < 0) {
+		std::cerr << "Error " << r << ": Can not load subscription(s) from the registry." << std::endl;
+		exit(r);
+	}
+	if (r > 0) {
+		// Thera are new subscriptions ready to save in the config file.
+		wpnConfig.save();
+	}
+	CURL *curl = curl_easy_init();
 
 	size_t c = 0;	// count subscriptions
 	for (size_t i = 0; i < subscriptionids.size(); i++) {
