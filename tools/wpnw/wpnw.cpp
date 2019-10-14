@@ -124,6 +124,50 @@ int sendMessage(
 	return r;
 }
 
+int sendMessageSubscription(
+	void *curl,
+	std::string &retval,
+	const std::string &cmdFileName,
+	const Subscription *subscription,
+	const std::string &publicKey,
+	const std::string &privateKey,
+	const std::string &contact,
+	bool aesgcm,
+	int verbosity,
+
+	const std::string &subject,
+	const std::string &body,
+	const std::string &icon,
+	const std::string &link
+) {
+	std::string registrationid = subscription->getToken();
+	std::string p256dh = subscription->getWpnKeys().getPublicKey();
+	std::string auth = subscription->getWpnKeys().getAuthSecret();
+	int provider = subscription->getSubscribeMode();
+	std::string endPoint = endpoint(registrationid, true, provider);	///< 0- Chrome, 1- Firefox
+	std::string msg = jsClientNotification(registrationid, subject, body, icon, link);
+
+	return sendMessage(
+		curl,
+		retval,
+		cmdFileName,
+		registrationid,
+		endPoint,
+		provider,
+
+		publicKey,
+		privateKey,
+		endPoint,
+
+		p256dh,
+		auth,
+		msg,
+		contact,
+		aesgcm,
+		verbosity
+	);
+}
+
 int main(int argc, char **argv) 
 {
 	struct arg_str *a_subscriptionids = arg_strn(NULL, NULL, "<number>", 0, 32768, "Subscription number/name. If no provide  -r, -d, -a");
@@ -359,32 +403,23 @@ int main(int argc, char **argv)
 			}
 			c++;
 
-			registrationid = s->getToken();
-			p256dh = s->getWpnKeys().getPublicKey();
-			auth = s->getWpnKeys().getAuthSecret();
-
-			std::string endPoint = endpoint(registrationid, true, (int) provider);	///< 0- Chrome, 1- Firefox
-			std::string msg = jsClientNotification(registrationid, subject, body, icon, link);
-
 			std::string retval;
-			int r = sendMessage(
+			int r = sendMessageSubscription(
 				curl,			// re-use CURL connection
 				retval,
 				cmdFileName,
-				registrationid,
-				endPoint,
-				provider,
-
+				&*s,
 				publicKey,		// from
 				privateKey,		// from
-				endPoint,
-				p256dh,			// to
-				auth,			// to
-				msg,
 				contact,
 				aesgcm,
-				verbosity
+				verbosity,
+				subject,
+				body,
+				icon,
+				link
 			);
+
 			if (r < 200 || r > 299) {
 				// 410: push subscription has unsubscribed or expired.
 				if (r >= 400 && r < 500) {
@@ -397,27 +432,20 @@ int main(int argc, char **argv)
 						// try again
 						std::vector<Subscription>::const_iterator s2 = wpnConfig.subscriptions->findId(subscriptionid);
 						if (s2 != wpnConfig.subscriptions->list.end()) {
-							registrationid = s2->getToken();
-							p256dh = s2->getWpnKeys().getPublicKey();
-							auth = s2->getWpnKeys().getAuthSecret();
-							endPoint = endpoint(registrationid, true, (int) provider);	///< 0- Chrome, 1- Firefox
-							msg = jsClientNotification(registrationid, subject, body, icon, link);
-							int r = sendMessage(
+							sendMessageSubscription(
 								curl,			// re-use CURL connection
 								retval,
 								cmdFileName,
-								registrationid,
-								endPoint,
-								provider,
+								&*s2,
 								publicKey,		// from
 								privateKey,		// from
-								endPoint,
-								p256dh,			// to
-								auth,			// to
-								msg,
 								contact,
 								aesgcm,
-								verbosity
+								verbosity,
+								subject,
+								body,
+								icon,
+								link
 							);
 						}
 					}
