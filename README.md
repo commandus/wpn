@@ -417,7 +417,7 @@ Message composed of:
 - Subject (-t option) mandatory
 - Body (-b option) mandatory
 - Icon (-i option) optional
-- Action URL and caption(-l, -c options) optional
+- Action URL and subject (-l, -t options) optional
 
 After push wpn exits immediately.
 
@@ -459,7 +459,7 @@ Message composed of:
 - Subject (-t option), mandatory
 - Body (-b option), mandatory
 - Icon (-i option), optional
-- Action URL and caption(-l, -c options), both optional
+- Action URL and subject(-l, -t options), both optional
 
 Except message itself options can be stored in subscription. 
 
@@ -508,7 +508,7 @@ Send:
 
 Chrome:
 ```
- ./wpn -m -f "andrei.i.ivanov@gmail.com" -t "hi there" -b "body message" -i https://commandus.com/favicon.ico -l https://commandus.com/ -c "Visit site" -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk https://fcm.googleapis.com/fcm/send/fsvJsFvUpvE:APA91bFLUUr0Owxupb1AqRZ_DE5AfVta35Hm2SAbczaGEQF6PgtEbhI0_ZWArirhcbioKakGPPR5lq4plQBm6QJazCKTiuQvRE1ptidKLq6S2y7h_89spPRi_E9ncJS59A5knRnKSxRh1T6TzJKizW739bWAQm7KKg -d BK0nI6BHSAM7yhv-5TUybvgzUSePr95RUkvNwDw3D7EsG_p0XpbbXnnY7PcwVWv9-v-17dDvD1mK7n4LWXcgSnM -a yMBwZZsKcENvwyeAux8FVg -vvvv -1
+ ./wpn -m -f "andrei.i.ivanov@gmail.com" -t "hi there" -b "body message" -i https://commandus.com/favicon.ico -l https://commandus.com/ -t "Visit site" -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk https://fcm.googleapis.com/fcm/send/fsvJsFvUpvE:APA91bFLUUr0Owxupb1AqRZ_DE5AfVta35Hm2SAbczaGEQF6PgtEbhI0_ZWArirhcbioKakGPPR5lq4plQBm6QJazCKTiuQvRE1ptidKLq6S2y7h_89spPRi_E9ncJS59A5knRnKSxRh1T6TzJKizW739bWAQm7KKg -d BK0nI6BHSAM7yhv-5TUybvgzUSePr95RUkvNwDw3D7EsG_p0XpbbXnnY7PcwVWv9-v-17dDvD1mK7n4LWXcgSnM -a yMBwZZsKcENvwyeAux8FVg -vvvv -1
  ```
 
  Opera:
@@ -669,60 +669,6 @@ Subscription consists of
 - server key (can be empty)
 
 ## Utilities
-
-### webpush-curl
-
-To send message to recipient, message, sender and recipient options are mandatory.
-
-Message:
-
-- -t, --title Message subject
-- -b, --body Message body
-- -i, --icon Message icon URL
-- -l, --action-link Message action link URL
-- -c, --action-caption Message action link caption
-
-Sender:
-
-- -k, --public Sender's VAPID public key 
-- -p, --private Sender's VAPID private key
-
-Recipient:
-
-- -d, --p256dh Recipient's endpoint p256dh
-- -a, --auth Recipient's endpoint auth
-- Recipient's endpoint URL
-
-Optional:
-
-- -f, --from Sender's e-mail, e.g. mailto:alice@acme.com, or http(s) URL. 
-- -1, --aesgcm Turn aesgcm encoding. Default is aes128gcm
-- -o, --curl Do not send, print curl command. File keeps ciphered data.
-
-Option --сurl can be used for debugging with curl external program. File keeps encoded data for sending.
-
-Print out CURL command line to send web push notification
-
-Firefox:
-
-Send using AES GCM:
-```
-./webpush-curl -t Title -b body -i https://commandus.com/favicon.ico -f mailto:andrei.i.i.ivanov@commandus.com -l https://commandus.com/ -c "Visit site" -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk -a 4SgZbJVmKUP56tJ39wcWPw https://updates.push.services.mozilla.com/wpush/v2/gAAAAABbZ7cIJuyrIqApNuZd0AVjSSrYk5Cef5cI29-g8iRpHvFZzvqO6bI0ymUcf1tJpvg0lCIF7GxAbU7yg7EMXUh6c4MKaFPsSEsLzC7Mlb1JyIAMz5Wf0orVg15A2OD9dBCCUwbol78DdinNpwz-ExA67dH7InfiUDeYZS6QmVNXaPhzpGo -d BBpYsgvCmjRZTlwQ__nWoeaLwuqxVc9Eg-GSloPxQdvVxapVybJKJMns8IMkYQUDiLBrnXp-qFugkPBq3fOncvY
-```
-
-Chrome:
-
-Send using AES GCM:
-```
-./webpush-curl -t "hi there" -b "body message" -i https://commandus.com/favicon.ico -f "" -l https://commandus.com/ -c "Visit site" -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk -e https://fcm.googleapis.com/fcm/send/fsvJsFvUpvE:APA91bFLUUr0Owxupb1AqRZ_DE5AfVta35Hm2SAbczaGEQF6PgtEbhI0_ZWArirhcbioKakGPPR5lq4plQBm6QJazCKTiuQvRE1ptidKLq6S2y7h_89spPRi_E9ncJS59A5knRnKSxRh1T6TzJKizW739bWAQm7KKg -d BK0nI6BHSAM7yhv-5TUybvgzUSePr95RUkvNwDw3D7EsG_p0XpbbXnnY7PcwVWv9-v-17dDvD1mK7n4LWXcgSnM -a yMBwZZsKcENvwyeAux8FVg
-```
-
-Print out curl command line:
-```
-./webpush-curl -t "hi there" -b "body message" -i https://commandus.com/favicon.ico -f "" -l https://commandus.com/ -c "Visit site" -k BM9Czc7rYYOinc7x_ALzqFgPSXV497qg76W6csYRtCFzjaFHGyuzP2a08l1vykEV1lgq6P83BOhB9xp-H5wCr1A -p _93Jy3cT0SRuUA1B9-D8X_zfszukGUMjIcO5y44rqCk -e https://fcm.googleapis.com/fcm/send/fsvJsFvUpvE:APA91bFLUUr0Owxupb1AqRZ_DE5AfVta35Hm2SAbczaGEQF6PgtEbhI0_ZWArirhcbioKakGPPR5lq4plQBm6QJazCKTiuQvRE1ptidKLq6S2y7h_89spPRi_E9ncJS59A5knRnKSxRh1T6TzJKizW739bWAQm7KKg -d BK0nI6BHSAM7yhv-5TUybvgzUSePr95RUkvNwDw3D7EsG_p0XpbbXnnY7PcwVWv9-v-17dDvD1mK7n4LWXcgSnM -a yMBwZZsKcENvwyeAux8FVg -o aesgcm.bin
-
-curl -v -X POST -H "Content-Type: application/octet-stream" -H "Content-Encoding: aesgcm"  ...
-```
 
 ### Encryption/decryption tool using AES128GCM
 

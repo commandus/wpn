@@ -1,4 +1,5 @@
 SUBDIRS = .
+
 # In case of not protoc is available, copy precompiled protobuf
 EXT_PRE = /home/andrei/src/wpn/mcs/gen
 EXTGENMCS = $(EXT_PRE)/mcs.pb.h $(EXT_PRE)/android_checkin.pb.h $(EXT_PRE)/checkin.pb.h \
@@ -16,8 +17,8 @@ bin_PROGRAMS = \
 
 # commoncppflags = -O2 -I/usr/local/include -Imcs/gen -Ithird_party
 # commoncppflags = -O2 -I/usr/include -Imcs/gen -Ithird_party
-commoncppflags = -O2 -I/usr/include -Imcs/gen -Ithird_party -Ithird_party/ecec
-commoncppflags += -I/usr/local/opt/openssl@1.1/include
+# USE_JSON_NLOHMANN USE_JSON_RAPID
+commoncppflags = -O2 -I/usr/include -Imcs/gen -Ithird_party -Ithird_party/ecec -I/usr/local/opt/openssl@1.1/include -DUSE_JSON_RAPID
 
 # curllibs = -L/usr/local/lib/ -L. -lssl -lcrypto -lcurl
 curllibs = -L. -lssl -lcrypto -lcurl

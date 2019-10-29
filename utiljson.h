@@ -1,8 +1,5 @@
 #include <string>
 
-//#define USE_JSON_NLOHMANN
-#define USE_JSON_RAPID
-
 #ifdef USE_JSON_NLOHMANN
 #include "nlohmann/json.hpp"
 using JsonDocument = nlohmann::json;

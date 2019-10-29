@@ -20,6 +20,8 @@ static const char* JSON_NOTIFICATION_SOUND = "sound";
 static const char* JSON_NOTIFICATION_LINK = "click_action";
 static const char* JSON_NOTIFICATION_CATEGORY = "category";
 static const char* JSON_NOTIFICATION_DATA = "data";
+static const char* JSON_NOTIFICATION_ACTIONS = "actions";
+static const char* JSON_NOTIFICATION_ACTION = "action";
 
 static const char* KEY_SUBSCRIPTION_PUBLIC = "public";
 static const char* KEY_SUBSCRIPTION_PRIVATE = "private";
@@ -168,6 +170,14 @@ std::string jsClientNotification
 	RAPIDJSON_ADD_STRING(n, v, a, title, subject)
 	RAPIDJSON_ADD_STRING(n, v, a, icon, icon)
 	RAPIDJSON_ADD_STRING(n, v, a, click_action, link)
+
+	/*
+	Value actions(kArrayType);
+	Value action;
+	action.SetObject();
+	RAPIDJSON_ADD_STRING(action, v, a, action, link)
+	actions.PushBack(action, a);
+	*/
 
 	d.AddMember("notification", n, a);
 
@@ -781,12 +791,14 @@ std::string jsClientNotification
 	if (!to.empty())
 		requestBody[JSON_TO] = to;
 	JsonValue n = requestBody[JSON_NOTIFICATION];
-	if (subject.empty())
+	if (!subject.empty())
 		n[JSON_NOTIFICATION_TITLE] = subject;
-	if (subject.empty())
+	if (!subject.empty())
 		n[JSON_NOTIFICATION_ICON] = icon;
-	if (link.empty())
+	if (!link.empty()) {
 		n[JSON_NOTIFICATION_LINK] = link;
+	}
+  ]
 	return requestBody.dump();
 }
 
