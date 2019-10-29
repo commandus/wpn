@@ -48,7 +48,8 @@ std::string jsClientNotification
     const std::string &title, 
     const std::string &body,
     const std::string &icon,
-    const std::string &click_action
+    const std::string &click_action,
+	const std::string &data
 );
 
 std::string jsClientCommand

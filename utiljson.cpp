@@ -154,7 +154,8 @@ std::string jsClientNotification
     const std::string &subject, 
     const std::string &body,
     const std::string &icon,
-    const std::string &link
+    const std::string &link,
+	const std::string &data
 )
 {
 	Document d;
@@ -171,6 +172,10 @@ std::string jsClientNotification
 	RAPIDJSON_ADD_STRING(n, v, a, icon, icon)
 	RAPIDJSON_ADD_STRING(n, v, a, click_action, link)
 
+
+	if (!data.empty()) {
+		RAPIDJSON_ADD_STRING(n, v, a, data, data)
+	}
 	/*
 	Value actions(kArrayType);
 	Value action;
@@ -778,7 +783,8 @@ std::string jsClientNotification
     const std::string &subject, 
     const std::string &body,
     const std::string &icon,
-    const std::string &link
+    const std::string &link,
+	const std::string &data
 )
 {
 	JsonValue requestBody = {
@@ -798,7 +804,9 @@ std::string jsClientNotification
 	if (!link.empty()) {
 		n[JSON_NOTIFICATION_LINK] = link;
 	}
-  ]
+	if (!data.empty()) {
+		RAPIDJSON_ADD_STRING(n, v, a, data, data)
+	}
 	return requestBody.dump();
 }
 

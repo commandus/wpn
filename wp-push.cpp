@@ -166,10 +166,11 @@ int push2ClientNotificationFCM
 	const std::string &body,
 	const std::string &icon,
 	const std::string &click_action,
+	const std::string &data,
  	int verbosity
 )
 {
-	std::string request = jsClientNotification(client_token, title, body, icon, click_action);
+	std::string request = jsClientNotification(client_token, title, body, icon, click_action, data);
 	return push2ClientJSON(retval, server_key, client_token, request, verbosity);
 }
 

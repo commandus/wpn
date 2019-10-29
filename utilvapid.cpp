@@ -620,12 +620,13 @@ int webpushVapidJSON(
 	const std::string &body,
 	const std::string &icon, 
 	const std::string &link,
+	const std::string &data,
 	int contentEncoding,
 	time_t expiration
 )
 {
 	std::string publicKey, privateKey, endpoint, p256dh, auth, contact;
-	std::string jsonMsg = jsClientNotification(subscriptionJSON, subject, body, icon, link);
+	std::string jsonMsg = jsClientNotification(subscriptionJSON, subject, body, icon, link, data);
 	return webpushVapid(reuseCurl, retval, publicKey, privateKey, endpoint, p256dh, auth, jsonMsg, contact, contentEncoding, expiration);
 }
 

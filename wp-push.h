@@ -36,6 +36,7 @@ int push2ClientNotificationFCM
 	const std::string &body,
 	const std::string &icon,
 	const std::string &click_action,
+	const std::string &data,
 	int verbosity
 );
 

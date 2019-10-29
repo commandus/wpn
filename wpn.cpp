@@ -416,7 +416,7 @@ int main(int argc, char** argv)
 					break;
 			}
 
-			std::string body = jsClientNotification("", config.subject, config.body, config.icon, config.link);
+			std::string body = jsClientNotification("", config.subject, config.body, config.icon, config.link, config.data);
 
 			// for VAPID only one endpoint not many
 			for (std::vector<std::string>::const_iterator it(config.recipientTokens.begin()); it != config.recipientTokens.end(); ++it)
@@ -429,7 +429,7 @@ int main(int argc, char** argv)
 					switch (config.subscriptionMode) {
 						case SUBSCRIBE_FORCE_FIREBASE:
 							r = push2ClientNotificationFCM(&retval, serverKey, *it,
-								config.subject, config.body, config.icon, config.link, config.config->clientOptions->getVerbosity());
+								config.subject, config.body, config.icon, config.link, config.data, config.config->clientOptions->getVerbosity());
 							break;
 						case SUBSCRIBE_FORCE_VAPID:
 							if (config.config->clientOptions->getVerbosity() > 3) {

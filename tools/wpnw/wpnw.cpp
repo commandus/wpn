@@ -138,14 +138,15 @@ int sendMessageSubscription(
 	const std::string &subject,
 	const std::string &body,
 	const std::string &icon,
-	const std::string &link
+	const std::string &link,
+	const std::string &data
 ) {
 	std::string registrationid = subscription->getToken();
 	std::string p256dh = subscription->getWpnKeys().getPublicKey();
 	std::string auth = subscription->getWpnKeys().getAuthSecret();
 	int provider = subscription->getSubscribeMode();
 	std::string endPoint = endpoint(registrationid, true, provider);	///< 0- Chrome, 1- Firefox
-	std::string msg = jsClientNotification(registrationid, subject, body, icon, link);
+	std::string msg = jsClientNotification(registrationid, subject, body, icon, link, data);
 
 	return sendMessage(
 		curl,
@@ -176,6 +177,7 @@ int main(int argc, char **argv)
 	struct arg_str *a_body = arg_str0("b", "body", "<Text>", "Default read from stdin");
 	struct arg_str *a_icon = arg_str0("i", "icon", "<URL>", "http[s]:// icon address.");
 	struct arg_str *a_link = arg_str0("l", "link", "<URL>", "http[s]:// action address.");
+	struct arg_str *a_data = arg_str0("D", "data", "<text>", "optional payload");
 
 	// from
 	struct arg_str *a_contact = arg_str0("f", "from", "<URL>", "Sender's email e.g. mailto:alice@acme.com or https[s] link");
@@ -207,7 +209,7 @@ int main(int argc, char **argv)
 		// to
 		a_provider, a_force_publickey, a_force_privatekey,
 		// options
-		a_config, a_aesgcm, a_verbosity, a_help, a_end 
+		a_config, a_data, a_aesgcm, a_verbosity, a_help, a_end 
 	};
 
 	// verify the argtable[] entries were allocated successfully
@@ -277,6 +279,7 @@ int main(int argc, char **argv)
 	std::string subject; 
 	std::string icon;
 	std::string link;
+	std::string data;
 	
 	std::string force_privatekey = *a_force_privatekey->sval;
 	std::string force_publickey = *a_force_publickey->sval; 
@@ -295,6 +298,10 @@ int main(int argc, char **argv)
 		link = *a_link->sval;
 	else 
 		link = "";
+	if (a_data->count)
+		data = *a_data->sval;
+	else 
+		data = "";
 	
 	std::string contact = *a_contact->sval;
 	std::string cmdFileName = "curl.out";
@@ -351,7 +358,7 @@ int main(int argc, char **argv)
 	if (isNoIdOrName) {
 		// No id or name is provided, get from -r -d -a options
 		std::string endPoint = endpoint(registrationid, true, (int) provider);	///< 0- Chrome, 1- Firefox
-		std::string msg = jsClientNotification(registrationid, subject, body, icon, link);
+		std::string msg = jsClientNotification(registrationid, subject, body, icon, link, data);
 
 		std::string retval;
 		int r = sendMessage(
@@ -417,7 +424,8 @@ int main(int argc, char **argv)
 				subject,
 				body,
 				icon,
-				link
+				link,
+				data
 			);
 
 			if (r < 200 || r > 299) {
@@ -445,7 +453,8 @@ int main(int argc, char **argv)
 								subject,
 								body,
 								icon,
-								link
+								link,
+								data
 							);
 						}
 					}

@@ -100,6 +100,7 @@ int WpnConfig::parseCmd
 	struct arg_str *a_body = arg_str0("b", "body", "<Text>", "Body");
 	struct arg_str *a_icon = arg_str0("i", "icon", "<URL>", "http[s]:// icon address.");
 	struct arg_str *a_link = arg_str0("l", "link", "<URL>", "http[s]:// action address.");
+	struct arg_str *a_data = arg_str0("D", "data", "<text>", "Extra data");
 	struct arg_str *a_command = arg_str0("x", "execute", "<command line>", "e.g. ls");
 
 	// VAPID sender's options
@@ -140,7 +141,7 @@ int WpnConfig::parseCmd
 		a_list, a_list_qrcode, a_invert_qrcode, a_list_email, a_link_email, a_credentials, a_keys, 
 		a_subscribe_vapid, a_subscribe_fcm, a_unsubscribe, a_send, a_sub,
 		a_name, a_subscribe_url, a_authorized_entity, a_file_name,
-		a_server_key, a_subject, a_body, a_icon, a_link, a_command,
+		a_server_key, a_subject, a_body, a_icon, a_link, a_data, a_command,
 		a_contact, a_p256dh, a_auth,
 		a_recipient_tokens, a_recipient_token_file, a_output, a_template_file,
 		a_output_lib_filenames, a_notify_function_name,
@@ -442,7 +443,16 @@ int WpnConfig::parseCmd
 	{
 		link = "";
 	}
-	
+
+	if (a_data->count)
+	{
+		data = *a_data->sval;
+	} 
+	else 
+	{
+		data = "";
+	}
+
 	if (a_command->count)
 	{
 		command = *a_command->sval;

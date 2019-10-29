@@ -84,6 +84,7 @@ public:
 	std::string body;								///< message body
 	std::string icon;
 	std::string link;
+	std::string data;								///< extra data
 	std::string command;							///< command to be executed, van be empty(nothing to do)
 	// output external function name
 	std::string notifyFunctionName;
